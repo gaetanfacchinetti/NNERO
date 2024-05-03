@@ -1,0 +1,13 @@
+LICENSE
+MANIFEST.in
+README.md
+pyproject.toml
+src/nnero/__init__.py
+src/nnero/classifier.py
+src/nnero/data.py
+src/nnero/regressor.py
+src/nnero.egg-info/PKG-INFO
+src/nnero.egg-info/SOURCES.txt
+src/nnero.egg-info/dependency_links.txt
+src/nnero.egg-info/requires.txt
+src/nnero.egg-info/top_level.txt

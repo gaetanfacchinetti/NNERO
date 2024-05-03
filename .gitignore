@@ -1,2 +1,3 @@
 dist
 src/nnero/__pycache__
+src/nnero/nnero.egg-info
