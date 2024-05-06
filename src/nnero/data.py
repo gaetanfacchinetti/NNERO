@@ -13,6 +13,15 @@ from os.path import isfile, join
 import scipy
 import scipy.integrate
 
+
+# need to add more stuff to what we save from the database (like the redshift bins predicted by the regressor)
+# (better coupling between database and neural network)
+
+# need to add tests of the neural network
+
+# need to finish implementing tau_ion
+
+
 MPC_TO_M = 3.08567758128e+22
 MSUN_TO_KG = 1.989e+30
 KM_TO_MPC = 1/MPC_TO_M * 1e+3
@@ -21,7 +30,6 @@ MASS_HELIUM = 6.6464731e-27  # in kg
 SIGMA_THOMSON = 6.6524587321e-29 # in m^2
 C_LIGHT = 299792458 # in m / s
 Y_He = 0.24
-
 
 
 def tau_ion(z, xHIIdb, ombh2, ommh2, h):
@@ -43,6 +51,16 @@ def tau_ion(z, xHIIdb, ombh2, ommh2, h):
     return pref * (res_1+res_2)
 
 
+LABELS_TO_PLOT = {'hlittle' : r'$h$', 'Ln_1010_As' : r'$\ln(10^{10}A_{\rm s})$', 'F_STAR10' : r'$\log_{10}(f_{\star, 10})$',
+                  'ALPHA_STAR' : r'$\alpha_\star$', 't_STAR' : r'$t_\star$', 'F_ESC10' : r'$\log_{10}(f_{\rm esc, 10})$', 
+                  'ALPHA_ESC' : r'$\alpha_{\rm esc}$', 'M_TURN' : r'$\log_{10}(M_{\rm TURN}/{\rm M_\odot})$', 'Omch2' : r'$\Omega_{\rm c} h^2$', 
+                  'Ombh2' : r'$\Omega_{\rm b} h^2$', 'POWER_INDEX' : r'$n_{\rm s}$', 'M_WDM' : r'$m_{\rm WDM}~{\rm [keV]}$'}
+
+def label_to_plot(label) -> None:
+    if label in LABELS_TO_PLOT.keys(): 
+        return LABELS_TO_PLOT[label]
+    else:
+        return label
 
 
 class Database:
@@ -58,13 +76,30 @@ class Database:
         # get the value of the parameters drawn
         self._params_cosmo = self._params.get("params_cosmo")
         self._params_astro = self._params.get("params_astro")
-
+        
         # get the min and max values of the parameters
-        self._params_cosmo_range = self._params.get("params_cosmo_range", None)
-        self._params_astro_range = self._params.get("params_astro_range", None)
+        self._params_range = self._params.get("params_range", None)
 
         # get the uniform draws resulting in the drawn values
         self._udraws = self._uparams.get("draws")
+
+        # get all parameters name involved
+        self._params_keys = []
+        for key, _ in self._udraws[0].items():
+            self._params_keys.append(key)
+
+        # construct a dictionnary of all parameters and an array ordered
+        # in termps of the params_keys list defined above
+        self._params_all_dict = []
+        self._params_all_arr  = np.zeros((len(self._params_astro), len(self._params_keys)))
+        for i in range(0, len(self._params_astro)):
+            self._params_all_dict.append( ( self._params_astro[i] | self._params_cosmo[i] ))
+            
+            # define 
+            for ikey, key in enumerate(self._params_keys):
+                self._params_all_arr[i, ikey] = self._params_all_dict[int(i)][key]
+
+    
 
         self.read_id()
         self.prepare(frac_test=frac_test, len_z=len_z, z_min=z_min, z_max=z_max)
@@ -139,11 +174,6 @@ class Database:
         # sort the id of the test dataset
         self._id_test.sort()
 
-        # get all parameters involved
-        self._params_keys = []
-        for key, _ in self._udraws[0].items():
-            self._params_keys.append(key)
-
         # prepare the training / test datasets
         self._len_z = len_z
         self._z_min = z_min
@@ -152,6 +182,7 @@ class Database:
         self._uredshift = np.linspace(0, 1, len_z)  # normalised redshift steps
         self._redshift  = (z_max - z_min) * self._uredshift + z_min
 
+        # The training value (normalised to unity)
         self._x_train = np.zeros((self._n_train, len(self._params_keys)))
         self._y_train = np.zeros((self._n_train, len_z))
         self._x_test  = np.zeros((self._n_test, len(self._params_keys)))
@@ -159,6 +190,9 @@ class Database:
 
         self._y_train_class = np.zeros((self._n_train, 3))
         self._y_test_class = np.zeros((self._n_test, 3))
+
+        # The parameters that correspond to the training values
+        self._params = np.zeros((self._n_sample, len(self._params_keys)))
 
 
 
@@ -227,3 +261,25 @@ class Database:
     def create_test_dataset(self) -> None:
         self._x_test_valid, self._y_test_valid, self._n_valid_test, self._id_valid_test = self._create_dataset(self._n_test, self._id_test, self._x_test, self._y_test, self._y_test_class) 
         
+
+    # create two arrays of the parameters values and the valid parameters values
+    def create_params_dataset(self) -> None:
+        
+        id_valid = []
+
+        for i in range(0, self._n_sample) :
+
+            run = p21c.Run(self._path, "Lightcone_rs1993_" + str(int(self._id[i])) + ".h5")
+            z_glob, r_xHIIdb = self.regularised_data(run)
+
+            val_McGreer = scipy.interpolate.interp1d(z_glob, r_xHIIdb)(5.9)
+
+            # get only the valid runs
+            if val_McGreer > 0.69: # McGreer+15 bound at 5 sigma
+                id_valid.append(i)
+
+            # define the features
+            for ikey, key in enumerate(self._params_keys):
+                self._params[i, ikey] = self._params_all_dict[int(self._id[i])][key]
+            
+        self._params_valid = self._params[id_valid, :]
