@@ -8,7 +8,7 @@ import py21cmcast as p21c
 import numpy as np
 
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, join, abspath
 
 import scipy
 import scipy.integrate
@@ -63,71 +63,188 @@ def label_to_plot(label) -> None:
         return label
 
 
-class Database:
+# We need to store somewhere
+# - the parameter list
+# - the parameter ranges
+# - the redshifts on which we train
 
-    def __init__(self, path:str, *, frac_test:float = 0.2, len_z:int = 32, z_min:float = 4.0, z_max:float = 35) :
 
-        self._path = path
+class MetaData:
+    
+    """
+        class Metadata
+
+    Contain data about the data. ID card of the data.
+    Is saved with the neural-network models to use them in a standalone mode once they are trained.
+
+    """
+
+    def __init__(self, path : str, redshifts : np.ndarray = None, param_names : list = None):
+
+        # directory was the data is stored
+        self._directory = abspath(path)
+
+        # define a default redshift array on which to make the predictions
+        # define the labels of the regressor
+        if redshifts is None:
+            self._redshifts = np.linspace(4, 35, 32)
+        else:
+            self._redshifts = redshifts
+
+        # define a default parameter list to run on
+        # features of the neural networks
+        if param_names is None:
+            self._param_names = ['F_STAR10', 'ALPHA_STAR', 't_STAR', 'F_ESC10', 'ALPHA_ESC', 'M_TURN', 'Omch2', 'Ombh2', 'hlittle', 'Ln_1010_As', 'POWER_INDEX', 'M_WDM']
+        else : 
+            self._param_names = param_names
+
+        # define the length of the lists
+        self._nredshifts = len(self.redshifts)
+        self._nparams = len(self.param_names)
+        
+        # The rest will be set later when data is used
+        self._param_ranges  = None # range of parameters
+        self._nsamples      = None # number of samples
+        self._ntrain        = None # number of train point
+        self._ntest         = None # number of test point
+        self._ntrain_valid  = None # number of valid training point
+        self._ntest_valid   = None # number of valid test point
+        self._frac_test     = None # fraction of testing point
+
+    
+    def __getattr__(self, name):
+        try:
+            return self.__dict__['_' + name]
+        except KeyError:
+            msg = "'{0}' object has no attribute '{1}'"
+            raise AttributeError(msg.format(type(self).__name__, '_' + name))
+        
+    def __setattr__(self, name: str, value) -> None:
+        
+        # forbid modification of attributes not starting with '_'
+        if not name.startswith('_'):
+            msg = "Cannot modify attribute '{1}' of object '{0}'"
+            raise AttributeError(msg.format(type(self).__name__, name))
+        
+        self.__dict__[name] = value
+
+    # saving the metadata
+    def save(self, filename):
+
+        with open(filename + '_metadata.npz', 'wb') as file:
+            np.savez(file, 
+                     directory   = self.directory,
+                     redshifts    = self.redshifts,
+                     param_names  = self.param_names,
+                     nredshifts   = self.nredshifts,
+                     nparams      = self.nparams,
+                     param_ranges = self.param_ranges,
+                     nsamples     = self.nsamples,
+                     ntrain       = self.ntrain,
+                     ntest        = self.ntest,
+                     ntrain_valid = self.ntrain_valid,
+                     ntest_valid  = self.ntest_valid,
+                     frac_test    = self.frac_test)
+
+    @classmethod    
+    def load(cls, filename):
+
+        with open(filename + '_metadata.npz', 'rb') as file:
+            data = np.load(file, allow_pickle=True)
+            
+            # get the user input metadata
+            directory    = str(data['directory'])
+            redshifts    = data['redshifts']
+            param_names  = data['param_names']
+
+            metadata = MetaData(directory, redshifts, param_names)
+            metadata._nredshifts   = data['nredshifts']
+            metadata._nparams      = data['nparams']
+            metadata._param_ranges = data['param_ranges'].tolist()
+            metadata._nsamples     = data['nsamples']
+            metadata._ntrain       = data['ntrain']
+            metadata._ntest        = data['ntest']
+            metadata._ntrain_valid = data['ntrain_valid']
+            metadata._ntest_valid  = data['ntest_valid']
+            metadata._frac_test    = data['frac_test']
+
+        return metadata
+
+
+
+
+def true_to_uniform(x, min, max):
+    assert (min <= max), "The minimum value is bigger than the maximum one" 
+    return (x - min) / (max - min)
+
+def uniform_to_true(x, min, max):
+    assert (min <= max), "The minimum value is bigger than the maximum one" 
+    return (max - min) * x + min
+
+
+
+class DataBase:
+
+    def __init__(self, metadata, *, frac_test:float = 0.2) :
+
+        self._metadata = metadata     
+        self._metadata._frac_test = frac_test
 
         # load the database files (of the parameters and corresponding )
-        self._params  = np.load(self._path + '/Database.npz', allow_pickle=True)
-        self._uparams = np.load(self._path + '/Uniform.npz', allow_pickle=True)
+        _data  = np.load(self.metadata.directory + '/Database.npz', allow_pickle=True)
+        #_udata = np.load(self.md.directory + '/Uniform.npz',  allow_pickle=True)
 
         # get the value of the parameters drawn
-        self._params_cosmo = self._params.get("params_cosmo")
-        self._params_astro = self._params.get("params_astro")
+        self._data_cosmo = _data.get("params_cosmo")
+        self._data_astro = _data.get("params_astro")
         
         # get the min and max values of the parameters
-        self._params_range = self._params.get("params_range", None)
+        # store it in the metadata object
+        self.metadata._param_ranges = _data.get("params_range", None)
+        if self.metadata._param_ranges is not None:
+            self.metadata._param_ranges = self.metadata._param_ranges.tolist()
 
         # get the uniform draws resulting in the drawn values
-        self._udraws = self._uparams.get("draws")
-
-        # get all parameters name involved
-        self._params_keys = []
-        for key, _ in self._udraws[0].items():
-            self._params_keys.append(key)
+        #self._udraws = _udata.get("draws")
 
         # construct a dictionnary of all parameters and an array ordered
         # in termps of the params_keys list defined above
-        self._params_all_dict = []
-        self._params_all_arr  = np.zeros((len(self._params_astro), len(self._params_keys)))
-        for i in range(0, len(self._params_astro)):
-            self._params_all_dict.append( ( self._params_astro[i] | self._params_cosmo[i] ))
+        self._data_dict = []
+        self._data_arr  = np.zeros((len(self.data_astro), self.metadata.nparams))
+        for i in range(0, len(self.data_astro)):
+            self._data_dict.append( ( self.data_astro[i] | self.data_cosmo[i] ))
             
             # define 
-            for ikey, key in enumerate(self._params_keys):
-                self._params_all_arr[i, ikey] = self._params_all_dict[int(i)][key]
+            for ikey, key in enumerate(self.metadata.param_names):
+                self._data_arr[i, ikey] = self._data_dict[int(i)][key]
 
     
-
         self.read_id()
-        self.prepare(frac_test=frac_test, len_z=len_z, z_min=z_min, z_max=z_max)
-        self.create_train_dataset()
-        self.create_test_dataset()
+        self.prepare()
+        self.create_dataset()
 
         print("Database initialised :")
         print("--------------------------------")
-        print("| n_sample :", self._n_sample)
-        print("| n_train :", self._n_train)
-        print("| n_test :", self._n_test)
+        print("| n_sample :", self.metadata.nsamples)
+        print("| n_train :", self.metadata.ntrain)
+        print("| n_test :", self.metadata.ntest)
         print("--------------------------------")
-        print("| n_valid_train :", self._n_valid_train)
-        print("| n_valid_test :", self._n_valid_test)
+        print("| n_valid_train :", self.metadata.ntrain_valid)
+        print("| n_valid_test :", self.metadata.ntest_valid)
         print("--------------------------------")
         
+
+    @property
+    def metadata(self):
+        return self._metadata
 
     def read_id(self) -> None:
 
         # get all the files that have succesfully run in the folder
-        onlyfiles = [f for f in listdir(self._path + '/cache/') if isfile(join(self._path + '/cache/', f))]
+        onlyfiles = [f for f in listdir(self.metadata.directory + '/cache/') if isfile(join(self.metadata.directory + '/cache/', f))]
         
         # make a list of the files we need need (only take the tables)
-        goodfiles = []
-        for file in onlyfiles:
-            # only the tables should have a name that start with the letter T
-            if file[0] == 'T': 
-                goodfiles.append(file)
+        goodfiles = [file for file in onlyfiles if file[0:5] == 'Table']
 
         # get the id of all the successfull runs
         self._id = np.array([], dtype = np.int64)
@@ -157,43 +274,30 @@ class Database:
 
 
 
-    def prepare(self, *, frac_test:float = 0.2, len_z:int = 32, z_min:float = 4.0, z_max:float = 35) -> None:
+    def prepare(self) -> None:
 
-        self._n_sample = len(self._id)
+        # define the size of the sample
+        self.metadata._nsamples = len(self._id)
+        self.metadata._ntest    = int(self.metadata.frac_test * self.metadata.nsamples)
+        self.metadata._ntrain   = self.metadata.nsamples - self.metadata.ntest
 
-        self._n_test  = int(frac_test * self._n_sample)
-        self._n_train = self._n_sample - self._n_test
-
-        self._id_test  = np.zeros(self._n_test, dtype = np.int64)
+        # define the identification number of the test and train subdatasests
+        self._id_test  = np.zeros(self.metadata.ntest, dtype = np.int64)
         self._id_train = copy.copy(self._id)
 
-        for i in range(0, self._n_test):
+        for i in range(0, self.metadata.ntest):
             self._id_test[i] = random.choice(self._id_train)
             self._id_train = np.delete(self._id_train, np.where(self._id_train == self._id_test[i])[0][0])
 
         # sort the id of the test dataset
         self._id_test.sort()
+        self._id_train.sort()
 
-        # prepare the training / test datasets
-        self._len_z = len_z
-        self._z_min = z_min
-        self._z_max = z_max
-
-        self._uredshift = np.linspace(0, 1, len_z)  # normalised redshift steps
-        self._redshift  = (z_max - z_min) * self._uredshift + z_min
-
-        # The training value (normalised to unity)
-        self._x_train = np.zeros((self._n_train, len(self._params_keys)))
-        self._y_train = np.zeros((self._n_train, len_z))
-        self._x_test  = np.zeros((self._n_test, len(self._params_keys)))
-        self._y_test  = np.zeros((self._n_test, len_z))
-
-        self._y_train_class = np.zeros((self._n_train, 3))
-        self._y_test_class = np.zeros((self._n_test, 3))
-
-        # The parameters that correspond to the training values
-        self._params = np.zeros((self._n_sample, len(self._params_keys)))
-
+        # define the index (position in the array of sample, different from id)
+        # if all runs work then id and indices are the same, in practice they are not
+        self._index_train = [i for i in range(0, self.metadata.ntrain) if self._id[i] in self._id_train]
+        self._index_test  = [i for i in range(0, self.metadata.ntest)  if self._id[i] in self._id_test]
+        
 
 
     def regularised_data(self, run, n_smooth:int = 10):
@@ -215,71 +319,147 @@ class Database:
         return z_glob, new_array
 
 
-    def _create_dataset(self, n, id, x, y, y_class) -> None:
-
-        n_valid = 0
-        id_valid = []
-    
-        for i in range(0, n) :
-
-            run = p21c.Run(self._path, "Lightcone_rs1993_" + str(int(id[i])) + ".h5")
-            z_glob, r_xHIIdb = self.regularised_data(run)
-            xHIIdb = scipy.interpolate.interp1d(z_glob, r_xHIIdb)(self._redshift)
-
-            val_McGreer = scipy.interpolate.interp1d(z_glob, r_xHIIdb)(5.9)
-
-            # get only the valid runs
-            if val_McGreer > 0.69: # McGreer+15 bound at 5 sigma
-                n_valid = n_valid + 1
-                id_valid.append(i)
-            
-            # define the labels for the classifier
-            if val_McGreer > 0.99:
-                y_class[i, :] = [1, 0, 0] 
-            else:
-                if val_McGreer > 0.69:
-                    y_class[i, :] = [0, 1, 0]
-                else:
-                    y_class[i, :] = [0, 0, 1]
-
-            # define the features
-            for ikey, key in enumerate(self._params_keys):
-                x[i, ikey] = self._udraws[int(id[i])][key]
-            
-            # define the labels for the regressor
-            y[i, :] = xHIIdb
-
-        x_valid = x[id_valid, :]
-        y_valid = y[id_valid, :]
-
-        return (x_valid, y_valid, n_valid, id_valid)
-
-
-    def create_train_dataset(self) -> None:
-        self._x_train_valid, self._y_train_valid, self._n_valid_train, self._id_valid_train = self._create_dataset(self._n_train, self._id_train, self._x_train, self._y_train, self._y_train_class)
-        
-    def create_test_dataset(self) -> None:
-        self._x_test_valid, self._y_test_valid, self._n_valid_test, self._id_valid_test = self._create_dataset(self._n_test, self._id_test, self._x_test, self._y_test, self._y_test_class) 
-        
 
     # create two arrays of the parameters values and the valid parameters values
     def create_params_dataset(self) -> None:
         
         id_valid = []
+        id_valid_tau_Planck_3sigma = []
 
         for i in range(0, self._n_sample) :
 
-            run = p21c.Run(self._path, "Lightcone_rs1993_" + str(int(self._id[i])) + ".h5")
+            run = p21c.Run(self.metadata.directory, "Lightcone_rs1993_" + str(int(self._id[i])) + ".h5")
             z_glob, r_xHIIdb = self.regularised_data(run)
 
             val_McGreer = scipy.interpolate.interp1d(z_glob, r_xHIIdb)(5.9)
+
+            # define the features
+            for ikey, key in enumerate(self._params_keys):
+                self._params[i, ikey] = self._data_dict[int(self._id[i])][key]
 
             # get only the valid runs
             if val_McGreer > 0.69: # McGreer+15 bound at 5 sigma
                 id_valid.append(i)
 
-            # define the features
-            for ikey, key in enumerate(self._params_keys):
-                self._params[i, ikey] = self._params_all_dict[int(self._id[i])][key]
+                tau = tau_ion(z_glob, r_xHIIdb, self._data_dict[i]['Ombh2'], self._data_dict[i]['Ombh2'] + self._data_dict[i]['Omch2'], self._data_dict[i]['hlittle'])
+
+                if tau < (0.0561 + 3*0.0071) and tau > (0.0561 - 3*0.0071):
+                    id_valid_tau_Planck_3sigma.append(i)
             
         self._params_valid = self._params[id_valid, :]
+        self._params_valid_tau_Planck_3sigma = self._params[id_valid_tau_Planck_3sigma, :]
+
+
+    def create_dataset(self):
+
+        # id refers to the number on the file
+        self._id_valid = [] 
+        self._id_test_valid  = []
+        self._id_train_valid = []
+
+        # index refers to the position in the array of all samples
+        self._index_valid = []
+        self._index_test_valid = []
+        self._index_train_valid = []
+
+        self._x_data = np.zeros((self.metadata.nsamples, self.metadata.nparams))
+        self._u_data = np.zeros((self.metadata.nsamples, self.metadata.nparams))
+        self._y_data = np.zeros((self.metadata.nsamples, self.metadata.nredshifts))
+        self._c_data = np.zeros((self.metadata.nsamples, 3))
+        
+        for i in range(0, self.metadata.nsamples) :
+
+            run = p21c.Run(self.metadata.directory, "Lightcone_rs1993_" + str(int(self._id[i])) + ".h5")
+            z_glob, r_xHIIdb = self.regularised_data(run)
+            xHIIdb = scipy.interpolate.interp1d(z_glob, r_xHIIdb)(self.metadata.redshifts)
+
+            val_McGreer = scipy.interpolate.interp1d(z_glob, r_xHIIdb)(5.9)
+
+            # get only the valid runs
+            if val_McGreer > 0.69: # McGreer+15 bound at 5 sigma
+
+                self._id_valid.append(self._id[i])
+                self._index_valid.append(i)
+                
+                if self._id[i] in self._id_train:
+                    self._id_train_valid.append(self._id[i])
+                    self._index_train_valid.append(i)
+                if self._id[i] in self._id_test:
+                    self._id_test_valid.append(self._id[i])
+                    self._index_test_valid.append(i)
+            
+            # define the labels for the classifier
+            if val_McGreer > 0.99:
+                self._c_data[i, :] = [1, 0, 0] 
+            else:
+                if val_McGreer > 0.69:
+                    self._c_data[i, :] = [0, 1, 0]
+                else:
+                    self._c_data[i, :] = [0, 0, 1]
+
+            # define the features
+            for ikey in range(0, self.metadata.nparams):
+
+                self._x_data[i, ikey] =  self.data_arr[int(self._id[i]), ikey]
+                
+                min = self.metadata.param_ranges[self.metadata.param_names[ikey]][0]
+                max = self.metadata.param_ranges[self.metadata.param_names[ikey]][1]
+                
+                self._u_data[i, ikey] = true_to_uniform(self._x_data[i, ikey], min, max) 
+                
+                #x[i, ikey] = self._udraws[int(id[i])][key]
+            
+            # define the labels for the regressor
+            self._y_data[i, :] = xHIIdb
+
+
+        self._x_data_valid = self._x_data[self._index_valid, :]
+        self._y_data_valid = self._y_data[self._index_valid, :]
+        self._u_data_valid = self._u_data[self._index_valid, :]
+
+        # training datasets
+
+        self._x_train = self._x_data[self._index_train, :]
+        self._u_train = self._u_data[self._index_train, :]
+        self._y_train = self._y_data[self._index_train, :]
+        self._c_train = self._c_data[self._index_train, :]
+
+        self._x_train_valid = self._x_data[self._index_train_valid, :]
+        self._u_train_valid = self._u_data[self._index_train_valid, :]
+        self._y_train_valid = self._y_data[self._index_train_valid, :]
+
+        
+        # test datasets
+
+        self._x_test = self._x_data[self._index_test, :]
+        self._u_test = self._u_data[self._index_test, :]
+        self._y_test = self._y_data[self._index_test, :]
+        self._c_test = self._c_data[self._index_test, :]
+
+        self._x_test_valid = self._x_data[self._index_test_valid, :]
+        self._u_test_valid = self._u_data[self._index_test_valid, :]
+        self._y_test_valid = self._y_data[self._index_test_valid, :]
+
+        self.metadata._ntrain_valid = len(self._index_train_valid)
+        self.metadata._ntest_valid  = len(self._index_test_valid)
+
+
+
+    def __getattr__(self, name):
+        try:
+            return self.__dict__['_' + name]
+        except KeyError:
+            msg = "'{0}' object has no attribute '{1}'"
+            raise AttributeError(msg.format(type(self).__name__, '_' + name))
+        
+
+    def __setattr__(self, name: str, value) -> None:
+        
+        # forbid modification of attributes not starting with '_'
+        
+        if not name.startswith('_'):
+            msg = "Cannot modify attribute '{1}' of object '{0}'"
+            raise AttributeError(msg.format(type(self).__name__, name))
+        
+        self.__dict__[name] = value
+    
