@@ -155,7 +155,7 @@ class MetaData:
             # get the user input metadata
             directory    = str(data['directory'])
             redshifts    = data['redshifts']
-            param_names  = data['param_names']
+            param_names  = list(data['param_names'])
 
             metadata = MetaData(directory, redshifts, param_names)
             metadata._nredshifts   = data['nredshifts']
@@ -170,6 +170,22 @@ class MetaData:
 
         return metadata
 
+
+    def __eq__(self, other):
+        
+        for key, value in self.__dict__.items():
+            other_value = other.__dict__[key]
+
+            if (key in ["_redshifts", "_param_ranges", "_param_names"]):
+                if (len(value) != len(other_value)):
+                    return False
+                if np.any(value != other_value):
+                    return False
+            else:
+                if value != other_value:
+                    return False
+            
+        return True
 
 
 
@@ -295,8 +311,8 @@ class DataBase:
 
         # define the index (position in the array of sample, different from id)
         # if all runs work then id and indices are the same, in practice they are not
-        self._index_train = [i for i in range(0, self.metadata.ntrain) if self._id[i] in self._id_train]
-        self._index_test  = [i for i in range(0, self.metadata.ntest)  if self._id[i] in self._id_test]
+        self._index_train = [i for i in range(0, self.metadata.nsamples) if self._id[i] in self._id_train]
+        self._index_test  = [i for i in range(0, self.metadata.nsamples) if self._id[i] in self._id_test]
         
 
 

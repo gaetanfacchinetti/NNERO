@@ -4,6 +4,7 @@ import tensorflow.keras as keras
 
 from .data import MetaData
 from .data import DataBase
+from .data import true_to_uniform, tau_ion, uniform_to_true
 
 class NeuralNetwork:
 
@@ -20,7 +21,6 @@ class NeuralNetwork:
     def _train(self, x, y, metadata, *, epochs = 500, validation_split=0.1, verbose='auto', batch_size=32, **kwargs):
 
         # set the metadata if it is new
-        # NEED TO MAKE THIS FUNCTION BETTER, DOES NOT WORK AS IT IS
         if (self._metadata is not None) and (self._metadata != metadata):
             raise ValueError("The metadata should be the same when training successively")
         
@@ -46,16 +46,24 @@ class NeuralNetwork:
         self._metadata.save(path + "/" + self._name)
         self._model.save(path + "/" + self._name + '.keras')
 
-    def predict(self, x):
-        return self._model.predict(x, verbose=0)
-
-    # -------------------------------
-
     def _load_history(self, path) -> None:
         
         with open(path + "/" + self._name + '_history.npz', 'rb') as file: 
             data = np.load(file, allow_pickle=True)
             self._history = data['history']
+
+
+    def postprocess(self, prediction):
+        return prediction
+
+    def predict(self, x):
+        
+
+        if len(x.shape) < 2:
+            x = np.array([x])
+        
+        return self.postprocess(self._model.predict(x, verbose=0))
+
 
 
     @property
@@ -85,8 +93,8 @@ class Classifier(NeuralNetwork):
             model = keras.Sequential(
                 [
                 keras.Input(shape=(n_input,), name="input"),
-                keras.layers.Dense(10, name="layer_1_nn", activation = "sigmoid", kernel_initializer='normal'),
-                keras.layers.Dense(10, name="layer_2_nn", activation = "sigmoid", kernel_initializer='normal'),
+                keras.layers.Dense(12, name="layer_1_nn", activation = "sigmoid", kernel_initializer='normal'),
+                keras.layers.Dense(12, name="layer_2_nn", activation = "sigmoid", kernel_initializer='normal'),
                 keras.layers.Dense(3,  name="output", kernel_initializer='normal', activation = "softmax"),
                 ]
             )
@@ -106,10 +114,38 @@ class Classifier(NeuralNetwork):
         classifier = Classifier(model = model, name = name, check_name = False)
         classifier._load_history(path)
         classifier._metadata = MetaData.load(path + "/" + name)
-        classifier._model.summary()
         return classifier
     
+    def test(self, database):
+
+        res = np.zeros((3, 3))
+
+        indices = [[[] for j in range(0, 3)] for i in range(0, 3)]
+        prediction = self.predict(database.u_test)
+
+        for i in range(0, database.metadata.ntest):
+
+            index = np.argmax(prediction[i, :])
+
+            for j in range(0, 3):
+                if database.c_test[i, j] == 1:
+                    res[index, j] = res[index, j] + 1
+                    indices[index][j].append(i)
+                    
+        print("\t | actually reionized | actrually valid (not reionized) | actually not valid")
+        print("predicted reionised             | " + str(res[0, 0]) + " | " + str(res[0, 1]) + " | " + str(res[0, 2]))
+        print("predicted valid (not reionized) | " + str(res[1, 0]) + " | " + str(res[1, 1]) + " | " + str(res[1, 2]))
+        print("predicted not valid             | " + str(res[2, 0]) + " | " + str(res[2, 1]) + " | " + str(res[2, 2]))
+
+        return res
+
     
+
+
+def rel_abs_loss(y_true, y_pred):
+    return tf.reduce_mean(tf.abs(1.0-y_pred/y_true))
+
+keras.utils.get_custom_objects()['rel_abs_loss'] = rel_abs_loss
 
 
 
@@ -126,7 +162,7 @@ class Regressor(NeuralNetwork):
             raise AttributeError("Plase give your custom model a name different from the default value")
 
         if model is None:
-    
+
             # Define a simple default classifier
             model = keras.Sequential(
                 [
@@ -141,33 +177,70 @@ class Regressor(NeuralNetwork):
                 keras.layers.Dense(n_output,  name="output", kernel_initializer='normal'),
                 ]
             )
-
+        
         super().__init__(model, name)
 
-    def square_rel_loss(y_true, y_pred):
-        return tf.reduce_mean(tf.abs(1.0-y_pred/y_true))
 
     def compile(self, optimizer = tf.keras.optimizers.AdamW(learning_rate=5e-5), **kwargs):
-        self._compile(self.square_rel_loss, optimizer=optimizer, **kwargs)
+        self._compile(rel_abs_loss, optimizer=optimizer, **kwargs)
 
     def train(self, db, *, epochs = 500, validation_split=0.1, verbose='auto', batch_size=32, **kwargs):
         self._train(db.u_train_valid, db.y_train_valid, db.metadata, epochs=epochs, validation_split=validation_split, verbose=verbose, batch_size=batch_size, **kwargs )
     
     @classmethod
     def load(cls, path = ".", name = "DefaultRegressor"):
-        try:
-            model = keras.models.load_model(path + "/" + name + '.keras')
-            regressor = Regressor(model, name, check_name=False)
-            regressor._load_history(path)
-            regressor._metadata = MetaData.load(path + "/" + name)
-            return regressor
-        except Exception as e:
-            pass
+
+        model = keras.models.load_model(path + "/" + name + '.keras',  custom_objects={"rel_abs_loss": rel_abs_loss})
+        regressor = Regressor(model=model, name = name, check_name=False)
+        regressor._load_history(path)
+        regressor._metadata = MetaData.load(path + "/" + name)
+        return regressor
+
+
+    def postprocess(self, prediction):
+        # prediction must be a 2D-array as returned by model.predict()
+        
+        res = np.zeros(prediction.shape)
+        res[:, :] = prediction[:, :]
+
+        for i in range(0, res.shape[0]):
+            
+            indexes_reio = np.where(prediction[i, :] >= 1.0)[0]
+            
+            if len(indexes_reio > 0):
+                index_max = indexes_reio[-1]
+                res[i, 0:index_max + 1] = 1.0
+
+        return res
+
+
+    def test(self, database):
+
+        # compute the average relative difference error
+        prediction = self.predict(database.u_test_valid)
+        error_rel = 100 * np.mean(np.abs(1 - prediction / database.y_test_valid), axis=1)
+
+        # compute the error for the optical depth
+        omch2 = database.x_test_valid[:, database.metadata.param_names.index('Ombh2')]
+        ombh2 = database.x_test_valid[:, database.metadata.param_names.index('Omch2')]
+        h = database.x_test_valid[:, database.metadata.param_names.index('hlittle')]
+
+        error_tau = np.zeros(database.metadata.ntest_valid)
+        for i in range(0, database.metadata.ntest_valid):
+            tau_pred = tau_ion(database.metadata.redshifts, prediction[i, :], ombh2[i], omch2[i] + ombh2[i], h[i])
+            tau_true = tau_ion(database.metadata.redshifts, database.y_test_valid[i, :], ombh2[i], omch2[i] + ombh2[i], h[i])
+            error_tau[i] = 100 * np.abs(1-tau_pred/tau_true)
+
+        return error_rel, error_tau
     
+
+
+
 
 
 DEFAULT_VALUES = {'F_STAR10' : -1.5, 'ALPHA_STAR' : 0.5, 't_STAR' : 0.5, 'F_ESC10' : -1.0, 'ALPHA_ESC' : -0.5, 'M_TURN' : 8.7,
             'Omch2' : 0.11933, 'Ombh2' : 0.02242, 'hlittle' : 0.6736, 'Ln_1010_As' : 3.047, 'POWER_INDEX' : 0.9665, 'M_WDM' : 25.0}
+
 
 # main functions
 
@@ -178,7 +251,7 @@ def predict_classifier(classifier = None, **kwargs):
 
     
     # all parameters the neural network have been trained on
-    classifier_params = classifier._params_list
+    classifier_params = classifier._metadata.param_names
 
     # predefined default values for most common parameters
     vals_classifier = {}
@@ -190,19 +263,19 @@ def predict_classifier(classifier = None, **kwargs):
         if kw in classifier_params:
             vals_classifier[kw] = val
         else :
-            raise ValueError(str(kw) + " in argument is not a parameter on which " + str(classifier._name) + " has trained. Available parameters are :" + str(classifier_params))
+            raise ValueError(str(kw) + " in argument is not a parameter on which " + str(classifier._name) 
+                             + " has trained. Available parameters are :" + str(classifier_params))
 
     # compute the reduced value of the parameter, in the range [0, 1]
     u_vals_classifier = np.zeros(len(classifier_params))
 
     for ikey, key in enumerate(classifier_params):
         
-
-        max = np.max(classifier._params_range[key])
-        min = np.min(classifier._params_range[key])
+        min = np.min(classifier._metadata.param_ranges[key])
+        max = np.max(classifier._metadata.param_ranges[key])
         val = vals_classifier[key]
 
-        u_vals_classifier[ikey] =  (val - min) / (max - min)
+        u_vals_classifier[ikey] = true_to_uniform(val, min, max)
 
     res_classifier = np.argmax(classifier.predict(np.array([u_vals_classifier]))[0])
 
@@ -220,7 +293,7 @@ def predict_regressor(regressor = None, **kwargs):
         regressor = Regressor.load(".", "DefaultRegressor")
     
     # all parameters the neural network have been trained on
-    regressor_params = regressor._params_list
+    regressor_params = regressor._metadata.param_names
 
     # predefined default values for most common parameters
     vals_regressor = {}
@@ -240,21 +313,15 @@ def predict_regressor(regressor = None, **kwargs):
 
     for ikey, key in enumerate(regressor_params):
         
-        max = np.max(regressor._params_range[key])
-        min = np.min(regressor._params_range[key])
+        max = np.max(regressor._metadata.param_ranges[key])
+        min = np.min(regressor._metadata.param_ranges[key])
         val = vals_regressor[key]
 
-        u_vals_regressor[ikey] =  (val - min) / (max - min)
+        u_vals_regressor[ikey] = true_to_uniform(val, min, max)
 
-    res_regressor = regressor.predict(np.array([u_vals_regressor]))[0]
+    return regressor.predict(np.array([u_vals_regressor]))[0]
 
-    # 0 reionized
-    # 1 valid but not reionized
-    # 2 not valid
     
-    return res_regressor
-    
-
 
 # predict the evolution of xHII
 def predict_xHII(classifier = None, regressor = None, **kwargs):
@@ -262,21 +329,24 @@ def predict_xHII(classifier = None, regressor = None, **kwargs):
     res_classifier = predict_classifier(classifier, **kwargs)
     
     if res_classifier == 2:
-        return -1
+        return None
     
-    res_regressor = predict_regressor(regressor, **kwargs)
-
-    return res_regressor
+    return predict_regressor(regressor, **kwargs)
 
 
-# work in progress
+# predict the evolution of tau_ion
 def predict_tau(classifier = None, regressor = None, **kwargs):
     
-    res_classifier = predict_classifier(classifier, **kwargs)
-    
-    if res_classifier == 2:
-        return -1
-    
-    res_regressor = predict_regressor(regressor, **kwargs)
+    if regressor is None:
+        regressor = Regressor.load(".", "DefaultRegressor")
 
-    return None
+    x_HII = predict_xHII(classifier, regressor, **kwargs)
+
+    if x_HII is None:
+        return -1
+
+    ombh2 = kwargs.get('Ombh2', DEFAULT_VALUES['Ombh2'])
+    omch2 = kwargs.get('Ombh2', DEFAULT_VALUES['Omch2'])
+    h = kwargs.get('hlittle', DEFAULT_VALUES['hlittle'])
+
+    return tau_ion(regressor._metadata.redshifts, x_HII, ombh2, omch2 + ombh2, h)
