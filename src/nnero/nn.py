@@ -50,19 +50,19 @@ class NeuralNetwork:
         
         with open(path + "/" + self._name + '_history.npz', 'rb') as file: 
             data = np.load(file, allow_pickle=True)
-            self._history = data['history']
+            self._history = data['history'].tolist()
 
-
+    
     def postprocess(self, prediction):
         return prediction
 
-    def predict(self, x):
+    
+    def predict(self, x, **kwargs):
         
-
         if len(x.shape) < 2:
             x = np.array([x])
         
-        return self.postprocess(self._model.predict(x, verbose=0))
+        return self.postprocess(self._model.predict(x, verbose=0), **kwargs)
 
 
 
@@ -93,8 +93,9 @@ class Classifier(NeuralNetwork):
             model = keras.Sequential(
                 [
                 keras.Input(shape=(n_input,), name="input"),
-                keras.layers.Dense(12, name="layer_1_nn", activation = "sigmoid", kernel_initializer='normal'),
-                keras.layers.Dense(12, name="layer_2_nn", activation = "sigmoid", kernel_initializer='normal'),
+                keras.layers.Dense(32, name="layer_1_nn", activation = "relu", kernel_initializer='normal'),
+                keras.layers.Dense(32, name="layer_2_nn", activation = "relu", kernel_initializer='normal'),
+                keras.layers.Dense(32, name="layer_3_nn", activation = "sigmoid", kernel_initializer='normal'),
                 keras.layers.Dense(3,  name="output", kernel_initializer='normal', activation = "softmax"),
                 ]
             )
@@ -174,6 +175,8 @@ class Regressor(NeuralNetwork):
                 keras.layers.Dense(128, name="layer_5_nn", activation = "relu", kernel_initializer='normal'),
                 keras.layers.Dense(128, name="layer_6_nn", activation = "relu", kernel_initializer='normal'),
                 keras.layers.Dense(128, name="layer_7_nn", activation = "relu", kernel_initializer='normal'),
+                keras.layers.Dense(128, name="layer_8_nn", activation = "relu", kernel_initializer='normal'),
+                keras.layers.Dense(128, name="layer_9_nn", activation = "relu", kernel_initializer='normal'),
                 keras.layers.Dense(n_output,  name="output", kernel_initializer='normal'),
                 ]
             )
@@ -197,15 +200,15 @@ class Regressor(NeuralNetwork):
         return regressor
 
 
-    def postprocess(self, prediction):
+    def postprocess(self, prediction, bias = 0.0):
         # prediction must be a 2D-array as returned by model.predict()
         
         res = np.zeros(prediction.shape)
-        res[:, :] = prediction[:, :]
+        res[:, :] = prediction[:, :] / (1.0 + 0.01 * bias)
 
         for i in range(0, res.shape[0]):
             
-            indexes_reio = np.where(prediction[i, :] >= 1.0)[0]
+            indexes_reio = np.where(res[i, :] >= 1.0)[0]
             
             if len(indexes_reio > 0):
                 index_max = indexes_reio[-1]
@@ -214,26 +217,129 @@ class Regressor(NeuralNetwork):
         return res
 
 
-    def test(self, database):
+    def test(self, database, **kwargs):
 
         # compute the average relative difference error
-        prediction = self.predict(database.u_test_valid)
-        error_rel = 100 * np.mean(np.abs(1 - prediction / database.y_test_valid), axis=1)
+        prediction = self.predict(database.u_test_valid, **kwargs)
+        error_rel = 100 * (prediction / database.y_test_valid-1)
+        
 
         # compute the error for the optical depth
-        omch2 = database.x_test_valid[:, database.metadata.param_names.index('Ombh2')]
-        ombh2 = database.x_test_valid[:, database.metadata.param_names.index('Omch2')]
+        omch2 = database.x_test_valid[:, database.metadata.param_names.index('Omch2')]
+        ombh2 = database.x_test_valid[:, database.metadata.param_names.index('Ombh2')]
         h = database.x_test_valid[:, database.metadata.param_names.index('hlittle')]
 
         error_tau = np.zeros(database.metadata.ntest_valid)
         for i in range(0, database.metadata.ntest_valid):
             tau_pred = tau_ion(database.metadata.redshifts, prediction[i, :], ombh2[i], omch2[i] + ombh2[i], h[i])
             tau_true = tau_ion(database.metadata.redshifts, database.y_test_valid[i, :], ombh2[i], omch2[i] + ombh2[i], h[i])
-            error_tau[i] = 100 * np.abs(1-tau_pred/tau_true)
+            error_tau[i] = 100 * (tau_pred/tau_true-1)
 
         return error_rel, error_tau
     
 
+
+
+
+class ODToRRegressor(NeuralNetwork):
+
+    def __init__(self, n_input = 12, *, model = None, name = "DefaultODToRRegressor", check_name = True):
+
+        if check_name and (name == "DefaultODToRRegressor" and (model is not None)):
+            raise AttributeError("Plase give your custom model a name different from the default value")
+
+        if model is None:
+
+            # Define a simple default classifier
+            model = keras.Sequential(
+                [
+                keras.Input(shape=(n_input,), name="input"),
+                keras.layers.Dense(32, name="layer_1_nn", activation = "relu", kernel_initializer='normal'),
+                keras.layers.Dense(32, name="layer_2_nn", activation = "relu", kernel_initializer='normal'),
+                keras.layers.Dense(32, name="layer_3_nn", activation = "relu", kernel_initializer='normal'),
+                keras.layers.Dense(32, name="layer_4_nn", activation = "relu", kernel_initializer='normal'),
+                keras.layers.Dense(32, name="layer_5_nn", activation = "relu", kernel_initializer='normal'),
+                keras.layers.Dense(1,  name="output", kernel_initializer='normal'),
+                ]
+            )
+        
+        super().__init__(model, name)
+
+
+    def compile(self, optimizer = tf.keras.optimizers.AdamW(learning_rate=5e-5), **kwargs):
+        self._compile(rel_abs_loss, optimizer=optimizer, **kwargs)
+
+    def train(self, db, *, epochs = 500, validation_split=0.1, verbose='auto', batch_size=32, **kwargs):
+        self._train(db.u_train_valid, db.ttau_train_valid, db.metadata, epochs=epochs, validation_split=validation_split, verbose=verbose, batch_size=batch_size, **kwargs )
+    
+    @classmethod
+    def load(cls, path = ".", name = "DefaultODToRRegressor"):
+
+        model = keras.models.load_model(path + "/" + name + '.keras',  custom_objects={"rel_abs_loss": rel_abs_loss})
+        regressor = ODToRRegressor(model=model, name = name, check_name=False)
+        regressor._load_history(path)
+        regressor._metadata = MetaData.load(path + "/" + name)
+        return regressor
+
+    def postprocess(self, prediction):
+        prediction[prediction > 1.0] = 1.0
+        prediction[prediction < 0.69] = 0.69
+        return prediction
+    
+
+    def test(self, database):
+
+        prediction = self.predict(database.u_test_valid)[:, 0]
+        return (100 * (prediction / database.ttau_test_valid - 1))
+
+
+
+
+class McGreerRegressor(NeuralNetwork):
+
+    def __init__(self, n_input = 12, *, model = None, name = "DefaultMcGreerRegressor", check_name = True):
+
+        if check_name and (name == "DefaultMcGreerRegressor" and (model is not None)):
+            raise AttributeError("Plase give your custom model a name different from the default value")
+
+        if model is None:
+
+            # Define a simple default classifier
+            model = keras.Sequential(
+                [
+                keras.Input(shape=(n_input,), name="input"),
+                keras.layers.Dense(32, name="layer_1_nn", activation = "relu", kernel_initializer='normal'),
+                keras.layers.Dense(16, name="layer_2_nn", activation = "relu", kernel_initializer='normal'),
+                keras.layers.Dense(8, name="layer_3_nn", activation = "relu", kernel_initializer='normal'),
+                #keras.layers.Dense(32, name="layer_4_nn", activation = "relu", kernel_initializer='normal'),
+                #keras.layers.Dense(32, name="layer_5_nn", activation = "relu", kernel_initializer='normal'),
+                keras.layers.Dense(1,  name="output", kernel_initializer='normal'),
+                ]
+            )
+        
+        super().__init__(model, name)
+
+
+    def compile(self, optimizer = tf.keras.optimizers.AdamW(learning_rate=5e-5), **kwargs):
+        self._compile(rel_abs_loss, optimizer=optimizer, **kwargs)
+
+    def train(self, db, *, epochs = 500, validation_split=0.1, verbose='auto', batch_size=32, **kwargs):
+        self._train(db.u_train_valid_noreio, db.McGreer_train_valid_noreio, db.metadata, epochs=epochs, validation_split=validation_split, verbose=verbose, batch_size=batch_size, **kwargs )
+    
+    @classmethod
+    def load(cls, path = ".", name = "DefaultMcGreerRegressor"):
+
+        model = keras.models.load_model(path + "/" + name + '.keras',  custom_objects={"rel_abs_loss": rel_abs_loss})
+        regressor = McGreerRegressor(model=model, name = name, check_name=False)
+        regressor._load_history(path)
+        regressor._metadata = MetaData.load(path + "/" + name)
+        return regressor
+
+
+    def test(self, database):
+
+        prediction = self.predict(database.u_test_valid_noreio)[:, 0]
+        return 100 * (1 - prediction / database.McGreer_test_valid_noreio)
 
 
 
@@ -323,7 +429,43 @@ def predict_regressor(regressor = None, **kwargs):
 
     
 
+def predict_odtor_regressor(odtor_regressor = None, **kwargs):
+    
+    if odtor_regressor is None:
+        odtor_regressor = ODToRRegressor.load(".", "DefaultODToRRegressor")
+    
+    # all parameters the neural network have been trained on
+    regressor_params = odtor_regressor._metadata.param_names
+
+    # predefined default values for most common parameters
+    vals_regressor = {}
+    for key in regressor_params:
+        vals_regressor[key] = DEFAULT_VALUES[key]
+        
+    # modify the value to that given in **kwargs
+    for kw, val in kwargs.items():
+        if kw in regressor_params:
+            vals_regressor[kw] = val
+        else :
+            raise ValueError(str(kw) + " in argument is not a parameter on which " + str(regressor._name) + 
+                             " has trained. Available parameters are :\n" + str(regressor_params))
+
+    # compute the reduced value of the parameter, in the range [0, 1]
+    u_vals_regressor = np.zeros(len(regressor_params))
+
+    for ikey, key in enumerate(regressor_params):
+        
+        max = np.max(odtor_regressor._metadata.param_ranges[key])
+        min = np.min(odtor_regressor._metadata.param_ranges[key])
+        val = vals_regressor[key]
+
+        u_vals_regressor[ikey] = true_to_uniform(val, min, max)
+
+    return odtor_regressor.predict(np.array([u_vals_regressor]))[0]
+
+
 # predict the evolution of xHII
+
 def predict_xHII(classifier = None, regressor = None, **kwargs):
 
     res_classifier = predict_classifier(classifier, **kwargs)
@@ -335,6 +477,7 @@ def predict_xHII(classifier = None, regressor = None, **kwargs):
 
 
 # predict the evolution of tau_ion
+
 def predict_tau(classifier = None, regressor = None, **kwargs):
     
     if regressor is None:
@@ -345,8 +488,9 @@ def predict_tau(classifier = None, regressor = None, **kwargs):
     if x_HII is None:
         return -1
 
-    ombh2 = kwargs.get('Ombh2', DEFAULT_VALUES['Ombh2'])
-    omch2 = kwargs.get('Ombh2', DEFAULT_VALUES['Omch2'])
-    h = kwargs.get('hlittle', DEFAULT_VALUES['hlittle'])
-
-    return tau_ion(regressor._metadata.redshifts, x_HII, ombh2, omch2 + ombh2, h)
+    #ombh2 = kwargs.get('Ombh2', DEFAULT_VALUES['Ombh2'])
+    #omch2 = kwargs.get('Ombh2', DEFAULT_VALUES['Omch2'])
+    #h = kwargs.get('hlittle', DEFAULT_VALUES['hlittle'])
+    #return tau_ion(regressor._metadata.redshifts, x_HII, ombh2, omch2 + ombh2, h)
+    
+    return predict_odtor_regressor(regressor, **kwargs)
