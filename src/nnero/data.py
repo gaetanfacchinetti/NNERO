@@ -63,11 +63,292 @@ def label_to_plot(label) -> None:
         return label
 
 
+"""
+class DataSet:
+
+    def __init__(self, path):
+        self._path = path
+        self._ids = np.array([])  # ids of the dataset
+
+    @property
+    def ids(self):
+        return self._ids
+    
+    @property
+    def path(self):
+        return self._path
+    
+    #Save all the arrays of the dataset
+    def save(self, filename):
+
+        with open(filename + '_dataset.npz', 'wb') as file:
+            np.savez(file, ids = self.ids, path = self.path)
+            
+    @classmethod    
+    def load(cls, filename):
+
+        with open(filename + '_dataset.npz', 'rb') as file:
+            data = np.load(file, allow_pickle=True)
+            dataset = DataSet(data['path'])            
+            dataset._ids = data['ids']
+
+        return dataset
+    
+    def __eq__(self, other):
+    
+        if not (self.path == other.path)
+            return False
+
+        if not (np.all(self.ids == other.ids))
+            return False
+        
+        return True
+"""
+
+# subset of the full dataset
+class DataSample:
+ 
+    def __init__(self, ids, all, valid_reio = None, valid_noreio = None):
+        
+        self._ids  = ids # full ids array
+
+        # All indices in the dataset
+        self._all            = all          # all indices in the ids array
+        self._valid_reio     = valid_reio   # indices for valid runs that reached reionisation (at z = 5.9)
+        self._valid_noreio   = valid_noreio # indices for valid runs that did not reached reionisation (at z = 5.9)
+
+    @property
+    def ids(self):
+        return self._ids
+
+    @property
+    def all(self):
+        return self._all
+    
+    @property
+    def valid(self):
+        return np.sort(np.concatenate((self._valid_reio, self._valid_noreio)))
+    
+    @property
+    def excluded(self):
+        return self._all[~np.isin(self._all, self.valid)]
+    
+    @property
+    def valid_reio(self):
+        return self._valid_reio
+    
+    @property
+    def valid_noreio(self):
+        return self._valid_noreio
+
+    @property
+    def nsamples(self):
+        return len(self._indices)
+    
+    @property
+    def nsamples_valid(self):
+        return len(self._valid)
+    
+    @property
+    def nsamples_valid_reio(self):
+        return len(self._valid_reio)
+    
+    @property
+    def nsamples_valid_noreio(self):
+        return len(self._valid_noreio)
+    
+    """ Save all the arrays of the dataset """
+    def save(self, filename):
+
+        with open(filename + '_datasample.npz', 'wb') as file:
+            np.savez(file, ids = self.ids, all = self.all, valid_reio = self.valid_reio, valid_noreio = self.valid_noreio)
+            
+    @classmethod    
+    def load(cls, filename):
+
+        with open(filename + '_datasample.npz', 'rb') as file:
+            data = np.load(file)
+            dataset = DataSample(data['ids'])            
+            dataset._all          = data['all']
+            dataset._valid_reio   = data['valid_reio']
+            dataset._valid_noreio = data['valid_noreio']
+
+        return dataset
+    
+    # equality to check two that two dataset are equals
+    def __eq__(self, other):
+        
+        for key in ['ids', 'all', 'valid_reio', 'valid_noreio']:
+            value       = self.__dict__[key]
+            other_value = other.__dict__[key]
+
+            if not (np.all(value == other_value)):
+                return False
+    
+        return True
+    
+
+
+
+class MetaData2:
+
+    def __init__(self, path : str, redshifts : np.ndarray = None, param_names : list = None, 
+                 *, frac_test = 0.1, frac_validation = 0.1):
+
+        # directory was the data is stored
+        self._directory = abspath(path)
+
+        # define a default redshift array on which to make the predictions
+        # define the labels of the regressor
+        if redshifts is None:
+            self._redshifts = np.array([4, 5, 5.9, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 
+                                        10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 
+                                        20, 21, 22, 23, 24, 25, 26, 27, 29, 31, 33, 35])
+        else:
+            self._redshifts = redshifts
+
+        # define a default parameter list to run on
+        # features of the neural networks
+        if param_names is None:
+            self._param_names = ['F_STAR10', 'ALPHA_STAR', 't_STAR', 'F_ESC10', 
+                                 'ALPHA_ESC', 'M_TURN', 'Omch2', 'Ombh2', 'hlittle', 
+                                 'Ln_1010_As', 'POWER_INDEX', 'M_WDM']
+        else : 
+            self._param_names = param_names
+
+        # get the min and max values of the parameters
+        _data  = np.load(self.directory + '/Database.npz', allow_pickle=True)
+
+        self._param_ranges = _data.get("params_range", None)
+        if self._param_ranges is not None:
+            self._param_ranges = self._param_ranges.tolist()
+        
+        # initialise the train, test and validation indices
+        self._frac_test  = frac_test
+        self._frac_validation = frac_validation
+
+        self._ids = self.read_ids()
+        indices_train, indices_test, indices_validation = self.split(self._ids, frac_test, frac_validation)
+
+        # predefine train, test and validation data samples
+        self._train_sample      = DataSample(self._ids, indices_train)
+        self._test_sample       = DataSample(self._ids, indices_test)
+        self._validation_sample = DataSample(self._ids, indices_validation)
+
+
+    def read_ids(self) -> None:
+
+        # get all the files that have succesfully run in the folder
+        onlyfiles = [f for f in listdir(self.directory + '/cache/') if isfile(join(self.directory + '/cache/', f))]
+        
+        # make a list of the files we need need (only take the tables)
+        goodfiles = [file for file in onlyfiles if file[0:5] == 'Table']
+
+        # get the id of all the successfull runs
+        _ids = np.array([], dtype = np.int64)
+
+        # get the id of the good files
+        for file in goodfiles:
+            
+            try:
+                
+                # get the new id and the random seed used for the run
+                new_id = np.int64(file.split('.')[0].split('_')[-1])
+                run_rs = np.int64(file.split('.')[0].split('_')[-2][2:])
+                
+                # make sure the files are not already counted or corrupted
+                if new_id in _ids:
+                    print('ERROR:', new_id)
+                elif "Param_Lightcone_rs" + str(run_rs) + "_" + str(new_id) + ".h5.pkl" not in onlyfiles:
+                    print("ERROR missing info for ", new_id)
+                else:
+                    _ids = np.append(_ids, new_id)
+            
+            except Exception as e:
+                warnings.warn("Error " + str(e) + " has occured for")
+
+        # sort the id in increasing order
+        return np.sort(_ids)
+
+
+    def split(self, ids : np.ndarray, frac_test : float, frac_validation : float):
+        """ this function devides the data into three groups """
+
+        # define the size of the sample
+        nsamples     = len(ids)
+        ntest        = int(frac_test * nsamples)
+        nvalidation  = int(frac_validation * nsamples)
+
+        # define the identification number of the test, validation and train subdatasests
+        ids_test_validation  = np.sort(random.sample(list(ids), ntest + nvalidation))
+        indices_test_validation = np.searchsorted(ids, ids_test_validation)
+
+        ids_train      = np.delete(ids, indices_test_validation)
+        indices_train  = np.searchsorted(ids, ids_train)
+
+        ids_test     = np.sort(random.sample(list(ids_test_validation), ntest))
+        indices_test = np.searchsorted(ids, ids_test)
+
+        ids_validation     = np.delete(ids, np.concatenate((indices_test, indices_train)))
+        indices_validation = np.searchsorted(ids, ids_validation)
+
+        return indices_train, indices_test, indices_validation
+
+    @property
+    def directory(self):
+        return self._directory
+    
+    @property
+    def redshifts(self):
+        return self._redshifts
+    
+    @property
+    def param_names(self):
+        return self._param_names
+    
+    @property
+    def train_sample(self):
+        return self._train_sample
+    
+    @property
+    def test_sample(self):
+        return self._test_sample
+    
+    @property
+    def validation_sample(self):
+        return self._validation_sample
+    
+    @property
+    def nparams(self):
+        return len(self._param_names)
+    
+    @property
+    def nredshifts(self):
+        return len(self._redshifts)
+    
+    @property
+    def param_ranges(self):
+        return self._param_ranges
+    
+    @property
+    def frac_test(self):
+        return self._frac_test
+    
+    @property
+    def frac_validation(self):
+        return self._frac_validation
+    
+    @property
+    def ids(self):
+        return self._ids
+
+
+
+
 # We need to store somewhere
 # - the parameter list
 # - the parameter ranges
 # - the redshifts on which we train
-
 
 class MetaData:
     
@@ -87,7 +368,7 @@ class MetaData:
         # define a default redshift array on which to make the predictions
         # define the labels of the regressor
         if redshifts is None:
-            self._redshifts = np.linspace(4, 35, 32)
+            self._redshifts = np.array([4, 5, 5.9, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 29, 31, 33, 35])
         else:
             self._redshifts = redshifts
 
@@ -277,8 +558,131 @@ def uniform_to_true(x, min, max):
     assert (min <= max), "The minimum value is bigger than the maximum one" 
     return (max - min) * x + min
 
+    
+
+class DataSet:
+
+    def __init__(self, metadata : MetaData, *, frac_test : float = 0.1, frac_validation : float = 0.1):
+        
+        self._metadata = metadata
+
+        _data  = np.load(self.metadata.directory + '/Database.npz', allow_pickle=True)
+
+        # get the value of the parameters drawn
+        _data_cosmo = _data.get("params_cosmo")
+        _data_astro = _data.get("params_astro")
+        
+        # construct a dictionnary of all parameters and an array ordered
+        # in termps of the params_keys list defined above
+        self._data_dict = []
+        self._data_arr  = np.zeros((len(_data_astro), self.metadata.nparams))
+        for i in range(0, len(_data_astro)):
+            self._data_dict.append( ( _data_astro[i] | _data_cosmo[i] ))
+            
+            for ikey, key in enumerate(self.metadata.param_names):
+                self._data_arr[i, ikey] = self._data_dict[int(i)][key]
+
+        self.create_dataset(metadata.ids)
+
+    
+        self.split_dataset()
+        
+    @property
+    def metadata(self):
+        return self._metadata
+    
+    @property
+    def data_dict(self):
+        return self._data_dict
+    
+    @property
+    def data_arr(self):
+        return self._data_arr
 
 
+    def create_dataset(self, ids):
+        """ this function does not modify the metadata but uses what its initialised attributes from prepare() """
+
+        nsamples = len(ids)
+
+        # full datasets containing all the data
+        self._x_data = np.zeros((nsamples, self.metadata.nparams))
+        self._u_data = np.zeros((nsamples, self.metadata.nparams))
+        self._y_data = np.zeros((nsamples, self.metadata.nredshifts))
+        self._rtau_data = np.zeros(nsamples)   # regularised value of tau
+        self._ttau_data = np.zeros(nsamples)   # true value of tau
+        self._McGreer_data = np.zeros(nsamples)
+        
+        for i in range(0, nsamples) :
+
+            run = p21c.Run(self.metadata.directory, "Lightcone_rs1993_" + str(int(ids[i])) + ".h5")
+            z_glob, r_xHIIdb = self.regularised_data(run)
+            xHIIdb = scipy.interpolate.interp1d(z_glob, r_xHIIdb)(self.metadata.redshifts)
+
+            ombh2   = self.data_dict[int(ids[i])]['Ombh2']
+            omch2   = self.data_dict[int(ids[i])]['Omch2']
+            hlittle = self.data_dict[int(ids[i])]['hlittle']
+
+            self._ttau_data[i] = tau_ion(run.z_glob, run.xHIIdb, ombh2, ombh2 + omch2, hlittle)
+            self._rtau_data[i] = tau_ion(z_glob, r_xHIIdb, ombh2, ombh2 + omch2, hlittle)
+
+            self._McGreer_data[i] = scipy.interpolate.interp1d(z_glob, r_xHIIdb)(5.9)
+    
+            # define the features
+            for ikey in range(0, self.metadata.nparams):
+
+                self._x_data[i, ikey] =  self.data_arr[int(ids[i]), ikey]
+                
+                min = self.metadata.param_ranges[self.metadata.param_names[ikey]][0]
+                max = self.metadata.param_ranges[self.metadata.param_names[ikey]][1]
+                
+                self._u_data[i, ikey] = true_to_uniform(self._x_data[i, ikey], min, max) 
+                #x[i, ikey] = self._udraws[int(id[i])][key]
+            
+            # define the labels for the regressor
+            self._y_data[i, :] = xHIIdb
+
+
+    # update the datasamples in order to account for the valid_reio and valid_noreio splitting
+    def split_dataset(self): 
+
+        indices_valid_reio    = np.where(self._McGreer_data  > 0.99)[0]
+        indices_valid_noreio  = np.intersect1d(np.where(self._McGreer_data  <= 0.99)[0], np.where(self._McGreer_data  > 0.69)[0])
+        
+        self.metadata.train_sample._valid_reio   = np.intersect1d(self.metadata.train_sample.all, indices_valid_reio)
+        self.metadata.train_sample._valid_noreio = np.intersect1d(self.metadata.train_sample.all, indices_valid_noreio)
+        self.metadata.test_sample._valid_reio   = np.intersect1d(self.metadata.test_sample.all, indices_valid_reio)
+        self.metadata.test_sample._valid_noreio = np.intersect1d(self.metadata.test_sample.all, indices_valid_noreio)
+        self.metadata.validation_sample._valid_reio   = np.intersect1d(self.metadata.validation_sample.all, indices_valid_reio)
+        self.metadata.validation_sample._valid_noreio = np.intersect1d(self.metadata.validation_sample.all, indices_valid_noreio)
+    
+
+    def regularised_data(self, run, n_smooth:int = 10):
+
+        n_smooth = 12
+        xHIIdb = run.xHIIdb[2:]
+        z_glob = run.z_glob[2:]
+        z_t = z_glob[np.argmin(xHIIdb)]
+        index = np.where(xHIIdb[z_glob < z_t] >= xHIIdb[-1])[0][-1]
+        new_array = copy.copy(xHIIdb)
+        new_array[index:-1] = xHIIdb[-1]
+        new_array = np.convolve(new_array, np.ones(n_smooth)/n_smooth, mode='same')
+        new_array[0:n_smooth-1] = xHIIdb[0:n_smooth-1]
+        new_array[-(n_smooth-1):] = xHIIdb[-(n_smooth-1):]
+
+        i_max = np.argmax(new_array)
+        new_array[0:i_max] = np.max(new_array)
+
+        return z_glob, new_array
+
+
+
+
+
+
+
+
+### old implementation below
 class DataBase:
 
     def __init__(self, metadata, *, frac_test:float = 0.2) :
