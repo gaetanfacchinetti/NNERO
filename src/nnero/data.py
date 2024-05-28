@@ -8,7 +8,8 @@ import py21cmcast as p21c
 import numpy as np
 
 from os import listdir
-from os.path import isfile, join, abspath
+from os.path import isfile, join, abspath, exists
+from os import makedirs
 
 import scipy
 import scipy.integrate
@@ -63,49 +64,7 @@ def label_to_plot(label) -> None:
         return label
 
 
-"""
-class DataSet:
-
-    def __init__(self, path):
-        self._path = path
-        self._ids = np.array([])  # ids of the dataset
-
-    @property
-    def ids(self):
-        return self._ids
-    
-    @property
-    def path(self):
-        return self._path
-    
-    #Save all the arrays of the dataset
-    def save(self, filename):
-
-        with open(filename + '_dataset.npz', 'wb') as file:
-            np.savez(file, ids = self.ids, path = self.path)
-            
-    @classmethod    
-    def load(cls, filename):
-
-        with open(filename + '_dataset.npz', 'rb') as file:
-            data = np.load(file, allow_pickle=True)
-            dataset = DataSet(data['path'])            
-            dataset._ids = data['ids']
-
-        return dataset
-    
-    def __eq__(self, other):
-    
-        if not (self.path == other.path)
-            return False
-
-        if not (np.all(self.ids == other.ids))
-            return False
-        
-        return True
-"""
-
-# subset of the full dataset
+# Subset of the full dataset
 class DataSample:
  
     def __init__(self, ids, all, valid_reio = None, valid_noreio = None):
@@ -114,8 +73,9 @@ class DataSample:
 
         # All indices in the dataset
         self._all            = all          # all indices in the ids array
-        self._valid_reio     = valid_reio   # indices for valid runs that reached reionisation (at z = 5.9)
-        self._valid_noreio   = valid_noreio # indices for valid runs that did not reached reionisation (at z = 5.9)
+        self._valid_reio     = valid_reio   if (valid_reio is not None) else np.empty(0, dtype=int) # indices for valid runs that reached reionisation (at z = 5.9)
+        self._valid_noreio   = valid_noreio if (valid_noreio is not None) else np.empty(0, dtype=int) # indices for valid runs that did not reached reionisation (at z = 5.9)
+
 
     @property
     def ids(self):
@@ -143,11 +103,11 @@ class DataSample:
 
     @property
     def nsamples(self):
-        return len(self._indices)
+        return len(self._all)
     
     @property
     def nsamples_valid(self):
-        return len(self._valid)
+        return len(self.valid)
     
     @property
     def nsamples_valid_reio(self):
@@ -158,27 +118,26 @@ class DataSample:
         return len(self._valid_noreio)
     
     """ Save all the arrays of the dataset """
-    def save(self, filename):
+    def save(self, path, name):
 
-        with open(filename + '_datasample.npz', 'wb') as file:
+        with open(join(path, 'Datasample_'  + name + '.npz'), 'wb') as file:
             np.savez(file, ids = self.ids, all = self.all, valid_reio = self.valid_reio, valid_noreio = self.valid_noreio)
             
     @classmethod    
-    def load(cls, filename):
+    def load(cls, path,name):
 
-        with open(filename + '_datasample.npz', 'rb') as file:
+        with open(join(path, 'Datasample_'  + name + '.npz'), 'rb') as file:
             data = np.load(file)
-            dataset = DataSample(data['ids'])            
-            dataset._all          = data['all']
-            dataset._valid_reio   = data['valid_reio']
-            dataset._valid_noreio = data['valid_noreio']
+            datasample = DataSample(data['ids'], data['all'])            
+            datasample._valid_reio   = data['valid_reio']
+            datasample._valid_noreio = data['valid_noreio']
 
-        return dataset
+        return datasample
     
     # equality to check two that two dataset are equals
     def __eq__(self, other):
         
-        for key in ['ids', 'all', 'valid_reio', 'valid_noreio']:
+        for key in ['_ids', '_all', '_valid_reio', '_valid_noreio']:
             value       = self.__dict__[key]
             other_value = other.__dict__[key]
 
@@ -188,15 +147,23 @@ class DataSample:
         return True
     
 
+class MetaData:
 
+    def __init__(self, 
+                 directory : str, 
+                 redshifts : np.ndarray = None, 
+                 param_names : list = None, 
+                 *, 
+                 frac_test = 0.1, 
+                 frac_validation = 0.1,
+                 **kwargs):
 
-class MetaData2:
-
-    def __init__(self, path : str, redshifts : np.ndarray = None, param_names : list = None, 
-                 *, frac_test = 0.1, frac_validation = 0.1):
 
         # directory was the data is stored
-        self._directory = abspath(path)
+        self._directory = abspath(directory)
+
+        # --------------------------
+        # initialise default values 
 
         # define a default redshift array on which to make the predictions
         # define the labels of the regressor
@@ -210,33 +177,47 @@ class MetaData2:
         # define a default parameter list to run on
         # features of the neural networks
         if param_names is None:
-            self._param_names = ['F_STAR10', 'ALPHA_STAR', 't_STAR', 'F_ESC10', 
+            self._param_names = ('F_STAR10', 'ALPHA_STAR', 't_STAR', 'F_ESC10', 
                                  'ALPHA_ESC', 'M_TURN', 'Omch2', 'Ombh2', 'hlittle', 
-                                 'Ln_1010_As', 'POWER_INDEX', 'M_WDM']
+                                 'Ln_1010_As', 'POWER_INDEX', 'M_WDM')
         else : 
             self._param_names = param_names
+        # --------------------------
 
+        self._frac_test  = frac_test
+        self._frac_validation = frac_validation
+
+        # if data loading no need to execute what is below
+        if kwargs.get('loading') :
+            return
+        
+        # --------------------------
         # get the min and max values of the parameters
         _data  = np.load(self.directory + '/Database.npz', allow_pickle=True)
 
         self._param_ranges = _data.get("params_range", None)
         if self._param_ranges is not None:
             self._param_ranges = self._param_ranges.tolist()
-        
-        # initialise the train, test and validation indices
-        self._frac_test  = frac_test
-        self._frac_validation = frac_validation
+        # --------------------------
 
-        self._ids = self.read_ids()
-        indices_train, indices_test, indices_validation = self.split(self._ids, frac_test, frac_validation)
+        # --------------------------
+        # initialise the train, test and validation datasample
 
-        # predefine train, test and validation data samples
+        # read the ids of the simulations that executed succesfully
+        self._ids = self._read_ids()
+
+        # split the ids to make three groups: train test and validation
+        indices_train, indices_test, indices_validation = self._split(self._ids, frac_test, frac_validation)
+
+        # create the DataSample objects
         self._train_sample      = DataSample(self._ids, indices_train)
         self._test_sample       = DataSample(self._ids, indices_test)
         self._validation_sample = DataSample(self._ids, indices_validation)
+        # --------------------------
 
 
-    def read_ids(self) -> None:
+
+    def _read_ids(self):
 
         # get all the files that have succesfully run in the folder
         onlyfiles = [f for f in listdir(self.directory + '/cache/') if isfile(join(self.directory + '/cache/', f))]
@@ -271,7 +252,7 @@ class MetaData2:
         return np.sort(_ids)
 
 
-    def split(self, ids : np.ndarray, frac_test : float, frac_validation : float):
+    def _split(self, ids : np.ndarray, frac_test : float, frac_validation : float):
         """ this function devides the data into three groups """
 
         # define the size of the sample
@@ -283,12 +264,15 @@ class MetaData2:
         ids_test_validation  = np.sort(random.sample(list(ids), ntest + nvalidation))
         indices_test_validation = np.searchsorted(ids, ids_test_validation)
 
+        # remove the test and validation to the the ids to get the training sample
         ids_train      = np.delete(ids, indices_test_validation)
         indices_train  = np.searchsorted(ids, ids_train)
 
+        # pick the test sample out of the test_validation batch
         ids_test     = np.sort(random.sample(list(ids_test_validation), ntest))
         indices_test = np.searchsorted(ids, ids_test)
 
+        # get the validation sample by removing the test sample and train sample from the total ids array
         ids_validation     = np.delete(ids, np.concatenate((indices_test, indices_train)))
         indices_validation = np.searchsorted(ids, ids_validation)
 
@@ -341,214 +325,76 @@ class MetaData2:
     @property
     def ids(self):
         return self._ids
-
-
-
-
-# We need to store somewhere
-# - the parameter list
-# - the parameter ranges
-# - the redshifts on which we train
-
-class MetaData:
     
-    """
-        class Metadata
-
-    Contain data about the data. ID card of the data.
-    Is saved with the neural-network models to use them in a standalone mode once they are trained.
-
-    """
-
-    def __init__(self, path : str, redshifts : np.ndarray = None, param_names : list = None):
-
-        # directory was the data is stored
-        self._directory = abspath(path)
-
-        # define a default redshift array on which to make the predictions
-        # define the labels of the regressor
-        if redshifts is None:
-            self._redshifts = np.array([4, 5, 5.9, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 29, 31, 33, 35])
-        else:
-            self._redshifts = redshifts
-
-        # define a default parameter list to run on
-        # features of the neural networks
-        if param_names is None:
-            self._param_names = ['F_STAR10', 'ALPHA_STAR', 't_STAR', 'F_ESC10', 'ALPHA_ESC', 'M_TURN', 'Omch2', 'Ombh2', 'hlittle', 'Ln_1010_As', 'POWER_INDEX', 'M_WDM']
-        else : 
-            self._param_names = param_names
-
-        # define the length of the lists
-        self._nredshifts = len(self.redshifts)
-        self._nparams = len(self.param_names)
-        
-        # The rest will be set later when data is used
-        self._param_ranges  = None # range of parameters
-        self._nsamples      = None # number of samples
-        self._ntrain        = None # number of train point
-        self._ntest         = None # number of test point
-        self._ntrain_valid  = None # number of valid training point
-        self._ntest_valid   = None # number of valid test point
-        self._frac_test     = None # fraction of testing point
-
-        # repartition of the data used
-        self._id                = None
-        self._id_valid          = None
-        self._id_train          = None
-        self._id_test           = None
-        self._id_train_valid    = None
-        self._id_test_valid     = None
-        self._index_train       = None
-        self._index_test        = None
-        self._index_valid       = None
-        self._index_train_valid = None
-        self._index_test_valid  = None
-
-        self._index_valid_reio   = None
-        self._index_valid_noreio = None
-        self._index_excluded     = None
-
-        self._index_train_valid_reio   = None
-        self._index_train_valid_noreio = None
-        self._index_test_valid_reio    = None
-        self._index_test_valid_noreio  = None
-
-
-        self._frozen = False
-
+    @property
+    def nsamples(self):
+        return len(self._ids)
     
-    def __getattr__(self, name):
-        try:
-            return self.__dict__['_' + name]
-        except KeyError:
-            msg = "'{0}' object has no attribute '{1}'"
-            raise AttributeError(msg.format(type(self).__name__, '_' + name))
-        
-    def __setattr__(self, name: str, value) -> None:
-        
-        # forbid modification of attributes not starting with '_'
-        if not name.startswith('_'):
-            msg = "Cannot modify attribute '{1}' of object '{0}'"
-            raise AttributeError(msg.format(type(self).__name__, name))
-        
-        self.__dict__[name] = value
-
-    # saving the metadata
-    def save(self, filename):
-
-        with open(filename + '_metadata.npz', 'wb') as file:
-            np.savez(file, 
-                        directory   = self.directory,
-                        redshifts    = self.redshifts,
-                        param_names  = self.param_names,
-                        nredshifts   = self.nredshifts,
-                        nparams      = self.nparams,
-                        param_ranges = self.param_ranges,
-                        nsamples     = self.nsamples,
-                        ntrain       = self.ntrain,
-                        ntest        = self.ntest,
-                        ntrain_valid = self.ntrain_valid,
-                        ntest_valid  = self.ntest_valid,
-                        frac_test    = self.frac_test,
-                        id                = self.id,
-                        id_valid          = self.id_valid,
-                        id_train          = self.id_train,
-                        id_test           = self.id_test,
-                        id_train_valid    = self.id_train_valid,
-                        id_test_valid     = self.id_test_valid,
-                        index_train       = self.index_train,
-                        index_test        = self.index_test,
-                        index_valid       = self.index_valid,
-                        index_train_valid = self.index_train_valid,
-                        index_test_valid  = self.index_test_valid,
-                        index_valid_reio   = self.index_valid_reio,
-                        index_valid_noreio = self.index_valid_noreio,
-                        index_excluded     = self.index_excluded,
-                        index_train_valid_reio   = self.index_train_valid_reio,
-                        index_train_valid_noreio = self.index_train_valid_noreio,
-                        index_test_valid_reio    = self.index_test_valid_reio,
-                        index_test_valid_noreio  = self.index_test_valid_noreio,
-                        frozen              = self.frozen
-    )
-
-    @classmethod    
-    def load(cls, filename):
-
-        with open(filename + '_metadata.npz', 'rb') as file:
-            data = np.load(file, allow_pickle=True)
-            
-            # get the user input metadata
-            directory    = str(data['directory'])
-            redshifts    = data['redshifts']
-            param_names  = list(data['param_names'])
-
-            metadata = MetaData(directory, redshifts, param_names)
-            
-            metadata._nredshifts   = data['nredshifts']
-            metadata._nparams      = data['nparams']
-            metadata._param_ranges = data['param_ranges'].tolist()
-            metadata._nsamples     = data['nsamples']
-            metadata._ntrain       = data['ntrain']
-            metadata._ntest        = data['ntest']
-            metadata._ntrain_valid = data['ntrain_valid']
-            metadata._ntest_valid  = data['ntest_valid']
-            metadata._frac_test    = data['frac_test']
-
-            metadata._id                  = data['id']
-            metadata._id_valid            = data['id_valid']
-            metadata._id_train            = data['id_train']
-            metadata._id_test             = data['id_test']
-            metadata._id_train_valid      = data['id_train_valid']
-            metadata._id_test_valid       = data['id_test_valid']
-            metadata._index_train         = data['index_train']
-            metadata._index_test          = data['index_test']
-            metadata._index_valid         = data['index_valid']
-            metadata._index_train_valid   = data['index_train_valid']
-            metadata._index_test_valid    = data['index_test_valid']
-            metadata._index_valid_noreio   = data['index_valid_noreio']
-            metadata._index_valid_reio    = data['index_valid_reio']
-            metadata._index_excluded      = data['index_excluded']
-
-            metadata._index_train_valid_reio   = data['index_train_valid_reio']
-            metadata._index_train_valid_noreio = data['index_train_valid_noreio']
-            metadata._index_test_valid_reio    = data['index_test_valid_reio']
-            metadata._index_test_valid_noreio  = data['index_test_valid_noreio']
-
-            metadata._frozen = data['frozen']
-            
-        return metadata
-
-
     def __eq__(self, other):
-        
-        for key, value in self.__dict__.items():
+
+        for key in ['_directory', '_frac_test', '_frac_validation', '_train_sample', '_test_sample', '_validation_sample'] : 
+            value       = self.__dict__[key]
             other_value = other.__dict__[key]
 
-            try: 
-                if (key in ["_redshifts", "_param_ranges", "_param_names", "_id", '_id_valid', "_id_train", "_id_test",
-                    "_id_train_valid", "_id_test_valid", "_index_train", "_index_test", "_index_valid", "_index_train_valid",
-                        "_index_test_valid", '_index_valid_noreio', '_index_valid_reio', '_index_excluded', 
-                    '_index_train_valid_reio', '_index_train_valid_noreio', '_index_test_valid_reio', '_index_test_valid_noreio',]):
+            if not value == other_value:
+                return False
                 
-                    if (len(value) != len(other_value)):
-                        return False
-                    if np.any(value != other_value):
-                        return False
-                else:
-                    if value != other_value:
-                        return False
-            except ValueError as e:
-                print("Value error for : ", key)
-                raise e
-            
+        for key in ['_redshifts', '_param_names', '_param_ranges', '_ids']:
+            value       = self.__dict__[key]
+            other_value = other.__dict__[key]
+
+            if not (np.all(value == other_value)):
+                return False
+
         return True
 
 
-    @property
-    def directory(self):
-        return self._directory
+    def save(self, folder, force = False):
 
+        if not exists(folder):
+            makedirs(folder)
+                
+        # first save all the data samples
+        self.train_sample.save(folder, 'train')
+        self.test_sample.save(folder, 'test')
+        self.validation_sample.save(folder, 'validation')
+
+        file = join(folder, 'Metadata.npz')
+        if exists(file) and not force:
+            warnings.warn(file + ' already exists. Use force = True to overwrite it.')
+
+        # then save additional information
+        with open(file, 'wb') as f:
+            np.savez(f, directory = self.directory, redshifts = self.redshifts, 
+                     param_names = self.param_names, param_ranges = self.param_ranges, 
+                     ids = self.ids, frac_test = self.frac_test, frac_validation = self.frac_validation)
+
+    @classmethod
+    def load(cls, folder):
+
+        with open(join(folder, 'Metadata.npz'), 'rb') as f:
+            data = np.load(f, allow_pickle=True)
+
+            directory       = data.get('directory')
+            redshifts       = data.get('redshifts', None)
+            param_names     = tuple(data.get('param_names', None))
+            param_ranges    = data.get('param_ranges', None)
+            frac_test       = data.get('frac_test', 0.1)
+            frac_validation = data.get('frac_validation', 0.1)
+            ids             = data.get('ids', None)
+
+        metadata = MetaData(str(directory), redshifts, param_names, frac_test=frac_test, frac_validation=frac_validation, loading = True)
+       
+        metadata._param_ranges      = param_ranges
+        metadata._ids               = ids
+
+        metadata._train_sample      = DataSample.load(folder, 'train')
+        metadata._test_sample       = DataSample.load(folder, 'test')
+        metadata._validation_sample = DataSample.load(folder, 'validation')
+
+        return metadata
+
+    
 
 def true_to_uniform(x, min, max):
     assert (min <= max), "The minimum value is bigger than the maximum one" 
@@ -562,9 +408,135 @@ def uniform_to_true(x, min, max):
 
 class DataSet:
 
-    def __init__(self, metadata : MetaData, *, frac_test : float = 0.1, frac_validation : float = 0.1):
+    def __init__(self, metadata : MetaData, **kwargs):
         
         self._metadata = metadata
+
+        if kwargs.get('loading', False) is False:
+            self.get_features()
+            self.create_dataset(metadata.ids)
+            self.split_dataset()
+
+        print("Database initialised :")
+        print("--------------------------------")
+        print("| n_sample :", self.metadata.nsamples)
+        print("--------------------------------")
+        print("| total n_train :", self.metadata.train_sample.nsamples)
+        print("| total n_test :", self.metadata.test_sample.nsamples)
+        print("| total n_validation :", self.metadata.validation_sample.nsamples)
+        print("--------------------------------")
+        print("| n_valid_train :", self.metadata.train_sample.nsamples_valid)
+        print("|  -> reionized (at z=5.9)     : ", self.metadata.train_sample.nsamples_valid_reio)
+        print("|  -> not reionized (at z=5.9) : ", self.metadata.train_sample.nsamples_valid_noreio)
+        print("| n_valid_test :", self.metadata.test_sample.nsamples_valid)
+        print("|  -> reionized (at z=5.9)     : ", self.metadata.test_sample.nsamples_valid_reio)
+        print("|  -> not reionized (at z=5.9) : ", self.metadata.test_sample.nsamples_valid_noreio)
+        print("--------------------------------")
+        
+        
+    @property
+    def metadata(self):
+        return self._metadata
+    
+    @property
+    def data_dict(self):
+        return self._data_dict
+    
+    @property
+    def data_arr(self):
+        return self._data_arr
+    
+    # -------------------------
+    # Useful properties fror training, testing and validation
+
+    # features
+
+    @property
+    def u_train(self):
+        return self._u_data[self.metadata.train_sample.all]
+    
+    @property
+    def u_train_valid(self):
+        return self._u_data[self.metadata.train_sample.valid]
+
+    @property
+    def u_test(self):
+        return self._u_data[self.metadata.test_sample.all]
+
+    @property
+    def u_test_valid(self):
+        return self._u_data[self.metadata.test_sample.valid]
+    
+    @property
+    def u_validation(self):
+        return self._u_data[self.metadata.validation_sample.all]
+    
+    @property
+    def u_validation_valid(self):
+        return self._u_data[self.metadata.validation_sample.valid]
+    
+    # regressor labels
+
+    @property
+    def y_train_valid(self):
+        return self._y_data[self.metadata.train_sample.valid]
+    
+    @property
+    def y_test_valid(self):
+        return self._y_data[self.metadata.test_sample.valid]
+
+    @property
+    def y_validation_valid(self):
+        return self._y_data[self.metadata.validation_sample.valid]
+
+    # classifier labels
+
+    @property
+    def c_train(self):
+        return self._c_data[self.metadata.train_sample.all]
+    
+    @property
+    def c_test(self):
+        return self._c_data[self.metadata.test_sample.all]
+    
+    @property
+    def c_validation(self):
+        return self._c_data[self.metadata.validation_sample.all]
+    
+
+    # test on optical depth
+
+    @property
+    def ttau_test_valid(self):
+        return self._ttau_data[self.metadata.test_sample.valid]
+    
+    @property
+    def rtau_test_valid(self):
+        return self._rtau_data[self.metadata.test_sample.valid]
+    
+    # z-data
+
+    @property
+    def z_train_valid(self):
+        return self._z_data[self.metadata.train_sample.valid]
+    
+    @property
+    def z_test_valid(self):
+        return self._z_data[self.metadata.test_sample.valid]
+    
+    @property
+    def z_validation_valid(self):
+        return self._z_data[self.metadata.validation_sample.valid]
+
+
+    # -------------------------
+
+    def get_features(self) -> None:
+
+        """ 
+            Define the features in an array of dictionnaries and in a numpy array
+            according to the choice made in
+        """
 
         _data  = np.load(self.metadata.directory + '/Database.npz', allow_pickle=True)
 
@@ -582,25 +554,8 @@ class DataSet:
             for ikey, key in enumerate(self.metadata.param_names):
                 self._data_arr[i, ikey] = self._data_dict[int(i)][key]
 
-        self.create_dataset(metadata.ids)
 
-    
-        self.split_dataset()
-        
-    @property
-    def metadata(self):
-        return self._metadata
-    
-    @property
-    def data_dict(self):
-        return self._data_dict
-    
-    @property
-    def data_arr(self):
-        return self._data_arr
-
-
-    def create_dataset(self, ids):
+    def create_dataset(self, ids) -> None:
         """ this function does not modify the metadata but uses what its initialised attributes from prepare() """
 
         nsamples = len(ids)
@@ -611,13 +566,37 @@ class DataSet:
         self._y_data = np.zeros((nsamples, self.metadata.nredshifts))
         self._rtau_data = np.zeros(nsamples)   # regularised value of tau
         self._ttau_data = np.zeros(nsamples)   # true value of tau
+        self._z_data = np.zeros((nsamples, 4))
         self._McGreer_data = np.zeros(nsamples)
-        
+    
         for i in range(0, nsamples) :
 
             run = p21c.Run(self.metadata.directory, "Lightcone_rs1993_" + str(int(ids[i])) + ".h5")
             z_glob, r_xHIIdb = self.regularised_data(run)
             xHIIdb = scipy.interpolate.interp1d(z_glob, r_xHIIdb)(self.metadata.redshifts)
+            z_func = scipy.interpolate.interp1d(r_xHIIdb, z_glob, bounds_error=True)
+            
+            try:
+                z_mid = z_func(0.5)
+            except ValueError:
+                z_mid = -1.0
+
+            try: 
+                z_lin_max = z_func(0.02)
+            except ValueError:
+                z_lin_max = z_glob[-1]
+
+            try:
+                z_min = z_func(0.98)
+            except ValueError:
+                z_min = z_glob[0]
+
+            try: 
+                z_log_max = z_func(1.02*r_xHIIdb[-1])
+            except ValueError:
+                z_log_max = z_glob[-1]
+
+
 
             ombh2   = self.data_dict[int(ids[i])]['Ombh2']
             omch2   = self.data_dict[int(ids[i])]['Omch2']
@@ -641,21 +620,47 @@ class DataSet:
             
             # define the labels for the regressor
             self._y_data[i, :] = xHIIdb
+            
+            # define the labels for the z-regressor
+            self._z_data[i, :] = [z_min, z_mid, z_lin_max, z_log_max]
 
-
-    # update the datasamples in order to account for the valid_reio and valid_noreio splitting
-    def split_dataset(self): 
+    
+    def split_dataset(self) -> None:
+        """
+            update the data samples in order to account for the valid_reio and valid_noreio splitting
+            create classifier labels to train a neural network distinguishing between the categories
+        """ 
 
         indices_valid_reio    = np.where(self._McGreer_data  > 0.99)[0]
         indices_valid_noreio  = np.intersect1d(np.where(self._McGreer_data  <= 0.99)[0], np.where(self._McGreer_data  > 0.69)[0])
+        indices_excluded      = np.where(self._McGreer_data  <= 0.69)[0]
         
-        self.metadata.train_sample._valid_reio   = np.intersect1d(self.metadata.train_sample.all, indices_valid_reio)
-        self.metadata.train_sample._valid_noreio = np.intersect1d(self.metadata.train_sample.all, indices_valid_noreio)
-        self.metadata.test_sample._valid_reio   = np.intersect1d(self.metadata.test_sample.all, indices_valid_reio)
-        self.metadata.test_sample._valid_noreio = np.intersect1d(self.metadata.test_sample.all, indices_valid_noreio)
+        self.metadata.train_sample._valid_reio        = np.intersect1d(self.metadata.train_sample.all, indices_valid_reio)
+        self.metadata.train_sample._valid_noreio      = np.intersect1d(self.metadata.train_sample.all, indices_valid_noreio)
+        self.metadata.test_sample._valid_reio         = np.intersect1d(self.metadata.test_sample.all, indices_valid_reio)
+        self.metadata.test_sample._valid_noreio       = np.intersect1d(self.metadata.test_sample.all, indices_valid_noreio)
         self.metadata.validation_sample._valid_reio   = np.intersect1d(self.metadata.validation_sample.all, indices_valid_reio)
         self.metadata.validation_sample._valid_noreio = np.intersect1d(self.metadata.validation_sample.all, indices_valid_noreio)
+
+        self._c_data = np.zeros((self.metadata.nsamples, 3))
+        self._c_data[indices_valid_reio, :]   = [1, 0, 0]
+        self._c_data[indices_valid_noreio, :] = [0, 1, 0]
+        self._c_data[indices_excluded, :]     = [0, 0, 1]
+
+
+
+
+    @property
+    def zmin_valid(self):
+        return self._zmin_valid
     
+    @property
+    def zmid_valid(self):
+        return self._zmid_valid
+    
+    @property
+    def zmax_valid(self):
+        return self._zmax_valid
 
     def regularised_data(self, run, n_smooth:int = 10):
 
@@ -676,7 +681,54 @@ class DataSet:
         return z_glob, new_array
 
 
+    def save(self, folder, force = False):
+      
+        if not exists(folder):
+            makedirs(folder)
 
+        self.metadata.save(folder, force)
+
+        file = join(folder, 'Dataset.npz')
+        if exists(file) and not force:
+            warnings.warn(file + ' already exists. Use force = True to overwrite it.')
+    
+        with open(folder + '/Dataset.npz', 'wb') as file:
+            
+            np.savez(file, 
+                     x_data = self._x_data, 
+                     u_data = self._u_data,
+                     y_data = self._y_data,
+                     c_data = self._c_data,
+                     rtau_data = self._rtau_data,
+                     ttau_data = self._ttau_data,
+                     McGreer_data = self._McGreer_data,
+                     data_arr     = self._data_arr)
+            
+
+    
+    @classmethod
+    def load(cls, folder):
+
+        dataset = DataSet(MetaData.load(folder), loading = True)
+            
+        file = join(folder, 'Dataset.npz')
+        with open(file, 'rb') as f:
+
+            data = np.load(f)
+            dataset._x_data = data.get('x_data')
+            dataset._u_data = data.get('u_data')
+            dataset._y_data = data.get('y_data')
+            dataset._c_data = data.get('c_data')
+            dataset._rtau_data = data.get('rtau_data')
+            dataset._ttau_data = data.get('ttau_data')
+            dataset._McGreer_data = data.get('McGreer_data')
+            dataset._data_arr = data.get('data_arr')
+
+        # reconstructing the data dictionnary
+        dataset._data_dict = np.array([{key : dataset._data_arr[i, ikey] for ikey, key in enumerate(dataset.metadata.param_names)} for i in range(dataset.metadata.nsamples)])
+
+        return dataset
+    
 
 
 
@@ -1005,3 +1057,210 @@ class DataBase:
         self._params_valid = self._params[id_valid, :]
         self._params_valid_tau_Planck_3sigma = self._params[id_valid_tau_Planck_3sigma, :]
     
+
+
+
+
+# We need to store somewhere
+# - the parameter list
+# - the parameter ranges
+# - the redshifts on which we train
+
+class MetaData2:
+    
+    """
+        class Metadata
+
+    Contain data about the data. ID card of the data.
+    Is saved with the neural-network models to use them in a standalone mode once they are trained.
+
+    """
+
+    def __init__(self, path : str, redshifts : np.ndarray = None, param_names : list = None):
+
+        # directory was the data is stored
+        self._directory = abspath(path)
+
+        # define a default redshift array on which to make the predictions
+        # define the labels of the regressor
+        if redshifts is None:
+            self._redshifts = np.array([4, 5, 5.9, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 29, 31, 33, 35])
+        else:
+            self._redshifts = redshifts
+
+        # define a default parameter list to run on
+        # features of the neural networks
+        if param_names is None:
+            self._param_names = ['F_STAR10', 'ALPHA_STAR', 't_STAR', 'F_ESC10', 'ALPHA_ESC', 'M_TURN', 'Omch2', 'Ombh2', 'hlittle', 'Ln_1010_As', 'POWER_INDEX', 'M_WDM']
+        else : 
+            self._param_names = param_names
+
+        # define the length of the lists
+        self._nredshifts = len(self.redshifts)
+        self._nparams = len(self.param_names)
+        
+        # The rest will be set later when data is used
+        self._param_ranges  = None # range of parameters
+        self._nsamples      = None # number of samples
+        self._ntrain        = None # number of train point
+        self._ntest         = None # number of test point
+        self._ntrain_valid  = None # number of valid training point
+        self._ntest_valid   = None # number of valid test point
+        self._frac_test     = None # fraction of testing point
+
+        # repartition of the data used
+        self._id                = None
+        self._id_valid          = None
+        self._id_train          = None
+        self._id_test           = None
+        self._id_train_valid    = None
+        self._id_test_valid     = None
+        self._index_train       = None
+        self._index_test        = None
+        self._index_valid       = None
+        self._index_train_valid = None
+        self._index_test_valid  = None
+
+        self._index_valid_reio   = None
+        self._index_valid_noreio = None
+        self._index_excluded     = None
+
+        self._index_train_valid_reio   = None
+        self._index_train_valid_noreio = None
+        self._index_test_valid_reio    = None
+        self._index_test_valid_noreio  = None
+
+
+        self._frozen = False
+
+    
+    def __getattr__(self, name):
+        try:
+            return self.__dict__['_' + name]
+        except KeyError:
+            msg = "'{0}' object has no attribute '{1}'"
+            raise AttributeError(msg.format(type(self).__name__, '_' + name))
+        
+    def __setattr__(self, name: str, value) -> None:
+        
+        # forbid modification of attributes not starting with '_'
+        if not name.startswith('_'):
+            msg = "Cannot modify attribute '{1}' of object '{0}'"
+            raise AttributeError(msg.format(type(self).__name__, name))
+        
+        self.__dict__[name] = value
+
+    # saving the metadata
+    def save(self, filename):
+
+        with open(filename + '_metadata.npz', 'wb') as file:
+            np.savez(file, 
+                        directory   = self.directory,
+                        redshifts    = self.redshifts,
+                        param_names  = self.param_names,
+                        nredshifts   = self.nredshifts,
+                        nparams      = self.nparams,
+                        param_ranges = self.param_ranges,
+                        nsamples     = self.nsamples,
+                        ntrain       = self.ntrain,
+                        ntest        = self.ntest,
+                        ntrain_valid = self.ntrain_valid,
+                        ntest_valid  = self.ntest_valid,
+                        frac_test    = self.frac_test,
+                        id                = self.id,
+                        id_valid          = self.id_valid,
+                        id_train          = self.id_train,
+                        id_test           = self.id_test,
+                        id_train_valid    = self.id_train_valid,
+                        id_test_valid     = self.id_test_valid,
+                        index_train       = self.index_train,
+                        index_test        = self.index_test,
+                        index_valid       = self.index_valid,
+                        index_train_valid = self.index_train_valid,
+                        index_test_valid  = self.index_test_valid,
+                        index_valid_reio   = self.index_valid_reio,
+                        index_valid_noreio = self.index_valid_noreio,
+                        index_excluded     = self.index_excluded,
+                        index_train_valid_reio   = self.index_train_valid_reio,
+                        index_train_valid_noreio = self.index_train_valid_noreio,
+                        index_test_valid_reio    = self.index_test_valid_reio,
+                        index_test_valid_noreio  = self.index_test_valid_noreio,
+                        frozen              = self.frozen
+    )
+
+    @classmethod    
+    def load(cls, filename):
+
+        with open(filename + '_metadata.npz', 'rb') as file:
+            data = np.load(file, allow_pickle=True)
+            
+            # get the user input metadata
+            directory    = str(data['directory'])
+            redshifts    = data['redshifts']
+            param_names  = list(data['param_names'])
+
+            metadata = MetaData(directory, redshifts, param_names)
+            
+            metadata._nredshifts   = data['nredshifts']
+            metadata._nparams      = data['nparams']
+            metadata._param_ranges = data['param_ranges'].tolist()
+            metadata._nsamples     = data['nsamples']
+            metadata._ntrain       = data['ntrain']
+            metadata._ntest        = data['ntest']
+            metadata._ntrain_valid = data['ntrain_valid']
+            metadata._ntest_valid  = data['ntest_valid']
+            metadata._frac_test    = data['frac_test']
+
+            metadata._id                  = data['id']
+            metadata._id_valid            = data['id_valid']
+            metadata._id_train            = data['id_train']
+            metadata._id_test             = data['id_test']
+            metadata._id_train_valid      = data['id_train_valid']
+            metadata._id_test_valid       = data['id_test_valid']
+            metadata._index_train         = data['index_train']
+            metadata._index_test          = data['index_test']
+            metadata._index_valid         = data['index_valid']
+            metadata._index_train_valid   = data['index_train_valid']
+            metadata._index_test_valid    = data['index_test_valid']
+            metadata._index_valid_noreio   = data['index_valid_noreio']
+            metadata._index_valid_reio    = data['index_valid_reio']
+            metadata._index_excluded      = data['index_excluded']
+
+            metadata._index_train_valid_reio   = data['index_train_valid_reio']
+            metadata._index_train_valid_noreio = data['index_train_valid_noreio']
+            metadata._index_test_valid_reio    = data['index_test_valid_reio']
+            metadata._index_test_valid_noreio  = data['index_test_valid_noreio']
+
+            metadata._frozen = data['frozen']
+            
+        return metadata
+
+
+    def __eq__(self, other):
+        
+        for key, value in self.__dict__.items():
+            other_value = other.__dict__[key]
+
+            try: 
+                if (key in ["_redshifts", "_param_ranges", "_param_names", "_id", '_id_valid', "_id_train", "_id_test",
+                    "_id_train_valid", "_id_test_valid", "_index_train", "_index_test", "_index_valid", "_index_train_valid",
+                        "_index_test_valid", '_index_valid_noreio', '_index_valid_reio', '_index_excluded', 
+                    '_index_train_valid_reio', '_index_train_valid_noreio', '_index_test_valid_reio', '_index_test_valid_noreio',]):
+                
+                    if (len(value) != len(other_value)):
+                        return False
+                    if np.any(value != other_value):
+                        return False
+                else:
+                    if value != other_value:
+                        return False
+            except ValueError as e:
+                print("Value error for : ", key)
+                raise e
+            
+        return True
+
+
+    @property
+    def directory(self):
+        return self._directory
