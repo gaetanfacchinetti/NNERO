@@ -1,297 +1,44 @@
 import numpy as np
-import tensorflow as tf
-import tensorflow.keras as keras
+import torch
+import torch.nn as nn
 
-from .data import MetaData
-from .data import DataBase
-from .data import true_to_uniform, tau_ion, uniform_to_true
+from .cosmology import optical_depth
 
-class NeuralNetwork:
-
-    def __init__(self, model, name):
-        self._model = model
-        self._name = name
-        self._history = {'loss' : np.zeros(0), 'val_loss' : np.zeros(0)}
-        self._metadata  = None
-
-    def _compile(self, loss, *, optimizer = tf.keras.optimizers.AdamW(learning_rate=1e-3), **kwargs):
-        self._history = {'loss' : np.zeros(0), 'val_loss' : np.zeros(0)}
-        self._model.compile(optimizer, loss=loss, **kwargs)
-
-    def _train(self, x, y, metadata, *, epochs = 500, validation_split=0.1, verbose='auto', batch_size=32, **kwargs):
-
-        # set the metadata if it is new
-        if (self._metadata is not None) and (self._metadata != metadata):
-            raise ValueError("The metadata should be the same when training successively")
-        
-        if self._metadata is None:
-            self._metadata = metadata
-
-        # train the model according to the specification wanted by the user
-        new_history = self._model.fit(x, y, epochs = epochs, validation_split = validation_split, verbose = verbose, batch_size = batch_size, **kwargs)
-
-        # combine the histories
-        for key in ['loss', 'val_loss']:
-            self._history[key] = np.concatenate((self._history[key], new_history.history[key]), axis=0)
-
-    # -------------------------------
-    # redefine very simple functions from keras in this Class for convenience
-
-    def save(self, path = ".") -> None:
-        
-        with open(path + "/" + self._name + '_history.npz', 'wb') as file:
-            np.savez(file, history = self._history)
-
-        # save the metadata and the model
-        self._metadata.save(path + "/" + self._name)
-        self._model.save(path + "/" + self._name + '.keras')
-
-    def _load_history(self, path) -> None:
-        
-        with open(path + "/" + self._name + '_history.npz', 'rb') as file: 
-            data = np.load(file, allow_pickle=True)
-            self._history = data['history'].tolist()
-
-    
-    def postprocess(self, prediction):
-        return prediction
-
-    
-    def predict(self, x, **kwargs):
-        
-        if len(x.shape) < 2:
-            x = np.array([x])
-        
-        return self.postprocess(self._model.predict(x, verbose=0), **kwargs)
+from .data import true_to_uniform, uniform_to_true
 
 
 
-    @property
-    def model(self):
-        return self._model
-    
-    @property
-    def history(self):
-        return self._history
-    
-    @property
-    def name(self):
-        return self._name
 
 
 
-class Classifier(NeuralNetwork):
 
-    def __init__(self, n_input = 12, *, model = None, name = "DefaultClassifier", check_name = True):
 
-        if check_name and (name == "DefaultClassifier" and (model is not None)):
-            raise AttributeError("Plase give your custom model a name different from the default value")
+class Regressor(nn.Module):
 
-        if model is None:
-    
-            # Define a simple default classifier
-            model = keras.Sequential(
-                [
-                keras.Input(shape=(n_input,), name="input"),
-                keras.layers.Dense(32, name="layer_1_nn", activation = "relu", kernel_initializer='normal'),
-                keras.layers.Dense(32, name="layer_2_nn", activation = "relu", kernel_initializer='normal'),
-                keras.layers.Dense(32, name="layer_3_nn", activation = "sigmoid", kernel_initializer='normal'),
-                keras.layers.Dense(3,  name="output", kernel_initializer='normal', activation = "softmax"),
-                ]
-            )
+    def __init__(self, dim = 80):
 
-        super().__init__(model, name)
+        super(Regressor, self).__init__()
 
-    def compile(self, optimizer = tf.keras.optimizers.AdamW(learning_rate=1e-3), **kwargs):
-        self._compile("categorical_crossentropy", optimizer=optimizer, **kwargs)
-
-    def train(self, db, *, epochs = 500, validation_split=0.1, verbose='auto', batch_size=32, **kwargs):
-        self._train(db.u_train, db.c_train, db.metadata, epochs=epochs, validation_split=validation_split, verbose=verbose, batch_size=batch_size, **kwargs )
-    
-    @classmethod
-    def load(cls, path = ".", name = "DefaultClassifier"):
-        
-        model = keras.models.load_model(path + "/" + name + '.keras')
-        classifier = Classifier(model = model, name = name, check_name = False)
-        classifier._load_history(path)
-        classifier._metadata = MetaData.load(path + "/" + name)
-        return classifier
-    
-    def test(self, database):
-
-        res = np.zeros((3, 3))
-
-        indices = [[[] for j in range(0, 3)] for i in range(0, 3)]
-        prediction = self.predict(database.u_test)
-
-        for i in range(0, database.metadata.ntest):
-
-            index = np.argmax(prediction[i, :])
-
-            for j in range(0, 3):
-                if database.c_test[i, j] == 1:
-                    res[index, j] = res[index, j] + 1
-                    indices[index][j].append(i)
+        self._model = nn.Sequential(
+                    nn.Linear(16, dim),
+                    nn.Linear(dim, dim), nn.ReLU(),
+                    nn.Linear(dim, dim), nn.ReLU(),
+                    nn.Linear(dim, dim), nn.ReLU(),
+                    nn.Linear(dim, dim), nn.ReLU(),
+                    nn.Linear(dim, dim), nn.ReLU(),
+                    nn.Linear(dim, 50),
+                    )
                     
-        print("\t | actually reionized | actrually valid (not reionized) | actually not valid")
-        print("predicted reionised             | " + str(res[0, 0]) + " | " + str(res[0, 1]) + " | " + str(res[0, 2]))
-        print("predicted valid (not reionized) | " + str(res[1, 0]) + " | " + str(res[1, 1]) + " | " + str(res[1, 2]))
-        print("predicted not valid             | " + str(res[2, 0]) + " | " + str(res[2, 1]) + " | " + str(res[2, 2]))
 
+    def forward(self, x): 
+        return torch.clamp(self._model(x), max=1.0)
+    
+    def tau_ion(self, x, y):
+        omega_b = uniform_to_true(x[:, ib], parameters_min_val[ib], parameters_max_val[ib])
+        omega_c = uniform_to_true(x[:, ic], parameters_min_val[ic], parameters_max_val[ic])
+        h       = uniform_to_true(x[:, ih], parameters_min_val[ih], parameters_max_val[ih])
+        res     = nnero.cosmology.optical_depth_no_rad_torch(z_tensor, y, omega_b, omega_c, h)
         return res
-
-    
-
-
-def rel_abs_loss(y_true, y_pred):
-    return tf.reduce_mean(tf.abs(1.0-y_pred/y_true))
-
-keras.utils.get_custom_objects()['rel_abs_loss'] = rel_abs_loss
-
-
-
-class Regressor(NeuralNetwork):
-
-    # what worked so far:
-    # - directly put xHIIdb as y_train
-    # - relu activation function
-    # - can do large dense layers with some dropout layers
-
-    def __init__(self, n_input = 12, n_output = 32, *, model = None, name = "DefaultRegressor", check_name = True):
-
-        if check_name and (name == "DefaultRegressor" and (model is not None)):
-            raise AttributeError("Plase give your custom model a name different from the default value")
-
-        if model is None:
-
-            # Define a simple default classifier
-            model = keras.Sequential(
-                [
-                keras.Input(shape=(n_input,), name="input"),
-                keras.layers.Dense(128, name="layer_1_nn", activation = "relu", kernel_initializer='normal'),
-                keras.layers.Dense(128, name="layer_2_nn", activation = "relu", kernel_initializer='normal'),
-                keras.layers.Dense(128, name="layer_3_nn", activation = "relu", kernel_initializer='normal'),
-                keras.layers.Dense(128, name="layer_4_nn", activation = "relu", kernel_initializer='normal'),
-                keras.layers.Dense(128, name="layer_5_nn", activation = "relu", kernel_initializer='normal'),
-                keras.layers.Dense(128, name="layer_6_nn", activation = "relu", kernel_initializer='normal'),
-                keras.layers.Dense(128, name="layer_7_nn", activation = "relu", kernel_initializer='normal'),
-                keras.layers.Dense(128, name="layer_8_nn", activation = "relu", kernel_initializer='normal'),
-                keras.layers.Dense(128, name="layer_9_nn", activation = "relu", kernel_initializer='normal'),
-                keras.layers.Dense(n_output,  name="output", kernel_initializer='normal'),
-                ]
-            )
-        
-        super().__init__(model, name)
-
-
-    def compile(self, optimizer = tf.keras.optimizers.AdamW(learning_rate=5e-5), **kwargs):
-        self._compile(rel_abs_loss, optimizer=optimizer, **kwargs)
-
-    def train(self, db, *, epochs = 500, validation_split=0.1, verbose='auto', batch_size=32, **kwargs):
-        self._train(db.u_train_valid, db.y_train_valid, db.metadata, epochs=epochs, validation_split=validation_split, verbose=verbose, batch_size=batch_size, **kwargs )
-    
-    @classmethod
-    def load(cls, path = ".", name = "DefaultRegressor"):
-
-        model = keras.models.load_model(path + "/" + name + '.keras',  custom_objects={"rel_abs_loss": rel_abs_loss})
-        regressor = Regressor(model=model, name = name, check_name=False)
-        regressor._load_history(path)
-        regressor._metadata = MetaData.load(path + "/" + name)
-        return regressor
-
-
-    def postprocess(self, prediction, bias = 0.0):
-        # prediction must be a 2D-array as returned by model.predict()
-        
-        res = np.zeros(prediction.shape)
-        res[:, :] = prediction[:, :] / (1.0 + 0.01 * bias)
-
-        for i in range(0, res.shape[0]):
-            
-            indexes_reio = np.where(res[i, :] >= 1.0)[0]
-            
-            if len(indexes_reio > 0):
-                index_max = indexes_reio[-1]
-                res[i, 0:index_max + 1] = 1.0
-
-        return res
-
-
-    def test(self, database, **kwargs):
-
-        # compute the average relative difference error
-        prediction = self.predict(database.u_test_valid, **kwargs)
-        error_rel = 100 * (prediction / database.y_test_valid-1)
-        
-
-        # compute the error for the optical depth
-        omch2 = database.x_test_valid[:, database.metadata.param_names.index('Omch2')]
-        ombh2 = database.x_test_valid[:, database.metadata.param_names.index('Ombh2')]
-        h = database.x_test_valid[:, database.metadata.param_names.index('hlittle')]
-
-        error_tau = np.zeros(database.metadata.ntest_valid)
-        for i in range(0, database.metadata.ntest_valid):
-            tau_pred = tau_ion(database.metadata.redshifts, prediction[i, :], ombh2[i], omch2[i] + ombh2[i], h[i])
-            tau_true = tau_ion(database.metadata.redshifts, database.y_test_valid[i, :], ombh2[i], omch2[i] + ombh2[i], h[i])
-            error_tau[i] = 100 * (tau_pred/tau_true-1)
-
-        return error_rel, error_tau
-    
-
-
-
-
-class ODToRRegressor(NeuralNetwork):
-
-    def __init__(self, n_input = 12, *, model = None, name = "DefaultODToRRegressor", check_name = True):
-
-        if check_name and (name == "DefaultODToRRegressor" and (model is not None)):
-            raise AttributeError("Plase give your custom model a name different from the default value")
-
-        if model is None:
-
-            # Define a simple default classifier
-            model = keras.Sequential(
-                [
-                keras.Input(shape=(n_input,), name="input"),
-                keras.layers.Dense(32, name="layer_1_nn", activation = "relu", kernel_initializer='normal'),
-                keras.layers.Dense(32, name="layer_2_nn", activation = "relu", kernel_initializer='normal'),
-                keras.layers.Dense(32, name="layer_3_nn", activation = "relu", kernel_initializer='normal'),
-                keras.layers.Dense(32, name="layer_4_nn", activation = "relu", kernel_initializer='normal'),
-                keras.layers.Dense(32, name="layer_5_nn", activation = "relu", kernel_initializer='normal'),
-                keras.layers.Dense(1,  name="output", kernel_initializer='normal'),
-                ]
-            )
-        
-        super().__init__(model, name)
-
-
-    def compile(self, optimizer = tf.keras.optimizers.AdamW(learning_rate=5e-5), **kwargs):
-        self._compile(rel_abs_loss, optimizer=optimizer, **kwargs)
-
-    def train(self, db, *, epochs = 500, validation_split=0.1, verbose='auto', batch_size=32, **kwargs):
-        self._train(db.u_train_valid, db.ttau_train_valid, db.metadata, epochs=epochs, validation_split=validation_split, verbose=verbose, batch_size=batch_size, **kwargs )
-    
-    @classmethod
-    def load(cls, path = ".", name = "DefaultODToRRegressor"):
-
-        model = keras.models.load_model(path + "/" + name + '.keras',  custom_objects={"rel_abs_loss": rel_abs_loss})
-        regressor = ODToRRegressor(model=model, name = name, check_name=False)
-        regressor._load_history(path)
-        regressor._metadata = MetaData.load(path + "/" + name)
-        return regressor
-
-    def postprocess(self, prediction):
-        prediction[prediction > 1.0] = 1.0
-        prediction[prediction < 0.69] = 0.69
-        return prediction
-    
-
-    def test(self, database):
-
-        prediction = self.predict(database.u_test_valid)[:, 0]
-        return (100 * (prediction / database.ttau_test_valid - 1))
-
 
 
 
@@ -476,7 +223,7 @@ def predict_xHII(classifier = None, regressor = None, **kwargs):
     return predict_regressor(regressor, **kwargs)
 
 
-# predict the evolution of tau_ion
+# predict the evolution of optical_depth
 
 def predict_tau(classifier = None, regressor = None, **kwargs):
     
@@ -491,6 +238,6 @@ def predict_tau(classifier = None, regressor = None, **kwargs):
     #ombh2 = kwargs.get('Ombh2', DEFAULT_VALUES['Ombh2'])
     #omch2 = kwargs.get('Ombh2', DEFAULT_VALUES['Omch2'])
     #h = kwargs.get('hlittle', DEFAULT_VALUES['hlittle'])
-    #return tau_ion(regressor._metadata.redshifts, x_HII, ombh2, omch2 + ombh2, h)
+    #return optical_depth(regressor._metadata.redshifts, x_HII, ombh2, omch2 + ombh2, h)
     
     return predict_odtor_regressor(regressor, **kwargs)
