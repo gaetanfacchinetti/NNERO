@@ -21,6 +21,7 @@
 ##################
 #
 # Definition of simple background cosmological quantities
+# and fast computation of the optical depth to reionization
 # the cosmology is assumed to be flat (omega_k = 0)
 #
 ##################

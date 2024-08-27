@@ -2,27 +2,17 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from .data import TorchDataset
-
-
-class NeuralNetwork(nn.Module):
-
-    def __init__(self, name):
-        self._name = name
-        self._metadata  = None
-
-    def save(self, path = ".") -> None:
-        self.eval()
-        torch.save(self,  path + "/" + self._name + ".pth")
+from .data import TorchDataset, DataSet, MetaData, DataPartition
+from .nn   import NeuralNetwork
 
 
 class Classifier(NeuralNetwork):
 
-    def __init__(self, n_input = 16, *, model = None, dim = 32, name = "DefaultClassifier", check_name = True):
+    def __init__(self, *, n_input = 16, dim = 32, model = None, name = None):
 
         
-        if check_name and (name == "DefaultClassifier" and (model is not None)):
-            raise AttributeError("Plase give your custom model a name different from the default value")
+        if name is None:
+            name = "DefaultClassifier"
 
         if model is None:
 
@@ -34,13 +24,6 @@ class Classifier(NeuralNetwork):
                 nn.Linear(dim, dim), nn.ReLU(),
                 nn.Linear(dim, 1), nn.Sigmoid()
                 )
-
-
-        self._train_loss     = np.zeros(0)
-        self._valid_loss     = np.zeros(0)
-        self._train_accuracy = np.zeros(0)
-        self._valid_accuracy = np.zeros(0)
-
         
         super(Classifier, self).__init__(name)
         super(NeuralNetwork, self).__init__()
@@ -48,7 +31,6 @@ class Classifier(NeuralNetwork):
         self._model = model
         self._loss_fn = nn.BCELoss()
 
-                
     @classmethod
     def load(cls, path = "./DefaultClassifier.pth"):
         return torch.load(path)
@@ -59,31 +41,32 @@ class Classifier(NeuralNetwork):
     @property
     def loss_fn(self):
         return self._loss_fn
+    
+    def test(self, dataset:DataSet):
 
-    @property
-    def train_loss(self):
-        return self._train_loss
-    
-    @property
-    def valid_loss(self):
-        return self._valid_loss
-    
-    @property
-    def train_accuracy(self):
-        return self._train_accuracy
-    
-    @property
-    def valid_accuracy(self):
-        return self._valid_accuracy
+        self.set_check_metadata_and_partition(dataset, check_only = True)
+        x_test = torch.tensor(dataset.x_array[dataset.partition.total_test],      dtype=torch.float32)
+        y_test = torch.tensor(dataset.y_classifier[dataset.partition.total_test], dtype=torch.float32)
+        
+        self.eval()
+        
+        with torch.no_grad():
+            y_pred  = self.forward(x_test)
+            print(f"The accuracy is {100*(y_pred.round() == y_test).float().mean():.4f}%")
+
+
 
     
     
     
-def train_classifier(model, dataset, optimizer, *, epochs = 50, learning_rate = 1e-3, verbose = True, batch_size = 64, **kwargs):
+def train_classifier(model: Classifier, dataset: DataSet, optimizer:torch.optim.Optimizer, *, epochs = 50, learning_rate = 1e-3, verbose = True, batch_size = 64, **kwargs):
     
+    # set the metadata and parition object of the model
+    model.set_check_metadata_and_partition(dataset)
+
     # format the data for the classifier
-    train_dataset = TorchDataset(dataset.x_array[dataset.indices_tot_train], dataset.y_classifier[dataset.indices_tot_train])
-    valid_dataset = TorchDataset(dataset.x_array[dataset.indices_tot_valid], dataset.y_classifier[dataset.indices_tot_valid])
+    train_dataset = TorchDataset(dataset.x_array[dataset.partition.total_train], dataset.y_classifier[dataset.partition.total_train])
+    valid_dataset = TorchDataset(dataset.x_array[dataset.partition.total_valid], dataset.y_classifier[dataset.partition.total_valid])
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, **kwargs)
     valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size, **kwargs)
     
@@ -107,7 +90,7 @@ def train_classifier(model, dataset, optimizer, *, epochs = 50, learning_rate = 
 
             optimizer.zero_grad()
             y_pred = model.forward(x_batch)
-            loss = model.loss_fn(y_pred, y_batch)
+            loss   = model.loss_fn(y_pred, y_batch)
             loss.backward()
             optimizer.step()
             
