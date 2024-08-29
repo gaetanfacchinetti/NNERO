@@ -321,16 +321,34 @@ class MetaData:
 
 
 class DataSet:
+    """
+        DataSet class
+    
+    compile the data necessary for training
+
+    Parameters:
+    -----------
+    - file_path: str
+        path to the file that contains the raw data
+    - z: np.ndarray
+        array of the redshits of interpolation of the nn
+    - frac_test: float 
+        fraction of test data out of the total sample
+    - frac_valid: float
+        fraction of validation data out of the total sample
+    - seed_split: int
+        random seed for data partitioning
+    """
 
     def __init__(self, 
                  file_path : str, 
-                 redshifts = None, 
+                 z : np.ndarray | None = None, 
                  *, 
-                 frac_test  = 0.1, 
-                 frac_valid = 0.1,
-                 seed_split = 1994):
+                 frac_test: float  = 0.1, 
+                 frac_valid: float = 0.1,
+                 seed_split: int   = 1994) -> None:
 
-        # --------------------------
+        # --------------------------------
         # initialisation from input values 
 
         # directory was the data is stored
@@ -338,7 +356,7 @@ class DataSet:
 
         # define a default redshift array on which to make the predictions
         # define the labels of the regressor
-        if redshifts is None:
+        if z is None:
             _z = np.array([4, 4.25, 4.5, 4.75, 5, 5.25, 5.5, 5.75, 
                                         5.9, 6.25, 6.5, 6.75, 7, 7.25, 7.5, 7.75, 
                                         8, 8.25, 8.5, 8.75, 9, 9.5, 10, 10.5, 11, 
@@ -346,13 +364,13 @@ class DataSet:
                                         15.5, 16, 17, 18, 19, 20, 21, 22, 23, 24, 
                                         25, 26, 27, 29, 31, 33, 35])
         else:
-            _z = redshifts
+            _z = z
 
 
-        # --------------------------
+        # -----------------------------
         # prepare and read the datafile
 
-        # if not already
+        # if raw data has not yet been preprocessed
         if not exists(file_path[:-4]+ "_pp.npz"):
             preprocess_raw_data(file_path, random_seed=seed_split, frac_test = frac_test, frac_valid = frac_valid)
         else:
@@ -432,20 +450,16 @@ class DataSet:
         return self._y_regressor
     
     @property
-    def train_loader_regressor(self):
-        return self._train_loader_regressor
-    
-    @property
-    def valid_loader_regressor(self):
-        return self._valid_loader_regressor    
-    
-    @property
     def metadata(self):
         return self._metadata
     
     @property
     def partition(self):
         return self._partition
+
+    @property
+    def tau(self):
+        return self._tau
     
     
 

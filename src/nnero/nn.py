@@ -46,6 +46,8 @@ class NeuralNetwork(torch.nn.Module):
         self._train_accuracy = np.zeros(0)
         self._valid_accuracy = np.zeros(0)
 
+        print('Ininitated model ' + str(self.name))
+
 
     def save(self, path = ".", save_partition = True) -> None:
         """
@@ -89,6 +91,23 @@ class NeuralNetwork(torch.nn.Module):
             if self.partition != dataset.partition:
                 raise ValueError("The partition is incompatible with the previous round of training.")
             
+
+    def print_parameters(self):
+        
+        total_params = 0
+        print("| Parameters per layers:")
+        print("| ----------------------")
+        for name, parameter in self.named_parameters():
+            if not parameter.requires_grad:
+                continue
+            params = parameter.numel()
+            print('|', name, ':', params)
+            total_params += params
+        print("| ----------------------")
+        print(f"| Total Trainable Params: {total_params}")
+        print("  ----------------------")
+            
+
     @property
     def name(self):
         return self._name

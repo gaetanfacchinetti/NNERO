@@ -9,28 +9,32 @@ from .cosmology import optical_depth_no_rad_torch
 
 class Regressor(NeuralNetwork):
 
-    def __init__(self, *, n_input = 16, dim = 80, model = None, name = None):
+    def __init__(self, *, 
+                 n_input: int = 16, n_output: int = 50, 
+                 n_hidden_features: int = 80, n_hidden_layers: int = 5, 
+                 alpha_tau : float = 0.5,
+                 model = None, name: str | None = None):
 
         if name is None:
             name = "DefaultRegressor"
 
         if model is None:
+            
+            hidden_layers = []
+            for _ in range(n_hidden_layers):
+                hidden_layers.append(nn.Linear(n_hidden_features, n_hidden_features))
+                hidden_layers.append(nn.ReLU())
 
-              model = nn.Sequential(
-                    nn.Linear(n_input, dim),
-                    nn.Linear(dim, dim), nn.ReLU(),
-                    nn.Linear(dim, dim), nn.ReLU(),
-                    nn.Linear(dim, dim), nn.ReLU(),
-                    nn.Linear(dim, dim), nn.ReLU(),
-                    nn.Linear(dim, dim), nn.ReLU(),
-                    nn.Linear(dim, 50),
-                    )
+            model = nn.Sequential(nn.Linear(n_input, n_hidden_features), *hidden_layers, nn.Linear(n_hidden_features, n_output))
         
         super(Regressor, self).__init__(name)
         super(NeuralNetwork, self).__init__()
-
-        self._model    = model
         
+        self._model     = model
+        self._alpha_tau = alpha_tau
+
+        self.print_parameters()
+    
 
     @classmethod
     def load(cls, path = "./DefaultRegressor.pth"):
@@ -78,6 +82,10 @@ class Regressor(NeuralNetwork):
             y_pred   = self.forward(x_test)
 
         return y_pred.numpy(), y_test.numpy()
+    
+    @property
+    def alpha_tau(self):
+        return self._alpha_tau
 
     
     
@@ -117,13 +125,13 @@ def train_regressor(model: Regressor, dataset: DataSet, optimizer:torch.optim.Op
             
             loss_xHII = model.loss_xHII(y_pred, y_batch)
             loss_tau  = model.loss_tau(tau_pred, y_batch)
-            loss     = 0.5 * (loss_xHII + loss_tau)
+            loss     = (1.0-model.alpha_tau) * loss_xHII + model.alpha_tau * loss_tau
 
             loss.backward()
             optimizer.step()
             
             train_loss     = np.append(train_loss, loss.item())
-            train_accuracy = np.append(train_accuracy, loss_tau.item())
+            train_accuracy = np.append(train_accuracy, 1-loss_tau.item())
 
 
         # evaluation mode
@@ -139,10 +147,10 @@ def train_regressor(model: Regressor, dataset: DataSet, optimizer:torch.optim.Op
                 
                 loss_xHII = model.loss_xHII(y_pred, y_batch)
                 loss_tau  = model.loss_tau(tau_pred, y_batch)
-                loss     = 0.5 * (loss_xHII + loss_tau)
+                loss      = (1.0-model.alpha_tau) * loss_xHII + model.alpha_tau * loss_tau
                 
                 valid_loss     = np.append(valid_loss, loss.item())
-                valid_accuracy = np.append(valid_accuracy, loss_tau.item())
+                valid_accuracy = np.append(valid_accuracy, 1-loss_tau.item())
         
         # get the mean of all batches
         model._train_loss     = np.append(model._train_loss, np.mean(train_loss))

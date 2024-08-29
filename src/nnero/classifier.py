@@ -2,34 +2,39 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from .data import TorchDataset, DataSet, MetaData, DataPartition
+from .data import TorchDataset, DataSet
 from .nn   import NeuralNetwork
 
 
 class Classifier(NeuralNetwork):
 
-    def __init__(self, *, n_input = 16, dim = 32, model = None, name = None):
+    def __init__(self, 
+                *,
+                n_input: int = 16, 
+                n_hidden_features: int = 32, 
+                n_hidden_layers: int = 4, 
+                model = None, name: str | None = None):
 
-        
         if name is None:
             name = "DefaultClassifier"
 
         if model is None:
 
-            model = nn.Sequential(
-                nn.Linear(n_input, dim),
-                nn.Linear(dim, dim), nn.ReLU(),
-                nn.Linear(dim, dim), nn.ReLU(),
-                nn.Linear(dim, dim), nn.ReLU(),
-                nn.Linear(dim, dim), nn.ReLU(),
-                nn.Linear(dim, 1), nn.Sigmoid()
-                )
+                 
+            hidden_layers = []
+            for _ in range(n_hidden_layers):
+                hidden_layers.append(nn.Linear(n_hidden_features, n_hidden_features))
+                hidden_layers.append(nn.ReLU())
+
+            model = nn.Sequential(nn.Linear(n_input, n_hidden_features), *hidden_layers, nn.Linear(n_hidden_features, 1), nn.Sigmoid())
         
         super(Classifier, self).__init__(name)
         super(NeuralNetwork, self).__init__()
 
         self._model = model
         self._loss_fn = nn.BCELoss()
+
+        self.print_parameters()
 
     @classmethod
     def load(cls, path = "./DefaultClassifier.pth"):
