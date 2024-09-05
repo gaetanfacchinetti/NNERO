@@ -1,3 +1,23 @@
+##################################################################################
+# This file is part of NNERO.
+#
+# Copyright (c) 2024, Gaétan Facchinetti
+#
+# NNERO is free software: you can redistribute it and/or modify it 
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation, either version 3 of the License, or any 
+# later version. NNERO is distributed in the hope that it will be useful, 
+# but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU 
+# General Public License along with NNERO. 
+# If not, see <https://www.gnu.org/licenses/>.
+#
+##################################################################################
+
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -70,16 +90,16 @@ class Regressor(NeuralNetwork):
 
         return (1.0-tau_pred/tau_test).numpy()
 
-    def test_xHII(self, dataset:DataSet, i = None):
+    def test_xHII(self, dataset:DataSet):
 
         self.set_check_metadata_and_partition(dataset, check_only = True)
-        x_test = torch.tensor(dataset.x_array[dataset.partition.early_test],     dtype=torch.float32)
+        x_test = torch.tensor(dataset.x_array[dataset.partition.early_test],          dtype=torch.float32)
         y_test = torch.tensor(dataset.y_regressor[dataset.partition.early_test, :-1], dtype=torch.float32)
         
         self.eval()
         
         with torch.no_grad():
-            y_pred   = self.forward(x_test)
+            y_pred = self.forward(x_test)
 
         return y_pred.numpy(), y_test.numpy()
     

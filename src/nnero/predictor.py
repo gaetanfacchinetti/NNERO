@@ -1,12 +1,30 @@
+##################################################################################
+# This file is part of NNERO.
+#
+# Copyright (c) 2024, Gaétan Facchinetti
+#
+# NNERO is free software: you can redistribute it and/or modify it 
+# under the terms of the GNU General Public License as published by 
+# the Free Software Foundation, either version 3 of the License, or any 
+# later version. NNERO is distributed in the hope that it will be useful, 
+# but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU 
+# General Public License along with NNERO. 
+# If not, see <https://www.gnu.org/licenses/>.
+#
+##################################################################################
+
+
 import numpy as np
 import torch
-
 
 from .data       import MetaData, true_to_uniform
 from .cosmology  import optical_depth_no_rad_numpy
 from .classifier import Classifier
 from .regressor  import Regressor
-
 
 
 DEFAULT_VALUES = {'F_STAR10' : -1.5, 'ALPHA_STAR' : 0.5, 't_STAR' : 0.5, 'F_ESC10' : -1.0, 'ALPHA_ESC' : -0.5, 'M_TURN' : 8.7,
@@ -93,9 +111,9 @@ def uniform_input_values(metadata: MetaData, **kwargs):
     vals = input_values(metadata, **kwargs)
     return true_to_uniform(vals, metadata.parameters_min_val, metadata.parameters_max_val)
 
-def uniform_input_array(parameters : np.ndarray, metadata: MetaData):
-    check_values(parameters, metadata)
-    return true_to_uniform(parameters, metadata.parameters_min_val, metadata.parameters_max_val)
+def uniform_input_array(theta : np.ndarray, metadata: MetaData):
+    check_values(theta, metadata)
+    return true_to_uniform(theta, metadata.parameters_min_val, metadata.parameters_max_val)
 
 # ---------------------------------------------------
 
@@ -137,12 +155,12 @@ def predict_classifier(classifier:Classifier | None = None, **kwargs):
     return res[0]
 
 
-def predict_classifier_numpy(parameters: np.ndarray, classifier: Classifier | None = None):
+def predict_classifier_numpy(theta: np.ndarray, classifier: Classifier | None = None):
 
     if classifier is None:
         classifier = Classifier.load()
 
-    u_vals = uniform_input_array(parameters, classifier.metadata)
+    u_vals = uniform_input_array(theta, classifier.metadata)
     u_vals = torch.tensor(u_vals, dtype=torch.float32)
     
     with torch.no_grad():
@@ -188,12 +206,12 @@ def predict_regressor(regressor: Regressor | None = None, **kwargs):
 
 
 
-def predict_regressor_numpy(parameters: np.ndarray, regressor: Classifier | None = None):
+def predict_regressor_numpy(theta: np.ndarray, regressor: Regressor | None = None):
 
     if regressor is None:
         regressor = Regressor.load()
 
-    u_vals = uniform_input_array(parameters, regressor.metadata)
+    u_vals = uniform_input_array(theta, regressor.metadata)
     u_vals = torch.tensor(u_vals, dtype=torch.float32)
     
     with torch.no_grad():
@@ -216,14 +234,14 @@ def predict_xHII(classifier: Classifier | None = None,
     return xHII
 
 
-def predict_xHII_numpy(parameters: np.ndarray,
+def predict_xHII_numpy(theta: np.ndarray,
             classifier: Classifier | None = None, 
             regressor:  Regressor  | None = None):
     
-    early = predict_classifier_numpy(parameters, classifier)    
-    xHII = predict_regressor_numpy(parameters, regressor)
+    mask = predict_classifier_numpy(theta, classifier)
+    xHII = -np.ones((mask.shape[0], len(regressor.metadata.z)), dtype=np.float64)
 
-    xHII[early == True] = -np.ones(xHII.shape[-1])
+    xHII[mask, :] = predict_regressor_numpy(theta[mask, :], regressor)
 
     return xHII
 
@@ -240,11 +258,11 @@ def predict_tau_from_xHII(xHII, metadata : MetaData, **kwargs):
     return optical_depth_no_rad_numpy(metadata.z[None, :], xHII[None, :], omega_b, omega_c, hlittle)[0]
 
 
-def predict_tau_from_xHII_numpy(xHII, parameters : np.ndarray, metadata : MetaData):
+def predict_tau_from_xHII_numpy(xHII, theta : np.ndarray, metadata : MetaData):
     
-    omega_b = parameters[:, metadata.pos_omega_b]
-    omega_c = parameters[:, metadata.pos_omega_c]
-    hlittle = parameters[:, metadata.pos_hlittle]
+    omega_b = theta[:, metadata.pos_omega_b]
+    omega_c = theta[:, metadata.pos_omega_c]
+    hlittle = theta[:, metadata.pos_hlittle]
 
     return optical_depth_no_rad_numpy(metadata.z[None, :], xHII, omega_b, omega_c, hlittle)
 
@@ -261,3 +279,19 @@ def predict_tau(classifier: Classifier | None = None,
     return predict_tau_from_xHII(xHII, regressor.metadata, **kwargs)
 
 
+
+def predict_tau_numpy(theta: np.ndarray,
+                classifier: Classifier | None = None,
+                regressor: Regressor   | None = None):
+    
+    if regressor is None:
+        regressor = Regressor.load()
+    
+    xHII = predict_xHII_numpy(theta, classifier, regressor)
+    
+    res  = - np.ones(len(xHII))
+    mask = (xHII[:, -1] != -1)
+    
+    res[mask]  = predict_tau_from_xHII_numpy(xHII[mask, :], theta[mask, :], regressor.metadata)
+
+    return res
