@@ -41,7 +41,7 @@ _Y_HE_          = 0.245
 _T_0_           = 2.7255
 _T_NU_0_        = 1.9454
 _N_EFF_         = 3.044
-_RHO_C_OVER_H2  = 1.0598e+10 # eV / m^3
+_RHO_C_OVER_H2_  = 1.0598e+10 # eV / m^3
  
 
 #################################
@@ -60,7 +60,7 @@ def rho_baryons(omega_b):
         reduced abundance of baryons today
     """
 
-    return  omega_b * _RHO_C_OVER_H2 # in eV / m^3
+    return  omega_b * _RHO_C_OVER_H2_ # in eV / m^3
 
 def n_baryons(omega_b):
     """
