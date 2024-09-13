@@ -24,7 +24,7 @@ import torch.nn as nn
 
 from .data      import TorchDataset, DataSet, uniform_to_true
 from .nn        import NeuralNetwork
-from .cosmology import optical_depth_no_rad_torch
+from .cosmology import optical_depth_no_rad
 
 
 class Regressor(NeuralNetwork):
@@ -68,7 +68,7 @@ class Regressor(NeuralNetwork):
         omega_b  = uniform_to_true(x[:, self.metadata.pos_omega_b], self.metadata.min_omega_b, self.metadata.max_omega_b)
         omega_c  = uniform_to_true(x[:, self.metadata.pos_omega_c], self.metadata.min_omega_c, self.metadata.max_omega_c)
         hlittle  = uniform_to_true(x[:, self.metadata.pos_hlittle], self.metadata.min_hlittle, self.metadata.max_hlittle)
-        return optical_depth_no_rad_torch(z_tensor, y, omega_b, omega_c, hlittle)
+        return optical_depth_no_rad(z_tensor, y, omega_b, omega_c, hlittle)
     
     def loss_xHII(self, output, target):
         return torch.mean(torch.abs(1.0-torch.div(output, target[:, :-1])))

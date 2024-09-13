@@ -22,7 +22,7 @@ import numpy as np
 import torch
 
 from .data       import MetaData, true_to_uniform
-from .cosmology  import optical_depth_no_rad_numpy
+from .cosmology  import optical_depth_no_rad
 from .classifier import Classifier
 from .regressor  import Regressor
 
@@ -255,7 +255,7 @@ def predict_tau_from_xHII(xHII, metadata : MetaData, **kwargs):
     omega_c = np.array([vals[metadata.pos_omega_c]])[None, :]
     hlittle = np.array([vals[metadata.pos_hlittle]])[None, :]
     
-    return optical_depth_no_rad_numpy(metadata.z[None, :], xHII[None, :], omega_b, omega_c, hlittle)[0]
+    return optical_depth_no_rad(metadata.z[None, :], xHII[None, :], omega_b, omega_c, hlittle)[0]
 
 
 def predict_tau_from_xHII_numpy(xHII, theta : np.ndarray, metadata : MetaData):
@@ -264,7 +264,7 @@ def predict_tau_from_xHII_numpy(xHII, theta : np.ndarray, metadata : MetaData):
     omega_c = theta[:, metadata.pos_omega_c]
     hlittle = theta[:, metadata.pos_hlittle]
 
-    return optical_depth_no_rad_numpy(metadata.z[None, :], xHII, omega_b, omega_c, hlittle)
+    return optical_depth_no_rad(metadata.z[None, :], xHII, omega_b, omega_c, hlittle)
 
 
 def predict_tau(classifier: Classifier | None = None,

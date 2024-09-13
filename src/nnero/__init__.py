@@ -17,11 +17,12 @@
 #
 ##################################################################################
 
-from .cosmology  import (Cosmology, optical_depth)
-from .data       import (DataSet, MetaData, label_to_plot, uniform_to_true, true_to_uniform)
-from .nn         import (NeuralNetwork)
-from .classifier import (Classifier, train_classifier)
-from .regressor  import (Regressor, train_regressor)
-from .predictor  import (input_values, predict_classifier, predict_xHII, predict_tau, predict_tau_from_xHII,
+from .cosmology    import (Cosmology, optical_depth_numpy, optical_depth_no_rad, h_factor_no_rad)
+from .astrophysics import (phi_uv)
+from .data         import (DataSet, MetaData, label_to_plot, uniform_to_true, true_to_uniform)
+from .nn           import (NeuralNetwork)
+from .classifier   import (Classifier, train_classifier)
+from .regressor    import (Regressor, train_regressor)
+from .predictor    import (input_values, predict_classifier, predict_xHII, predict_tau, predict_tau_from_xHII,
                          predict_classifier_numpy, predict_xHII_numpy, predict_tau_numpy, predict_tau_from_xHII_numpy)
-from .mcmc       import (log_prior, log_likelihood, log_probability, initialise_walkers)
+from .mcmc         import (log_prior, log_likelihood, log_probability, initialise_walkers)

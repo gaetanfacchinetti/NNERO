@@ -24,7 +24,7 @@ import torch
 from scipy import interpolate
 from os.path import abspath, exists
 
-from .cosmology import optical_depth_no_rad_numpy
+from .cosmology import optical_depth_no_rad
 
 
 _LABELS_TO_PLOT_ = {'hlittle' : r'$h$', 'Ln_1010_As' : r'$\ln(10^{10}A_{\rm s})$', 'F_STAR10' : r'$\log_{10}(f_{\star, 10})$',
@@ -430,7 +430,7 @@ class DataSet:
         # evaluate the optical depth to reionization for all runs
         # this is done with an optimised function for the evaluation of tau with numpy arrays
         # assume a late time universe with no radiation (very good approximation)
-        self._tau = optical_depth_no_rad_numpy(self._redshifts, self._xHIIdb, 
+        self._tau = optical_depth_no_rad(self._redshifts, self._xHIIdb, 
                                                      self._features[:, self.metadata.pos_omega_b], 
                                                      self._features[:, self.metadata.pos_omega_c],
                                                      self._features[:, self.metadata.pos_hlittle])
