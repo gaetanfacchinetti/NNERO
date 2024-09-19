@@ -479,8 +479,8 @@ def check_ik_R(ik_radius, p, radius: np.ndarray):
         if np.any(vals_problem == vals_problem): # ignore the nan
             raise ShortPowerSpectrumRange(vals_problem[vals_problem == vals_problem], "The result may be laking precision, consider running CLASS up to lower values of k (p = " + str(p) + ")" ) 
     
-    if not np.all(ik_radius < 0.9*p):
-        vals_problem = radius[..., 0][ik_radius > 0.9*p]
+    if not np.all(ik_radius < p):
+        vals_problem = radius[..., 0][ik_radius > p]
         if np.any(vals_problem == vals_problem):
             raise ShortPowerSpectrumRange(vals_problem[vals_problem == vals_problem], "The result may be laking precision, consider running CLASS up to larger values of k (p = " + str(p) + ")") 
 
