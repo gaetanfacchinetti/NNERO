@@ -27,24 +27,29 @@
 
 import numpy as np
 
-from .cosmology import convert_array, h_factor_no_rad, dn_dm
-from .constants import CONVERTIONS
+try:
+    import classy
+except:
+    pass
+
+from .cosmology import convert_array, dn_dm
+from .constants import CONVERSIONS
 
 
-def m_halo(z:          float | np.ndarray,
+def m_halo(hz:         float | np.ndarray,
            m_uv:       float | np.ndarray, 
            alpha_star: float | np.ndarray, 
            t_star:     float | np.ndarray, 
            f_star10:   float | np.ndarray,
            omega_b:    float | np.ndarray,
-           omega_c:    float | np.ndarray,
-           h:          float | np.ndarray):
+           omega_m:    float | np.ndarray):
     """
     Halo mass in term of the UV magnitude for a given astrophysical model
 
     Parameters:
     ----------
-    z: float, np.ndarray (r,)
+    - hz: float, np.ndarray 
+        shape (q, r). Hubble factor given in s^{-1}
     m_uv: float, np.ndarry (s,) or (r, s)
     omega_b: float, np.ndaray (q,)
 
@@ -53,14 +58,18 @@ def m_halo(z:          float | np.ndarray,
     result of shape (q, r, s)
     """
 
-    z          = convert_array(z)
+    hz         = convert_array(hz)
     m_uv       = convert_array(m_uv)
     alpha_star = convert_array(alpha_star)[:, None, None]
     t_star     = convert_array(t_star)[:, None, None]
     f_star10   = convert_array(f_star10)[:, None, None]
     omega_b    = convert_array(omega_b)
-    omega_c    = convert_array(omega_c)
-    h          = convert_array(h)
+    omega_m    = convert_array(omega_m)
+
+    if len(hz.shape) == 1:
+        hz = hz[None, :]
+
+    hz = hz[..., None] # shape (q, r, 1)
 
     if len(m_uv.shape) == 1:
         m_uv = m_uv[None, None, :]
@@ -69,29 +78,28 @@ def m_halo(z:          float | np.ndarray,
         m_uv = m_uv[None, :, :]
 
 
-    gamma_UV = 1.15e-28 * 10**(0.4*51.63) / CONVERTIONS.yr_to_s
-    hz       = (h_factor_no_rad(z, omega_b, omega_c, h) * CONVERTIONS.km_to_mpc)[:, :, None] # shape (q, r, 1)
+    gamma_UV = 1.15e-28 * 10**(0.4*51.63) / CONVERSIONS.yr_to_s
+    #hz       = (h_factor_no_rad(z, omega_b, omega_c, h) * CONVERSIONS.km_to_mpc)[:, :, None] # shape (q, r, 1)
     
-    fb       = (omega_b/(omega_b+omega_c))[:, None, None]
+    fb       = (omega_b/omega_m)[:, None, None]
 
     return 1e+10 * ( gamma_UV/(hz*1e+10) * t_star / f_star10 / fb *  10**(-0.4*m_uv) )**(1.0/(alpha_star+1.0))
 
 
 
-def dmhalo_dmuv(z: float | np.ndarray,
+def dmhalo_dmuv(hz: float | np.ndarray,
              m_uv: float | np.ndarray, 
              alpha_star: float | np.ndarray, 
              t_star: float | np.ndarray, 
              f_star10: float | np.ndarray,
              omega_b: float | np.ndarray,
-             omega_c: float | np.ndarray,
-             h: float | np.ndarray,
+             omega_m: float | np.ndarray,
              *,
              mh: np.ndarray | None = None):
     
 
     if mh is None:
-        mh = m_halo(z, m_uv, alpha_star, t_star, f_star10, omega_b, omega_c, h) # shape (q, r, s)
+        mh = m_halo(hz, m_uv, alpha_star, t_star, f_star10, omega_b, omega_m) # shape (q, r, s)
 
     alpha_star = convert_array(alpha_star)
     return - mh * np.log(10.0) * 0.4/(alpha_star[:, None, None]+1)
@@ -109,6 +117,7 @@ def f_duty(mh : float | np.ndarray, m_turn: float | np.ndarray):
 
 
 def phi_uv(z:          float | np.ndarray,
+           hz:         float | np.ndarray,
            m_uv:       float | np.ndarray,
            k:          np.ndarray,
            pk:         np.ndarray, 
@@ -117,14 +126,15 @@ def phi_uv(z:          float | np.ndarray,
            f_star10:   float | np.ndarray,
            m_turn:     float | np.ndarray,
            omega_b:    float | np.ndarray,
-           omega_c:    float | np.ndarray,
+           omega_m:    float | np.ndarray,
            h:          float | np.ndarray,
            sheth_a:    float = 0.322,
            sheth_q:    float = 1.0,
            sheth_p:    float = 0.3,
            *, 
            window: str = 'sharpk', 
-           c: float = 2.5):
+           c: float = 2.5,
+           mh: np.ndarray | None = None):
     
     """
     UV flux in Mpc^{-3}
@@ -141,9 +151,12 @@ def phi_uv(z:          float | np.ndarray,
 
     
     # result of shape (n, r, q) in Mpc^(-3)
+
+    if mh is None:
+        mh = m_halo(hz, m_uv, alpha_star, t_star, f_star10, omega_b, omega_m)               # shape (q, r, s)
     
-    mh       = m_halo(z, m_uv, alpha_star, t_star, f_star10, omega_b, omega_c, h)               # shape (q, r, s)
-    dmh_dmuv = dmhalo_dmuv(z, m_uv, alpha_star, t_star, f_star10, omega_b, omega_c, h, mh = mh) # shape (q, r, s)
-    dndmh    = dn_dm(z, mh, k, pk, omega_b+omega_c, h, sheth_a=sheth_a, sheth_q=sheth_q, sheth_p=sheth_p, window=window, c = c) # shape (q, r, s)
+    dmh_dmuv = dmhalo_dmuv(hz, m_uv, alpha_star, t_star, f_star10, omega_b, omega_m, mh = mh) # shape (q, r, s)
+    dndmh    = dn_dm(z, mh, k, pk, omega_m, h, sheth_a=sheth_a, sheth_q=sheth_q, sheth_p=sheth_p, window=window, c = c) # shape (q, r, s)
 
     return f_duty(mh, m_turn) * dndmh * np.abs(dmh_dmuv)
+

@@ -17,7 +17,8 @@
 #
 ##################################################################################
 
-from .cosmology    import (Cosmology, optical_depth_numpy, optical_depth_no_rad, h_factor_no_rad)
+from .cosmology    import (Cosmology, ShortPowerSpectrumRange, optical_depth_numpy, optical_depth_no_rad, h_factor_no_rad)
+from .constants    import (CST_MSOL_MPC, CST_EV_M_S_K, CST_NO_DIM, CONVERSIONS)
 from .astrophysics import (phi_uv)
 from .data         import (DataSet, MetaData, label_to_plot, uniform_to_true, true_to_uniform)
 from .nn           import (NeuralNetwork)

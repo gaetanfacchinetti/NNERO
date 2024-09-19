@@ -32,7 +32,7 @@ import torch
 
 import warnings
 
-from .constants import CST_EV_M_S_K, CST_NO_DIM, CST_MSOL_MPC, CONVERTIONS
+from .constants import CST_EV_M_S_K, CST_NO_DIM, CST_MSOL_MPC, CONVERSIONS
 
 
 def convert_array(arr: float, to_torch: bool = False) -> (np.ndarray | torch.Tensor):
@@ -363,7 +363,7 @@ def optical_depth_numpy(z, xHII, omega_b, omega_c, h, m_nus : np.ndarray, low_va
     res       = res + xp.sum(trapz * dz, axis=-1)
     
     # adding the correct prefactor in front
-    pref = CST_EV_M_S_K.c_light * CST_EV_M_S_K.sigma_Thomson * n_baryons(omega_b) / (h * CONVERTIONS.km_to_mpc)
+    pref = CST_EV_M_S_K.c_light * CST_EV_M_S_K.sigma_Thomson * n_baryons(omega_b) / (h * CONVERSIONS.km_to_mpc)
     
     return pref * res
 
@@ -442,13 +442,29 @@ def optical_depth_no_rad(z:       float | np.ndarray | torch.Tensor,
 
     # adding the correct prefactor in front
     # pref is of shape (n,)
-    pref = CST_EV_M_S_K.c_light * CST_EV_M_S_K.sigma_Thomson * n_baryons(omega_b) / (h * CONVERTIONS.km_to_mpc)
+    pref = CST_EV_M_S_K.c_light * CST_EV_M_S_K.sigma_Thomson * n_baryons(omega_b) / (h * CONVERSIONS.km_to_mpc)
 
     return (pref * res).flatten()
 
 
 
 #############################################
+
+class ShortPowerSpectrumRange(Exception):
+    """
+    Exception raised for short exceptions
+
+    Attributes:
+        message: explanation of the error
+    """
+
+    def __init__(self, scales: np.ndarray, message: str ="Matter power spectrum range is too short") -> None:
+        self.message = message
+        self.scales  = scales
+        super().__init__(self.message)
+
+    def __str__(self) -> str:
+        return self.message + "\n for scales: " + str(self.scales) + " Mpc"
 
 
 ## Structure formation
@@ -461,12 +477,12 @@ def check_ik_R(ik_radius, p, radius: np.ndarray):
     if not np.all(ik_radius > 0.1*p):
         vals_problem = radius[..., 0][ik_radius < 0.1*p]
         if np.any(vals_problem == vals_problem): # ignore the nan
-            warnings.warn("The result may be laking precision, consider running CLASS up to lower values of k : p = " + str(p) + " | " + str(vals_problem[vals_problem == vals_problem]) ) 
+            raise ShortPowerSpectrumRange(vals_problem[vals_problem == vals_problem], "The result may be laking precision, consider running CLASS up to lower values of k (p = " + str(p) + ")" ) 
     
     if not np.all(ik_radius < 0.9*p):
         vals_problem = radius[..., 0][ik_radius > 0.9*p]
         if np.any(vals_problem == vals_problem):
-            warnings.warn("The result may be laking precision, consider running CLASS up to larger values of k : p = " + str(p) + " | " + str(vals_problem[vals_problem == vals_problem])) 
+            raise ShortPowerSpectrumRange(vals_problem[vals_problem == vals_problem], "The result may be laking precision, consider running CLASS up to larger values of k (p = " + str(p) + ")") 
 
 
 def sigma_r(radius: float | np.ndarray, 
@@ -841,9 +857,14 @@ def dn_dm(z: float | np.ndarray,
     growth_z = growth_function(z, omega_m, h)[:, :, None] # shape (q, r, 1)
     growth_0 = growth_function(0, omega_m, h)[:, None] # shape (q, 1, 1)
         
-    nuhat    = np.sqrt(sheth_q) * 1.686 / sigma * growth_0 / growth_z # shape (q, r, s)
+    one_over_sigma = np.zeros_like(sigma)
+    mask = ((sigma != 0) & (sigma == sigma))
+    one_over_sigma[mask]  = 1.0/sigma[mask]
+    one_over_sigma[~mask] = np.nan
 
-    return -(rhom0/mass) * (dsigmadm/sigma) * np.sqrt(2./np.pi)* sheth_a * (1+ nuhat**(-2*sheth_p)) * nuhat * np.exp(-nuhat*nuhat/2.0)
+    nuhat = np.sqrt(sheth_q) * 1.686 * one_over_sigma * growth_0 / growth_z # shape (q, r, s)
+
+    return -(rhom0/mass) * dsigmadm * one_over_sigma * np.sqrt(2./np.pi)* sheth_a * (1+ nuhat**(-2*sheth_p)) * nuhat * np.exp(-nuhat*nuhat/2.0)
 
 
 

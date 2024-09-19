@@ -30,7 +30,7 @@ from types import SimpleNamespace
 CST_EV_M_S_K = SimpleNamespace()
 CST_MSOL_MPC = SimpleNamespace()
 CST_NO_DIM   = SimpleNamespace()
-CONVERTIONS  = SimpleNamespace()
+CONVERSIONS  = SimpleNamespace()
 
 CST_EV_M_S_K.mass_hydrogen = 0.93878299831e+9 # in eV
 CST_EV_M_S_K.mass_proton   = 0.938272e+9 # in eV
@@ -47,5 +47,5 @@ CST_MSOL_MPC.rho_c_over_h2 = 2.7754e+11 # in units of h^2 M_odot Mpc^{-3}
 CST_NO_DIM.YHe  = 0.245
 CST_NO_DIM.Neff = 3.044
 
-CONVERTIONS.yr_to_s   = 3600 * 24 * 365.25
-CONVERTIONS.km_to_mpc = 3.2407792896393e-18
+CONVERSIONS.yr_to_s   = 3600 * 24 * 365.25
+CONVERSIONS.km_to_mpc = 3.2407792896393e-18
