@@ -57,7 +57,7 @@ class Regressor(NeuralNetwork):
     
 
     @classmethod
-    def load(cls, path = "./DefaultRegressor.pth"):
+    def load(cls, path = "../data/DefaultRegressor.pth"):
         return torch.load(path)
         
     def forward(self, x):

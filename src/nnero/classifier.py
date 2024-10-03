@@ -56,7 +56,7 @@ class Classifier(NeuralNetwork):
         self.print_parameters()
 
     @classmethod
-    def load(cls, path = "./DefaultClassifier.pth"):
+    def load(cls, path = "../data/DefaultClassifier.pth"):
         return torch.load(path)
         
     def forward(self, x):

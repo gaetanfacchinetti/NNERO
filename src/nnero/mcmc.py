@@ -132,8 +132,8 @@ def log_likelihood(theta: np.ndarray, **kwargs) -> np.ndarray:
     if use_reio:
 
          # get the values in input (if given) or initialise to McGreer results
-        x_reio    = kwargs.get('x_reio', 0.0561)
-        var_x_reio  = kwargs.get('var_x_reio', 0.0071**2)
+        x_reio      = 0.94
+        var_x_reio  = 0.05**2
 
         # compute the truncated gaussian for the reionization data
         norm_reio = -np.log(1.0 - x_reio + np.sqrt(np.pi/2)*special.erf(x_reio/(np.sqrt(2*var_x_reio))))

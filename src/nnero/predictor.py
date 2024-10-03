@@ -32,6 +32,9 @@ DEFAULT_VALUES = {'F_STAR10' : -1.5, 'ALPHA_STAR' : 0.5, 't_STAR' : 0.5, 'F_ESC1
             'INVERSE_M_WDM' : 0.05, 'NEUTRINO_MASS_1' : 0.02, 'FRAC_WDM' : 0.0, 'M_WDM' : '20.0', 'L_X' : 40.0, 'NU_X_THRESH' : 500}
 
 
+MP_KEY_CORRESPONDANCE = {'log10_f_star10' : 'F_STAR10', 'alpha_star' : 'ALPHA_STAR', 't_star' : 't_STAR', 'log10_f_esc10' : 'F_ESC10', 
+                         'alpha_esc' : 'ALPHA_ESC', 'omega_wcdm' : 'Omch2', 'omega_b' : 'Ombh2', 'h':'hlittle', 'ln10^{10}A_s' : 'Ln_1010_As',
+                         'n_s' : 'POWER_INDEX', 'mnu1' : 'NEUTRINO_MASS_1', 'f_WDM' : 'FRAC_WDM', 'm_wdm' : 'M_WDM', 'nu_X_thresh' : 'NU_X_THRESH'}
 
 # ---------------------------------------------------
 # CHECKS AND PREPARATION OF THE DATA TO FED TO THE NN
@@ -78,6 +81,9 @@ def input_values(metadata: MetaData, **kwargs):
     kw_keys = np.array(list(kwargs.keys()))
     kw_vals = np.array(list(kwargs.values()))
 
+    # translate the keys that could be comming with a different naming convention
+    kw_keys = np.array([MP_KEY_CORRESPONDANCE[x] if key in MP_KEY_CORRESPONDANCE.keys() else key for key in kw_keys])
+
     # error handling, check that inputs are in the trained parameters list
     # concatenate params_name and kw_keys and get unique input, if all goes well
     # the resulting array should have the same length as params_name
@@ -123,9 +129,9 @@ def uniform_input_array(theta : np.ndarray, metadata: MetaData):
 
 def predict_classifier(classifier:Classifier | None = None, **kwargs):
     """
-        prediction of the classifier
+    Prediction of the classifier
 
-    Parameters:
+    Parameters
     -----------
     - classifier: nnero.Classifier
         classifier object already trained
@@ -133,11 +139,11 @@ def predict_classifier(classifier:Classifier | None = None, **kwargs):
         any value for a parameter the classifier 
         has been trained on
 
-    Returns:
+    Returns
     --------
-    returns boolean value:
-    True for an early reionization
-    False for a late reionization
+    - boolean value:
+        True for an early reionization
+        False for a late reionization
     """
     
     # if no classifier pass as input, load the default one
