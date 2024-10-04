@@ -24,11 +24,6 @@ import torch.nn as nn
 from .data import TorchDataset, DataSet
 from .nn   import NeuralNetwork
 
-import os
-import pkg_resources
-
-DATA_PATH = pkg_resources.resource_filename('nnero', 'nn_data/')
-
 
 class Classifier(NeuralNetwork):
 
@@ -61,7 +56,7 @@ class Classifier(NeuralNetwork):
         self.print_parameters()
 
     @classmethod
-    def load(cls, path = os.path.join(DATA_PATH, "DefaultClassifier.pth")):
+    def load(cls, path = "../../data/DefaultClassifier.pth"):
         return torch.load(path)
         
     def forward(self, x):
