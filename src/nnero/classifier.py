@@ -22,7 +22,7 @@ import torch
 import torch.nn as nn
 
 from .data import TorchDataset, DataSet
-from .nn   import NeuralNetwork
+from .network   import NeuralNetwork
 
 import os
 import pkg_resources

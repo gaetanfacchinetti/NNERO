@@ -23,7 +23,7 @@ import torch
 import torch.nn as nn
 
 from .data      import TorchDataset, DataSet, uniform_to_true
-from .nn        import NeuralNetwork
+from .network   import NeuralNetwork
 from .cosmology import optical_depth_no_rad
 
 import os

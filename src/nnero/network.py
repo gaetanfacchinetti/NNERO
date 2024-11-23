@@ -33,6 +33,29 @@ from .data import DataSet, MetaData, DataPartition
 
 
 class NeuralNetwork(torch.nn.Module):
+    
+    """
+    A class used to represent an Animal
+
+    ...
+
+    Attributes
+    ----------
+    says_str : str
+        a formatted string to print out what the animal says
+    name : str
+        the name of the animal
+    sound : str
+        the sound that the animal makes
+    num_legs : int
+        the number of legs the animal has (default 4)
+
+    Methods
+    -------
+    says(sound=None)
+        Prints the animals name and what sound it makes
+    """
+
 
     def __init__(self, name: str) -> None:
 
@@ -51,7 +74,7 @@ class NeuralNetwork(torch.nn.Module):
 
     def save(self, path = ".", save_partition = True) -> None:
         """
-            save the neural network model as a .pth file
+        save the neural network model as a .pth file
 
         is save_partition is false the partitioning of the data into
         train, valid and test is not save (useless for instance once
@@ -65,13 +88,15 @@ class NeuralNetwork(torch.nn.Module):
         self.eval()
         torch.save(self, join(path, self._name + ".pth"))
 
+        # torch.save(self._model.state_dict(), self._name + "_weights.pth"))
+
         if save_partition is False:
             self._partition = _s_partition
 
 
     def set_check_metadata_and_partition(self, dataset: DataSet, check_only = False):
         """
-            set and check the medatada and partition attributes
+        set and check the medatada and partition attributes
         
         raise a ValueError is the dataset is incompatible with the
         current metadata or partition

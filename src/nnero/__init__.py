@@ -21,7 +21,7 @@ from .cosmology    import (Cosmology, ShortPowerSpectrumRange, optical_depth_num
 from .constants    import (CST_MSOL_MPC, CST_EV_M_S_K, CST_NO_DIM, CONVERSIONS)
 from .astrophysics import (phi_uv)
 from .data         import (DataSet, MetaData, label_to_plot, uniform_to_true, true_to_uniform)
-from .nn           import (NeuralNetwork)
+from .network      import (NeuralNetwork)
 from .classifier   import (Classifier, train_classifier)
 from .regressor    import (Regressor, train_regressor)
 from .predictor    import (input_values, predict_classifier, predict_xHII, predict_tau, predict_tau_from_xHII,
