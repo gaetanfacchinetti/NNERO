@@ -19,7 +19,7 @@ classifiers = [
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: Microsoft :: Windows",
 ]
-keywords = ["cosmology", "Machine learning", "reionization"]
+keywords = ["cosmology", "machine learning", "reionization"]
 dependencies = [
     "numpy>=1.16.5",
     "matplotlib>=3.4.3",
@@ -29,6 +29,16 @@ requires-python = ">=3.6"
 
 [project.optional-dependencies]
 dev = ["21cmCAST>=1.0.0",]
+
+
+[tool.setuptools]
+# ...
+# By default, include-package-data is true in pyproject.toml,
+# so you do NOT have to specify this line.
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [project.urls]
 Homepage = "https://github.com/gaetanfacchinetti/NNERO"

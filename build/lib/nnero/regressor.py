@@ -26,13 +26,6 @@ from .data      import TorchDataset, DataSet, uniform_to_true
 from .nn        import NeuralNetwork
 from .cosmology import optical_depth_no_rad
 
-import os
-import pkg_resources
-
-DATA_PATH = pkg_resources.resource_filename('nnero', 'nn_data/')
-
-
-
 
 class Regressor(NeuralNetwork):
 
@@ -64,7 +57,7 @@ class Regressor(NeuralNetwork):
     
 
     @classmethod
-    def load(cls, path = os.path.join(DATA_PATH, "DefaultRegressor.pth")):
+    def load(cls, path = "../../data/DefaultRegressor.pth"):
         return torch.load(path)
         
     def forward(self, x):

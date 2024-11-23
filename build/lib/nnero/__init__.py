@@ -27,5 +27,3 @@ from .regressor    import (Regressor, train_regressor)
 from .predictor    import (input_values, predict_classifier, predict_xHII, predict_tau, predict_tau_from_xHII,
                          predict_classifier_numpy, predict_xHII_numpy, predict_tau_numpy, predict_tau_from_xHII_numpy)
 from .mcmc         import (log_prior, log_likelihood, log_probability, initialise_walkers)
-
-

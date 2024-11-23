@@ -1,0 +1,11 @@
+LICENSE
+MANIFEST.in
+README.md
+pyproject.toml
+src/data/DefaultClassifier.pth
+src/data/DefaultRegressor.pth
+src/data/nnero.egg-info/PKG-INFO
+src/data/nnero.egg-info/SOURCES.txt
+src/data/nnero.egg-info/dependency_links.txt
+src/data/nnero.egg-info/requires.txt
+src/data/nnero.egg-info/top_level.txt

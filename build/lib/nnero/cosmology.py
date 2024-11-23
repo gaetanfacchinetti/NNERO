@@ -361,7 +361,7 @@ def optical_depth_numpy(z, xHII, omega_b, omega_c, h, m_nus : np.ndarray, low_va
     res       = res + xp.sum(trapz * dz, axis=-1)
     
     # adding the correct prefactor in front
-    pref = CST_EV_M_S_K.c_light * CST_EV_M_S_K.sigma_Thomson * n_baryons(omega_b) / (100 * h * CONVERSIONS.km_to_mpc)
+    pref = CST_EV_M_S_K.c_light * CST_EV_M_S_K.sigma_Thomson * n_baryons(omega_b) / (h * CONVERSIONS.km_to_mpc)
     
     return pref * res
 
@@ -440,7 +440,7 @@ def optical_depth_no_rad(z:       float | np.ndarray | torch.Tensor,
 
     # adding the correct prefactor in front
     # pref is of shape (n,)
-    pref = CST_EV_M_S_K.c_light * CST_EV_M_S_K.sigma_Thomson * n_baryons(omega_b) / (100 * h * CONVERSIONS.km_to_mpc)
+    pref = CST_EV_M_S_K.c_light * CST_EV_M_S_K.sigma_Thomson * n_baryons(omega_b) / (h * CONVERSIONS.km_to_mpc)
 
     return (pref * res).flatten()
 
