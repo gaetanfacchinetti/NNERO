@@ -1,4 +1,6 @@
 dist
+build
+data
 src/nnero/__pycache__
 nnero.egg-info
 src/nnero.egg-info
