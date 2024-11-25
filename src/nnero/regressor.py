@@ -45,6 +45,10 @@ class Regressor(NeuralNetwork):
         if name is None:
             name = "DefaultRegressor"
 
+        # give a default empty array for the structure
+        # stays None if a complex model is passed as input
+        struct = np.empty(0)
+
         if model is None:
             
             hidden_layers = []
@@ -52,20 +56,59 @@ class Regressor(NeuralNetwork):
                 hidden_layers.append(nn.Linear(n_hidden_features, n_hidden_features))
                 hidden_layers.append(nn.ReLU())
 
+            # create a sequential model
             model = nn.Sequential(nn.Linear(n_input, n_hidden_features), *hidden_layers, nn.Linear(n_hidden_features, n_output))
+        
+            # save the structure of this sequential model
+            struct = np.array([n_input, n_hidden_features, n_hidden_layers])
         
         super(Regressor, self).__init__(name)
         super(NeuralNetwork, self).__init__()
+
+        # structure of the model
+        self._struct = struct
         
+        # define the model
         self._model     = model
+
+        # define parameters in the loss
         self._alpha_tau = alpha_tau
 
+        # print the number of parameters
         self.print_parameters()
     
 
+
     @classmethod
-    def load(cls, path = os.path.join(DATA_PATH, "DefaultRegressor.pth")):
-        return torch.load(path)
+    def load(cls, path = os.path.join(DATA_PATH, "DefaultRegressor")):
+        
+        if os.path.isfile(path  + '_struct.npy'):
+
+            with open(path  + '_struct.npy', 'rb') as file:
+                struct  = np.load(file)
+
+                if len(struct) == 5:
+
+                    regressor = Regressor(n_input=int(struct[0]), 
+                                          n_output=int(struct[1]), 
+                                          n_hidden_features=int(struct[2]), 
+                                          n_hidden_layers=int(struct[3]),
+                                          alpha_tau=struct[4])
+                    regressor.load_extras(path)
+                    regressor.eval()
+
+                    return regressor
+        
+        # if the struct read is not of the right size
+        # check for a pickled save of the full class
+        # (although this is not recommended)
+        if os.path.isfile(path  + '.pth') :
+            regressor = torch.load(path + ".pth")
+            regressor.eval()
+            return regressor
+        
+        raise ValueError("Could not find a fully saved regressor model at: " + path)
+
         
     def forward(self, x):
         return torch.clamp(self._model(x), max=1.0)

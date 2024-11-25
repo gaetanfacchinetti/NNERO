@@ -313,7 +313,7 @@ def optical_depth_numpy(z, xHII, omega_b, omega_c, h, m_nus : np.ndarray, low_va
     - h : float | numpy.ndarray | torch.Tensor
         shape (n,) if array, Hubble factor
     - m_nus : np.ndarray | torch.Tensor
-        shape (nn, 3), mass of the three neutrinos in a given model
+        shape (n, 3), mass of the three neutrinos in a given model
     - low_value : float
         value of xHII at redshift smaller than min(z)
 

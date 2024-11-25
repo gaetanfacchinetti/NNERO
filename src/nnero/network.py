@@ -26,6 +26,7 @@
 import numpy as np
 import torch
 
+import os
 from copy import deepcopy
 from os.path import join
 
@@ -33,27 +34,18 @@ from .data import DataSet, MetaData, DataPartition
 
 
 class NeuralNetwork(torch.nn.Module):
-    
     """
-    A class used to represent an Animal
-
-    ...
+    A class wrapping torch.nn.Module for neural network models
 
     Attributes
     ----------
-    says_str : str
-        a formatted string to print out what the animal says
-    name : str
-        the name of the animal
-    sound : str
-        the sound that the animal makes
-    num_legs : int
-        the number of legs the animal has (default 4)
+    - name : str
+        the name of the model
 
     Methods
     -------
-    says(sound=None)
-        Prints the animals name and what sound it makes
+    save(path, save_partition)
+        
     """
 
 
@@ -69,6 +61,8 @@ class NeuralNetwork(torch.nn.Module):
         self._train_accuracy = np.zeros(0)
         self._valid_accuracy = np.zeros(0)
 
+        self._struct         = np.empty(0)
+
         print('Ininitated model ' + str(self.name))
 
 
@@ -76,22 +70,75 @@ class NeuralNetwork(torch.nn.Module):
         """
         save the neural network model as a .pth file
 
-        is save_partition is false the partitioning of the data into
+        if save_partition is false the partitioning of the data into
         train, valid and test is not save (useless for instance once
         we have a fully trained model that we just want to use)
         """
 
+        # when partition is not required only print empty arrays
         if save_partition is False:
-            _s_partition    = deepcopy(self._partition)
+            partition       = deepcopy(self._partition)
             self._partition = DataPartition(np.zeros(0), np.zeros(0), np.zeros(0), np.zeros(0), np.zeros(0), np.zeros(0))
 
+        # putting the model in eval mode
         self.eval()
-        torch.save(self, join(path, self._name + ".pth"))
+        
+        if len(self.struct) == 0:
+            # saving the full class as a pickled object
+            torch.save(self, join(path, self._name + ".pth"))
+        else:
+            # saving the state of the weights (recommended)
+            torch.save(self._model.state_dict(), join(path, self._name + "_weights.pth"))
 
-        # torch.save(self._model.state_dict(), self._name + "_weights.pth"))
+            # add extra information for the structure of the model
+            with open(join(path, self._name + "_struct.npy"), 'wb') as file:
+                np.save(file, self._struct, allow_pickle=False)
 
+            # add extra information about the metadata used for training
+            self.metadata.save(join(path, self._name + "_metadata"))
+
+            # add extra information about the partition used for training
+            self.partition.save(join(path, self._name + "_partition"))
+
+            # add extra information about loss and accuracy during training
+            with open(join(path, self._name + "_loss.npz"), 'wb') as file:
+                np.savez(file, 
+                         train_loss = self._train_loss,
+                         train_accuracy = self._train_accuracy,
+                         valid_loss = self._valid_loss,
+                         valid_accuracy = self._valid_accuracy)
+
+        # put the partition back to its original value
         if save_partition is False:
-            self._partition = _s_partition
+            self._partition = partition
+
+
+    def load_extras(self, path):
+        
+        if os.path.isfile(path + '_weights.pth') \
+            and os.path.isfile(path + '_partition.npz') \
+            and os.path.isfile(path + '_metadata.npz') \
+            and os.path.isfile(path + '_loss.npz'):
+
+            # set the weights of the model
+            weights = torch.load(path  + '_weights.pth', weights_only=True)
+            self._model.load_state_dict(weights)
+
+            # fetch the partition and the metadata used during training
+            self._partition = DataPartition.load(path  + '_partition')
+            self._metadata  = MetaData.load(path  + '_metadata')
+        
+            # get the loss and accuracy obtained during training
+            with open(path  + '_loss.npz', 'rb') as file:
+                data = np.load(file)
+                self._train_loss     = data.get('train_loss')
+                self._train_accuracy = data.get('train_accuracy')
+                self._valid_loss     = data.get('valid_loss')
+                self._valid_accuracy = data.get('valid_accuracy')
+
+            return None
+        
+        raise ValueError("Could not find a fully saved model at: " + path)
 
 
     def set_check_metadata_and_partition(self, dataset: DataSet, check_only = False):
@@ -160,3 +207,7 @@ class NeuralNetwork(torch.nn.Module):
     @property
     def partition(self):
         return self._partition
+    
+    @property
+    def struct(self):
+        return self._struct

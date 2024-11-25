@@ -21,7 +21,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from .data import TorchDataset, DataSet
+from .data import TorchDataset, DataSet, DataPartition, MetaData
 from .network   import NeuralNetwork
 
 import os
@@ -39,31 +39,73 @@ class Classifier(NeuralNetwork):
                 n_hidden_layers: int = 4, 
                 model = None, name: str | None = None):
 
+        # if no name, give a default
         if name is None:
             name = "DefaultClassifier"
 
-        if model is None:
+        # give a default empty array for the structure
+        # stays None if a complex model is passed as input
+        struct = np.empty(0)
 
-                 
+        # if no model defined in input give a model
+        if model is None:
+            
+            # define a list of hidden layers
             hidden_layers = []
             for _ in range(n_hidden_layers):
                 hidden_layers.append(nn.Linear(n_hidden_features, n_hidden_features))
                 hidden_layers.append(nn.ReLU())
 
-            model = nn.Sequential(nn.Linear(n_input, n_hidden_features), *hidden_layers, nn.Linear(n_hidden_features, 1), nn.Sigmoid())
-        
+            # create a sequential model
+            model  = nn.Sequential(nn.Linear(n_input, n_hidden_features), *hidden_layers, nn.Linear(n_hidden_features, 1), nn.Sigmoid())
+            
+            # save the structure of this sequential model
+            struct = np.array([n_input, n_hidden_features, n_hidden_layers])
+
+        # call the (grand)parent init function
         super(Classifier, self).__init__(name)
         super(NeuralNetwork, self).__init__()
 
+        # structure of the model
+        self._struct = struct
+
+        # define the model
         self._model = model
+
+        # define the loss function (here binary cross-entropy)
         self._loss_fn = nn.BCELoss()
 
+        # print the number of parameters
         self.print_parameters()
 
+
     @classmethod
-    def load(cls, path = os.path.join(DATA_PATH, "DefaultClassifier.pth")):
-        return torch.load(path)
+    def load(cls, path = os.path.join(DATA_PATH, "DefaultClassifier")):
         
+        if os.path.isfile(path  + '_struct.npy'):
+
+            with open(path  + '_struct.npy', 'rb') as file:
+                struct  = np.load(file)
+
+                if len(struct) == 3:
+
+                    classifier = Classifier(n_input=struct[0], n_hidden_features=struct[1], n_hidden_layers=struct[2])
+                    classifier.load_extras(path)
+                    classifier.eval()
+
+                    return classifier
+        
+        # if the struct read is not of the right size
+        # check for a pickled save of the full class
+        # (although this is not recommended)
+        if os.path.isfile(path  + '.pth') :
+            classifier = torch.load(path + ".pth")
+            classifier.eval()
+            return classifier
+        
+        raise ValueError("Could not find a fully saved classifier model at: " + path)
+
+
     def forward(self, x):
         return torch.flatten(self._model(x))
     

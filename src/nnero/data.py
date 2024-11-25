@@ -186,6 +186,29 @@ class DataPartition:
             
         return True
     
+    def save(self, name):
+
+        with open(name + '.npz', 'wb') as file:
+            np.savez(file = file, 
+                     early_train = self.early_train, 
+                     early_valid = self.early_valid,
+                     early_test  = self.early_test,
+                     total_train = self.total_train,
+                     total_valid = self.total_valid,
+                     total_test  = self.total_test)
+
+    @classmethod
+    def load(cls, path):
+        
+        with open(path + '.npz', 'rb') as file:
+            data = np.load(file, allow_pickle=False)    
+            return DataPartition(data.get('early_train'), 
+                                 data.get('early_valid'), 
+                                 data.get('early_test'), 
+                                 data.get('total_train'), 
+                                 data.get('total_valid'), 
+                                 data.get('total_test'))
+    
     @property
     def early_train(self):
         return self._early_dict['train']
@@ -270,7 +293,7 @@ class MetaData:
     
     def save(self, name):
 
-        with open(name, 'wb') as file:
+        with open(name + '.npz', 'wb') as file:
             np.savez(file = file, z = self.z, parameters_name = self.parameters_name,
                      parameters_min_val = self._parameters_min_val,
                      parameters_max_val = self.parameters_max_val)
@@ -278,8 +301,8 @@ class MetaData:
     @classmethod
     def load(cls, path):
         
-        with open(path, 'rb') as file:
-            data = np.load(path, allow_pickle=True)    
+        with open(path + '.npz', 'rb') as file:
+            data = np.load(file, allow_pickle=True)    
             return MetaData(data.get('z'), 
                             data.get('parameters_name'), 
                             data.get('parameters_min_val'), 
