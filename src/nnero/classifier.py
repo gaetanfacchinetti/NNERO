@@ -21,16 +21,42 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from .data import TorchDataset, DataSet, DataPartition, MetaData
-from .network   import NeuralNetwork
+from .data    import TorchDataset, DataSet
+from .network import NeuralNetwork
 
 import os
 import pkg_resources
 
 DATA_PATH = pkg_resources.resource_filename('nnero', 'nn_data/')
 
-
 class Classifier(NeuralNetwork):
+    """
+    This is :py:class:`Classifier`, a daughter class of :py:class:`NeuralNetwork` specialised for classifier
+    
+    Attributes
+    ----------
+    - name : str
+        the name of the model
+    - metadata : Metadata
+        metadata on which the model is trained
+    - partition : DataPartition
+        partitioning of the data on which the model is trained
+    - train_loss : np.ndarray
+        1D array training loss for each training epoch
+    - valid_loss : np.ndarray
+        1D array validation losses for each training epoch
+    - train_accuracy : np.ndarray
+        1D array training accuracy for each training epoch
+    - valid_accuracy : np.ndarray
+        1D array validation accuracy for each training epoch
+
+    Methods
+    -------
+    - save(path=".", save_partition=True)
+        save the neural network
+    - load_weights_and_extras(path)
+        load the weights and extra available info on the network 
+    """
 
     def __init__(self, 
                 *,
@@ -90,7 +116,7 @@ class Classifier(NeuralNetwork):
                 if len(struct) == 3:
 
                     classifier = Classifier(n_input=struct[0], n_hidden_features=struct[1], n_hidden_layers=struct[2])
-                    classifier.load_extras(path)
+                    classifier.load_weights_and_extras(path)
                     classifier.eval()
 
                     return classifier
@@ -126,11 +152,16 @@ class Classifier(NeuralNetwork):
             print(f"The accuracy is {100*(y_pred.round() == y_test).float().mean():.4f}%")
 
 
-
     
-    
-    
-def train_classifier(model: Classifier, dataset: DataSet, optimizer:torch.optim.Optimizer, *, epochs = 50, learning_rate = 1e-3, verbose = True, batch_size = 64, **kwargs):
+def train_classifier(model: Classifier, 
+                     dataset: DataSet, 
+                     optimizer:torch.optim.Optimizer, 
+                     *, 
+                     epochs = 50, 
+                     learning_rate = 1e-3, 
+                     verbose = True, 
+                     batch_size = 64, 
+                     **kwargs):
     
     # set the metadata and parition object of the model
     model.set_check_metadata_and_partition(dataset)

@@ -1,0 +1,446 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>nnero.predictor &mdash; NNERO 0.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=7026087e"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            NNERO
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">nnero</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">NNERO</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">nnero.predictor</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for nnero.predictor</h1><div class="highlight"><pre>
+<span></span><span class="c1">##################################################################################</span>
+<span class="c1"># This file is part of NNERO.</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (c) 2024, Gaétan Facchinetti</span>
+<span class="c1">#</span>
+<span class="c1"># NNERO is free software: you can redistribute it and/or modify it </span>
+<span class="c1"># under the terms of the GNU General Public License as published by </span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or any </span>
+<span class="c1"># later version. NNERO is distributed in the hope that it will be useful, </span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of </span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. </span>
+<span class="c1"># See the GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU </span>
+<span class="c1"># General Public License along with NNERO. </span>
+<span class="c1"># If not, see &lt;https://www.gnu.org/licenses/&gt;.</span>
+<span class="c1">#</span>
+<span class="c1">##################################################################################</span>
+
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+
+<span class="kn">from</span> <span class="nn">.data</span>       <span class="kn">import</span> <span class="n">MetaData</span><span class="p">,</span> <span class="n">true_to_uniform</span>
+<span class="kn">from</span> <span class="nn">.cosmology</span>  <span class="kn">import</span> <span class="n">optical_depth_no_rad</span>
+<span class="kn">from</span> <span class="nn">.classifier</span> <span class="kn">import</span> <span class="n">Classifier</span>
+<span class="kn">from</span> <span class="nn">.regressor</span>  <span class="kn">import</span> <span class="n">Regressor</span>
+
+
+<span class="n">DEFAULT_VALUES</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;F_STAR10&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="s1">&#39;ALPHA_STAR&#39;</span> <span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;t_STAR&#39;</span> <span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;F_ESC10&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;ALPHA_ESC&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;M_TURN&#39;</span> <span class="p">:</span> <span class="mf">8.7</span><span class="p">,</span>
+            <span class="s1">&#39;Omch2&#39;</span> <span class="p">:</span> <span class="mf">0.11933</span><span class="p">,</span> <span class="s1">&#39;Ombh2&#39;</span> <span class="p">:</span> <span class="mf">0.02242</span><span class="p">,</span> <span class="s1">&#39;hlittle&#39;</span> <span class="p">:</span> <span class="mf">0.6736</span><span class="p">,</span> <span class="s1">&#39;Ln_1010_As&#39;</span> <span class="p">:</span> <span class="mf">3.047</span><span class="p">,</span> <span class="s1">&#39;POWER_INDEX&#39;</span> <span class="p">:</span> <span class="mf">0.9665</span><span class="p">,</span> 
+            <span class="s1">&#39;INVERSE_M_WDM&#39;</span> <span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s1">&#39;NEUTRINO_MASS_1&#39;</span> <span class="p">:</span> <span class="mf">0.02</span><span class="p">,</span> <span class="s1">&#39;FRAC_WDM&#39;</span> <span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;M_WDM&#39;</span> <span class="p">:</span> <span class="s1">&#39;20.0&#39;</span><span class="p">,</span> <span class="s1">&#39;L_X&#39;</span> <span class="p">:</span> <span class="mf">40.0</span><span class="p">,</span> <span class="s1">&#39;NU_X_THRESH&#39;</span> <span class="p">:</span> <span class="mi">500</span><span class="p">}</span>
+
+
+<span class="n">MP_KEY_CORRESPONDANCE</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;log10_f_star10&#39;</span> <span class="p">:</span> <span class="s1">&#39;F_STAR10&#39;</span><span class="p">,</span> <span class="s1">&#39;alpha_star&#39;</span> <span class="p">:</span> <span class="s1">&#39;ALPHA_STAR&#39;</span><span class="p">,</span> <span class="s1">&#39;t_star&#39;</span> <span class="p">:</span> <span class="s1">&#39;t_STAR&#39;</span><span class="p">,</span> <span class="s1">&#39;log10_f_esc10&#39;</span> <span class="p">:</span> <span class="s1">&#39;F_ESC10&#39;</span><span class="p">,</span> 
+                         <span class="s1">&#39;alpha_esc&#39;</span> <span class="p">:</span> <span class="s1">&#39;ALPHA_ESC&#39;</span><span class="p">,</span> <span class="s1">&#39;omega_wcdm&#39;</span> <span class="p">:</span> <span class="s1">&#39;Omch2&#39;</span><span class="p">,</span> <span class="s1">&#39;omega_b&#39;</span> <span class="p">:</span> <span class="s1">&#39;Ombh2&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">:</span><span class="s1">&#39;hlittle&#39;</span><span class="p">,</span> <span class="s1">&#39;ln10^</span><span class="si">{10}</span><span class="s1">A_s&#39;</span> <span class="p">:</span> <span class="s1">&#39;Ln_1010_As&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;n_s&#39;</span> <span class="p">:</span> <span class="s1">&#39;POWER_INDEX&#39;</span><span class="p">,</span> <span class="s1">&#39;mnu1&#39;</span> <span class="p">:</span> <span class="s1">&#39;NEUTRINO_MASS_1&#39;</span><span class="p">,</span> <span class="s1">&#39;f_WDM&#39;</span> <span class="p">:</span> <span class="s1">&#39;FRAC_WDM&#39;</span><span class="p">,</span> <span class="s1">&#39;m_wdm&#39;</span> <span class="p">:</span> <span class="s1">&#39;M_WDM&#39;</span><span class="p">,</span> <span class="s1">&#39;nu_X_thresh&#39;</span> <span class="p">:</span> <span class="s1">&#39;NU_X_THRESH&#39;</span><span class="p">}</span>
+
+<span class="c1"># ---------------------------------------------------</span>
+<span class="c1"># CHECKS AND PREPARATION OF THE DATA TO FED TO THE NN</span>
+
+<div class="viewcode-block" id="check_values">
+<a class="viewcode-back" href="../../nnero.html#nnero.predictor.check_values">[docs]</a>
+<span class="k">def</span> <span class="nf">check_values</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">metadata</span> <span class="p">:</span> <span class="n">MetaData</span><span class="p">):</span>
+
+    <span class="n">params_name</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">parameters_name</span>
+    <span class="n">min_params</span>  <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">parameters_min_val</span>
+    <span class="n">max_params</span>  <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">parameters_max_val</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">params_name</span><span class="p">)</span> <span class="o">!=</span> <span class="n">vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The input parameter array should have last dimension of size &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params_name</span><span class="p">)))</span>
+
+    <span class="c1"># error handling, check that inputs are in the correct range</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">vals</span> <span class="o">&gt;=</span> <span class="n">min_params</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">max_params</span> <span class="o">&gt;=</span> <span class="n">vals</span><span class="p">)):</span>
+        
+        <span class="n">id_min_problem</span><span class="p">,</span> <span class="n">pos_min_problem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">vals</span> <span class="o">&lt;</span> <span class="n">min_params</span><span class="p">)</span>
+        <span class="n">id_max_problem</span><span class="p">,</span> <span class="n">pos_max_problem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">max_params</span> <span class="o">&lt;</span> <span class="n">vals</span><span class="p">)</span>
+
+        <span class="n">out_str</span> <span class="o">=</span> <span class="s2">&quot;Some parameters input are not in the correct range:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">id_min_problem</span><span class="p">)):</span>
+            <span class="n">out_str</span> <span class="o">=</span> <span class="n">out_str</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">id_min_problem</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span>  <span class="s2">&quot; -&gt; &quot;</span> <span class="o">+</span>  <span class="n">params_name</span><span class="p">[</span><span class="n">pos_min_problem</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="n">id_min_problem</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">pos_min_problem</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span> <span class="o">+</span> <span class="s2">&quot; &lt; min_trained_value = &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">min_params</span><span class="p">[</span><span class="n">pos_min_problem</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">id_max_problem</span><span class="p">)):</span>
+            <span class="n">out_str</span> <span class="o">=</span> <span class="n">out_str</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">id_max_problem</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span>  <span class="s2">&quot; -&gt; &quot;</span> <span class="o">+</span>  <span class="n">params_name</span><span class="p">[</span><span class="n">pos_max_problem</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="n">id_max_problem</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">pos_max_problem</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span> <span class="o">+</span> <span class="s2">&quot; &gt; max_trained_value = &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_params</span><span class="p">[</span><span class="n">pos_max_problem</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="n">out_str</span> <span class="o">=</span> <span class="n">out_str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">out_str</span><span class="p">)</span></div>
+
+
+
+    
+<div class="viewcode-block" id="input_values">
+<a class="viewcode-back" href="../../nnero.html#nnero.predictor.input_values">[docs]</a>
+<span class="k">def</span> <span class="nf">input_values</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="n">MetaData</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="n">params_name</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">parameters_name</span>
+
+    <span class="c1"># all parameters the neural network have been trained on</span>
+    <span class="n">iparams</span> <span class="o">=</span> <span class="p">{</span><span class="n">value</span><span class="p">:</span> <span class="n">index</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">params_name</span><span class="p">)}</span>
+
+    <span class="c1"># predefined default values for most common parameters</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">DEFAULT_VALUES</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params_name</span><span class="p">])</span>
+        
+    <span class="c1"># check that the arguments passed in kwargs were trained on</span>
+    <span class="n">kw_keys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="n">kw_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+
+    <span class="c1"># translate the keys that could be comming with a different naming convention</span>
+    <span class="n">kw_keys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">MP_KEY_CORRESPONDANCE</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">MP_KEY_CORRESPONDANCE</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">else</span> <span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kw_keys</span><span class="p">])</span>
+
+    <span class="c1"># error handling, check that inputs are in the trained parameters list</span>
+    <span class="c1"># concatenate params_name and kw_keys and get unique input, if all goes well</span>
+    <span class="c1"># the resulting array should have the same length as params_name</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">params_name</span><span class="p">,</span> <span class="n">kw_keys</span><span class="p">))))</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params_name</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Some arguments of &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">kw_keys</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; are not in the trained parameters list: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">params_name</span><span class="p">))</span>
+
+    <span class="c1"># give their value to the parameters</span>
+    <span class="n">vals</span><span class="p">[[</span><span class="n">iparams</span><span class="p">[</span><span class="n">kw</span><span class="p">]</span> <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">kw_keys</span><span class="p">]]</span> <span class="o">=</span> <span class="n">kw_vals</span>
+
+    <span class="c1"># error handling, check that inputs are in the correct range</span>
+    <span class="n">check_values</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
+
+
+    <span class="c1">#if not (np.all(vals &gt;= min_params) and np.all(max_params &gt;= vals)):</span>
+    <span class="c1">#    min_problem = np.where(vals &lt; min_params)[0]</span>
+    <span class="c1">#    max_problem = np.where(max_params &lt; vals)[0]</span>
+    <span class="c1">#</span>
+    <span class="c1">#    out_str = &quot;Some parameters input are not in the correct range:\n&quot;</span>
+    <span class="c1">#    for i in min_problem:</span>
+    <span class="c1">#        out_str = out_str + params[i] + &quot; : &quot; + str(vals[i]) + &quot; &lt; min_trained_value = &quot; + str(min_params[i]) + &quot;\n&quot;</span>
+    <span class="c1">#    for i in max_problem:</span>
+    <span class="c1">#        out_str = out_str + params[i] + &quot; : &quot; + str(vals[i]) + &quot; &gt; max_trained_value = &quot; + str(max_params[i]) + &quot;\n&quot;</span>
+    <span class="c1">#</span>
+    <span class="c1">#    out_str = out_str.strip(&#39;\n&#39;)</span>
+    <span class="c1">#    raise ValueError(out_str)</span>
+
+    <span class="k">return</span> <span class="n">vals</span></div>
+
+
+
+<div class="viewcode-block" id="uniform_input_values">
+<a class="viewcode-back" href="../../nnero.html#nnero.predictor.uniform_input_values">[docs]</a>
+<span class="k">def</span> <span class="nf">uniform_input_values</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="n">MetaData</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">true_to_uniform</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">parameters_min_val</span><span class="p">,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">parameters_max_val</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="uniform_input_array">
+<a class="viewcode-back" href="../../nnero.html#nnero.predictor.uniform_input_array">[docs]</a>
+<span class="k">def</span> <span class="nf">uniform_input_array</span><span class="p">(</span><span class="n">theta</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">metadata</span><span class="p">:</span> <span class="n">MetaData</span><span class="p">):</span>
+    <span class="n">check_values</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">true_to_uniform</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">parameters_min_val</span><span class="p">,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">parameters_max_val</span><span class="p">)</span></div>
+
+
+<span class="c1"># ---------------------------------------------------</span>
+
+<span class="c1"># ---------------------------------------------------</span>
+<span class="c1"># PREDICTION FUNCTIONS</span>
+
+
+<div class="viewcode-block" id="predict_classifier">
+<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_classifier">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_classifier</span><span class="p">(</span><span class="n">classifier</span><span class="p">:</span><span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prediction of the classifier</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    - classifier: nnero.Classifier</span>
+<span class="sd">        classifier object already trained</span>
+<span class="sd">    - **kwargs:</span>
+<span class="sd">        any value for a parameter the classifier </span>
+<span class="sd">        has been trained on</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    --------</span>
+<span class="sd">    - boolean value:</span>
+<span class="sd">        True for an early reionization</span>
+<span class="sd">        False for a late reionization</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># if no classifier pass as input, load the default one</span>
+    <span class="k">if</span> <span class="n">classifier</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">classifier</span> <span class="o">=</span> <span class="n">Classifier</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+
+    <span class="n">u_vals</span> <span class="o">=</span> <span class="n">uniform_input_values</span><span class="p">(</span><span class="n">classifier</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">u_vals</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">u_vals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">classifier</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">u_vals</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="predict_classifier_numpy">
+<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_classifier_numpy">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_classifier_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">classifier</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">classifier</span> <span class="o">=</span> <span class="n">Classifier</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+
+    <span class="n">u_vals</span> <span class="o">=</span> <span class="n">uniform_input_array</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">classifier</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+    <span class="n">u_vals</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">u_vals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">classifier</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">u_vals</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">res</span></div>
+
+
+
+
+<div class="viewcode-block" id="predict_regressor">
+<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_regressor">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_regressor</span><span class="p">(</span><span class="n">regressor</span><span class="p">:</span> <span class="n">Regressor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        prediction of the regressor</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    - classifier: nnero.Classifier</span>
+<span class="sd">        classifier object already trained</span>
+<span class="sd">    - **kwargs:</span>
+<span class="sd">        any value for a parameter the classifier </span>
+<span class="sd">        has been trained on</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    --------</span>
+<span class="sd">    returns boolean value:</span>
+<span class="sd">    True for an early reionization</span>
+<span class="sd">    False for a late reionization</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># if no regressor passed as input, load the default one</span>
+    <span class="k">if</span> <span class="n">regressor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">regressor</span> <span class="o">=</span> <span class="n">Regressor</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+     
+    <span class="n">u_vals</span> <span class="o">=</span> <span class="n">uniform_input_values</span><span class="p">(</span><span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">u_vals</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">u_vals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">regressor</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">u_vals</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">res</span></div>
+
+
+
+
+
+<div class="viewcode-block" id="predict_regressor_numpy">
+<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_regressor_numpy">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_regressor_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">regressor</span><span class="p">:</span> <span class="n">Regressor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">regressor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">regressor</span> <span class="o">=</span> <span class="n">Regressor</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+
+    <span class="n">u_vals</span> <span class="o">=</span> <span class="n">uniform_input_array</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+    <span class="n">u_vals</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">u_vals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">regressor</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">u_vals</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">res</span>   </div>
+
+
+
+
+<div class="viewcode-block" id="predict_xHII">
+<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_xHII">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_xHII</span><span class="p">(</span><span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+            <span class="n">regressor</span><span class="p">:</span>  <span class="n">Regressor</span>  <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    
+    <span class="n">early</span> <span class="o">=</span> <span class="n">predict_classifier</span><span class="p">(</span><span class="n">classifier</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">early</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    
+    <span class="n">xHII</span> <span class="o">=</span> <span class="n">predict_regressor</span><span class="p">(</span><span class="n">regressor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">xHII</span></div>
+
+
+
+<div class="viewcode-block" id="predict_xHII_numpy">
+<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_xHII_numpy">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_xHII_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+            <span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+            <span class="n">regressor</span><span class="p">:</span>  <span class="n">Regressor</span>  <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">predict_classifier_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">classifier</span><span class="p">)</span>
+    <span class="n">xHII</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">z</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="n">xHII</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">predict_regressor_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="p">:],</span> <span class="n">regressor</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">xHII</span></div>
+
+
+
+
+<div class="viewcode-block" id="predict_tau_from_xHII">
+<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_tau_from_xHII">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_tau_from_xHII</span><span class="p">(</span><span class="n">xHII</span><span class="p">,</span> <span class="n">metadata</span> <span class="p">:</span> <span class="n">MetaData</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    
+    <span class="n">omega_b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vals</span><span class="p">[</span><span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_b</span><span class="p">]])[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">omega_c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vals</span><span class="p">[</span><span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_c</span><span class="p">]])[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">hlittle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vals</span><span class="p">[</span><span class="n">metadata</span><span class="o">.</span><span class="n">pos_hlittle</span><span class="p">]])[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+    
+    <span class="k">return</span> <span class="n">optical_depth_no_rad</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="n">xHII</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_c</span><span class="p">,</span> <span class="n">hlittle</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="predict_tau_from_xHII_numpy">
+<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_tau_from_xHII_numpy">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_tau_from_xHII_numpy</span><span class="p">(</span><span class="n">xHII</span><span class="p">,</span> <span class="n">theta</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">metadata</span> <span class="p">:</span> <span class="n">MetaData</span><span class="p">):</span>
+    
+    <span class="n">omega_b</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[:,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_b</span><span class="p">]</span>
+    <span class="n">omega_c</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[:,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_c</span><span class="p">]</span>
+    <span class="n">hlittle</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[:,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">pos_hlittle</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">optical_depth_no_rad</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="n">xHII</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_c</span><span class="p">,</span> <span class="n">hlittle</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="predict_tau">
+<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_tau">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_tau</span><span class="p">(</span><span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">regressor</span><span class="p">:</span> <span class="n">Regressor</span>   <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    
+    <span class="n">xHII</span> <span class="o">=</span> <span class="n">predict_xHII</span><span class="p">(</span><span class="n">classifier</span><span class="p">,</span> <span class="n">regressor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">xHII</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+    
+    <span class="k">return</span> <span class="n">predict_tau_from_xHII</span><span class="p">(</span><span class="n">xHII</span><span class="p">,</span> <span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="predict_tau_numpy">
+<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_tau_numpy">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_tau_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                <span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">regressor</span><span class="p">:</span> <span class="n">Regressor</span>   <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    
+    <span class="k">if</span> <span class="n">regressor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">regressor</span> <span class="o">=</span> <span class="n">Regressor</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+    
+    <span class="n">xHII</span> <span class="o">=</span> <span class="n">predict_xHII_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">classifier</span><span class="p">,</span> <span class="n">regressor</span><span class="p">)</span>
+    
+    <span class="n">res</span>  <span class="o">=</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xHII</span><span class="p">))</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">xHII</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    
+    <span class="n">res</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>  <span class="o">=</span> <span class="n">predict_tau_from_xHII_numpy</span><span class="p">(</span><span class="n">xHII</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="p">:],</span> <span class="n">theta</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="p">:],</span> <span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">res</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Gaétan Facchinetti.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

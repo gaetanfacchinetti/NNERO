@@ -94,7 +94,7 @@ class Regressor(NeuralNetwork):
                                           n_hidden_features=int(struct[2]), 
                                           n_hidden_layers=int(struct[3]),
                                           alpha_tau=struct[4])
-                    regressor.load_extras(path)
+                    regressor.load_weights_and_extras(path)
                     regressor.eval()
 
                     return regressor

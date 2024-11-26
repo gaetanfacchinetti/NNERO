@@ -48,17 +48,16 @@ def convert_array(arr: float, to_torch: bool = False) -> (np.ndarray | torch.Ten
 
 def rho_baryons(omega_b : float | np.ndarray | torch.Tensor) -> (float | np.ndarray | torch.Tensor):
     """
-    Baryon energy density (in eV / m^3)
+    baryon energy density (in eV / m^3)
 
     Parameters
     ----------
-    - omega_b : (float | np.ndarray | torch.Tensor)
+    omega_b: float | np.ndarray | torch.Tensor
         reduced abundance of baryons (i.e. times h^2)
 
     Returns
     -------
-    - rho_b : (float | np.ndarray | torch.tensor)
-        baryon enerergy density (in eV / m^3)
+    float or np.ndarray or torch.tensor
     """
 
     return  omega_b * CST_EV_M_S_K.rho_c_over_h2 # in eV / m^3
@@ -66,17 +65,16 @@ def rho_baryons(omega_b : float | np.ndarray | torch.Tensor) -> (float | np.ndar
 
 def n_baryons(omega_b : float | np.ndarray | torch.Tensor) -> (float | np.ndarray | torch.Tensor):
     """
-    Baryon number density (in 1 / m^3)
+    baryon number density (in 1 / m^3)
 
     Parameters
     ----------
-    - omega_b : (float | np.ndarray | torch.Tensor)
+    omega_b: float | np.ndarray | torch.Tensor
         reduced abundance of baryons (i.e. times h^2)
 
     Returns
     -------
-    - n_b : (float | np.ndarray | torch.tensor)
-        baryon number density (in 1 / m^3)
+        float or np.ndarray or torch.tensor
     """
 
     return rho_baryons(omega_b) / CST_EV_M_S_K.mass_proton / (1.0 + CST_NO_DIM.YHe / 4.0 * (CST_EV_M_S_K.mass_helium/CST_EV_M_S_K.mass_hydrogen -1)) # in 1/m^3
@@ -84,18 +82,17 @@ def n_baryons(omega_b : float | np.ndarray | torch.Tensor) -> (float | np.ndarra
 
 def n_ur(m_nus: np.ndarray | torch.Tensor) -> (np.ndarray | torch.Tensor):
     """
-    Number of ultra-relativistic degrees of freedom
+    number of ultra-relativistic degrees of freedom
     
     Parameters
     ----------
-    - m_nus : np.ndarray | torch.Tensor
+    m_nus: np.ndarray | torch.Tensor
         shape (q1, q2, ..., qn, 3), mass of the three neutrinos
         in a given model
     
     Returns
     -------
-    - n_ur : np.ndarray | torch.Tensor
-        shape (q1, q2, ..., qn), number of ultrarelatistic dof
+    np.ndarray | torch.Tenso with shape (q1, q2, ..., qn)
     """
 
     return CST_NO_DIM.Neff - np.count_nonzero(m_nus, axis=-1)
@@ -103,19 +100,17 @@ def n_ur(m_nus: np.ndarray | torch.Tensor) -> (np.ndarray | torch.Tensor):
 
 def omega_r(m_nus: np.ndarray | torch.Tensor) -> (np.ndarray | torch.Tensor):
     """
-    Reduced abundance of radiation today
+    reduced abundance of radiation today
     
     Parameters
     -----------
-    - m_nus : np.ndarray | torch.Tensor
+    m_nus: np.ndarray | torch.Tensor
         shape (q1, q2, ..., qn, 3), mass of the three neutrinos
         in a given model
 
     Returns
     -------
-    - omega_r : np.ndarray | torch.Tensor
-        shape (q1, q2, ..., qn), Om_r0 h^2
-    
+    np.ndarray | torch.Tensor with shape (q1, q2, ..., qn)
     """
     return  4.48162687719e-7 * CST_EV_M_S_K.T0**4 * (1.0 + 0.227107317660239 * n_ur(m_nus))
 
@@ -135,16 +130,15 @@ def omega_nu(z:     float | np.ndarray | torch.Tensor,
     
     Parameters
     ----------
-    - m_nus : np.ndarray | torch.Tensor
+    m_nus: np.ndarray | torch.Tensor
         shape (q1, q2, ..., qn, 3), mass of the three neutrinos
         in a given model
-    - z : float | numpy.ndarray | torch.Tensor
+    z: float | numpy.ndarray | torch.Tensor
         shape (p, ) if array, redshift range
 
     Returns
     -------
-    - omegra_nu : numpy.ndarray | torch.Tensor
-        reduced neutrino abundance with shape (q1, ..., qn, p)
+    numpy.ndarray | torch.Tensor with shape (q1, ..., qn, p)
     """
 
     # convert z to an array if it is a float

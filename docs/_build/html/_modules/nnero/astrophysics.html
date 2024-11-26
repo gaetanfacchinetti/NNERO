@@ -1,0 +1,290 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>nnero.astrophysics &mdash; NNERO 0.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=7026087e"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            NNERO
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">nnero</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">NNERO</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">nnero.astrophysics</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for nnero.astrophysics</h1><div class="highlight"><pre>
+<span></span>
+<span class="c1">##################################################################################</span>
+<span class="c1"># This file is part of NNERO.</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (c) 2024, Gaétan Facchinetti</span>
+<span class="c1">#</span>
+<span class="c1"># NNERO is free software: you can redistribute it and/or modify it </span>
+<span class="c1"># under the terms of the GNU General Public License as published by </span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or any </span>
+<span class="c1"># later version. NNERO is distributed in the hope that it will be useful, </span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of </span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. </span>
+<span class="c1"># See the GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU </span>
+<span class="c1"># General Public License along with NNERO. </span>
+<span class="c1"># If not, see &lt;https://www.gnu.org/licenses/&gt;.</span>
+<span class="c1">#</span>
+<span class="c1">##################################################################################</span>
+
+<span class="c1">##################</span>
+<span class="c1">#</span>
+<span class="c1"># Definition of simple astrophysical quantities</span>
+<span class="c1"># for the computation of UV-luminosity functions</span>
+<span class="c1">#</span>
+<span class="c1">##################</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.cosmology</span> <span class="kn">import</span> <span class="n">convert_array</span><span class="p">,</span> <span class="n">dn_dm</span>
+<span class="kn">from</span> <span class="nn">.constants</span> <span class="kn">import</span> <span class="n">CONVERSIONS</span>
+
+
+<div class="viewcode-block" id="m_halo">
+<a class="viewcode-back" href="../../nnero.html#nnero.astrophysics.m_halo">[docs]</a>
+<span class="k">def</span> <span class="nf">m_halo</span><span class="p">(</span><span class="n">hz</span><span class="p">:</span>         <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+           <span class="n">m_uv</span><span class="p">:</span>       <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+           <span class="n">alpha_star</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+           <span class="n">t_star</span><span class="p">:</span>     <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+           <span class="n">f_star10</span><span class="p">:</span>   <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+           <span class="n">omega_b</span><span class="p">:</span>    <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+           <span class="n">omega_m</span><span class="p">:</span>    <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Halo mass in term of the UV magnitude for a given astrophysical model</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    ----------</span>
+<span class="sd">    - hz: float, np.ndarray </span>
+<span class="sd">        shape (q, r). Hubble factor given in s^{-1}</span>
+<span class="sd">    m_uv: float, np.ndarry (s,) or (r, s)</span>
+<span class="sd">    omega_b: float, np.ndaray (q,)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
+<span class="sd">    result of shape (q, r, s)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">hz</span>         <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">hz</span><span class="p">)</span>
+    <span class="n">m_uv</span>       <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">m_uv</span><span class="p">)</span>
+    <span class="n">alpha_star</span> <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">alpha_star</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">t_star</span>     <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">t_star</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">f_star10</span>   <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">f_star10</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">omega_b</span>    <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">omega_b</span><span class="p">)</span>
+    <span class="n">omega_m</span>    <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">omega_m</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hz</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">hz</span> <span class="o">=</span> <span class="n">hz</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="n">hz</span> <span class="o">=</span> <span class="n">hz</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="c1"># shape (q, r, 1)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">m_uv</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">m_uv</span> <span class="o">=</span> <span class="n">m_uv</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">m_uv</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">m_uv</span> <span class="o">=</span> <span class="n">m_uv</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+
+    
+    <span class="c1"># conversion constant between star formation rate and magnitude</span>
+    <span class="n">gamma_UV</span> <span class="o">=</span> <span class="mf">1.15e-28</span> <span class="o">*</span> <span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="mf">0.4</span><span class="o">*</span><span class="mf">51.63</span><span class="p">)</span> <span class="o">/</span> <span class="n">CONVERSIONS</span><span class="o">.</span><span class="n">yr_to_s</span>
+    
+    <span class="c1"># fraction of baryons over total matter</span>
+    <span class="n">fb</span> <span class="o">=</span> <span class="p">(</span><span class="n">omega_b</span><span class="o">/</span><span class="n">omega_m</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+
+    <span class="c1"># define the return array and fill it with zeros</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">hz</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">hz</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">m_uv</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span> <span class="c1"># shape (q, r, s)</span>
+
+    <span class="c1"># mh below are those for which f_star10 (m/1e+10) &lt;= 1 (and f_star = f_b f_star10 (m/1e+10))</span>
+    <span class="n">mh_below</span> <span class="o">=</span> <span class="mf">1e+10</span> <span class="o">*</span> <span class="p">(</span> <span class="n">gamma_UV</span><span class="o">/</span><span class="p">(</span><span class="n">hz</span><span class="o">*</span><span class="mf">1e+10</span><span class="p">)</span> <span class="o">*</span> <span class="n">t_star</span> <span class="o">/</span> <span class="n">f_star10</span> <span class="o">/</span> <span class="n">fb</span> <span class="o">*</span>  <span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">0.4</span><span class="o">*</span><span class="n">m_uv</span><span class="p">)</span> <span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="p">(</span><span class="n">alpha_star</span><span class="o">+</span><span class="mf">1.0</span><span class="p">))</span>
+
+    <span class="c1"># make a difference if f_star10 (m/1e+10) &gt;= 1 or not</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="p">((</span><span class="n">f_star10</span> <span class="o">*</span> <span class="p">(</span><span class="n">mh_below</span><span class="o">/</span><span class="mf">1e+10</span><span class="p">)</span><span class="o">**</span><span class="n">alpha_star</span> <span class="o">*</span> <span class="n">hz</span> <span class="o">/</span> <span class="n">hz</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># vals below are those for which f_star10 (m/1e+10) &lt; 1  (and f_star = f_b)</span>
+    <span class="n">mh_above</span> <span class="o">=</span> <span class="n">gamma_UV</span> <span class="o">/</span> <span class="n">hz</span> <span class="o">*</span> <span class="n">t_star</span> <span class="o">/</span> <span class="n">fb</span> <span class="o">*</span>  <span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">0.4</span><span class="o">*</span><span class="n">m_uv</span><span class="p">)</span> 
+
+    <span class="c1"># fill the return array with the correct values according to the mask</span>
+    <span class="n">res</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>  <span class="o">=</span> <span class="n">mh_below</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+    <span class="n">res</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">mh_above</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span>
+
+    <span class="c1"># check that all mh below statisfy the criterion (as it should)</span>
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span> <span class="p">(</span><span class="n">f_star10</span> <span class="o">*</span> <span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span><span class="o">/</span><span class="mf">1e+10</span><span class="p">)</span><span class="o">**</span><span class="n">alpha_star</span><span class="p">)</span>  <span class="o">&gt;</span> <span class="mi">1</span><span class="p">),</span> <span class="s2">&quot;Halo mass value (index below) should satisfy f_star10 * (mh_below/1e+10)**alpha_star &lt; 1&quot;</span>
+
+    <span class="k">return</span> <span class="n">res</span></div>
+
+
+
+
+<div class="viewcode-block" id="dmhalo_dmuv">
+<a class="viewcode-back" href="../../nnero.html#nnero.astrophysics.dmhalo_dmuv">[docs]</a>
+<span class="k">def</span> <span class="nf">dmhalo_dmuv</span><span class="p">(</span><span class="n">hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+             <span class="n">m_uv</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+             <span class="n">alpha_star</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+             <span class="n">t_star</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+             <span class="n">f_star10</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+             <span class="n">omega_b</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+             <span class="n">omega_m</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+             <span class="o">*</span><span class="p">,</span>
+             <span class="n">mh</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    
+
+    <span class="k">if</span> <span class="n">mh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mh</span> <span class="o">=</span> <span class="n">m_halo</span><span class="p">(</span><span class="n">hz</span><span class="p">,</span> <span class="n">m_uv</span><span class="p">,</span> <span class="n">alpha_star</span><span class="p">,</span> <span class="n">t_star</span><span class="p">,</span> <span class="n">f_star10</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_m</span><span class="p">)</span> <span class="c1"># shape (q, r, s)</span>
+
+    <span class="n">alpha_star</span> <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">alpha_star</span><span class="p">)</span>
+    <span class="k">return</span> <span class="o">-</span> <span class="n">mh</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">10.0</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.4</span><span class="o">/</span><span class="p">(</span><span class="n">alpha_star</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span></div>
+
+    
+
+
+<div class="viewcode-block" id="f_duty">
+<a class="viewcode-back" href="../../nnero.html#nnero.astrophysics.f_duty">[docs]</a>
+<span class="k">def</span> <span class="nf">f_duty</span><span class="p">(</span><span class="n">mh</span> <span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">m_turn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+
+    <span class="c1"># result of shape (q, r, s)</span>
+
+    <span class="n">mh</span> <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">mh</span><span class="p">)</span>
+    <span class="n">m_turn</span> <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">m_turn</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">m_turn</span><span class="o">/</span><span class="n">mh</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="phi_uv">
+<a class="viewcode-back" href="../../nnero.html#nnero.astrophysics.phi_uv">[docs]</a>
+<span class="k">def</span> <span class="nf">phi_uv</span><span class="p">(</span><span class="n">z</span><span class="p">:</span>          <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+           <span class="n">hz</span><span class="p">:</span>         <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+           <span class="n">m_uv</span><span class="p">:</span>       <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+           <span class="n">k</span><span class="p">:</span>          <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+           <span class="n">pk</span><span class="p">:</span>         <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+           <span class="n">alpha_star</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+           <span class="n">t_star</span><span class="p">:</span>     <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+           <span class="n">f_star10</span><span class="p">:</span>   <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+           <span class="n">m_turn</span><span class="p">:</span>     <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+           <span class="n">omega_b</span><span class="p">:</span>    <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+           <span class="n">omega_m</span><span class="p">:</span>    <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+           <span class="n">h</span><span class="p">:</span>          <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+           <span class="n">sheth_a</span><span class="p">:</span>    <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.322</span><span class="p">,</span>
+           <span class="n">sheth_q</span><span class="p">:</span>    <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+           <span class="n">sheth_p</span><span class="p">:</span>    <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span>
+           <span class="o">*</span><span class="p">,</span> 
+           <span class="n">window</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;sharpk&#39;</span><span class="p">,</span> 
+           <span class="n">c</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.5</span><span class="p">,</span>
+           <span class="n">mh</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    UV flux in Mpc^{-3}</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    ----------</span>
+<span class="sd">    m_uv: float, np.ndarry (s,)</span>
+<span class="sd">    omega_b: float, np.ndaray (q,)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
+<span class="sd">    result of shape (q, r, s)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    
+    <span class="c1"># result of shape (n, r, q) in Mpc^(-3)</span>
+
+    <span class="k">if</span> <span class="n">mh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mh</span> <span class="o">=</span> <span class="n">m_halo</span><span class="p">(</span><span class="n">hz</span><span class="p">,</span> <span class="n">m_uv</span><span class="p">,</span> <span class="n">alpha_star</span><span class="p">,</span> <span class="n">t_star</span><span class="p">,</span> <span class="n">f_star10</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_m</span><span class="p">)</span>               <span class="c1"># shape (q, r, s)</span>
+    
+    <span class="n">dmh_dmuv</span> <span class="o">=</span> <span class="n">dmhalo_dmuv</span><span class="p">(</span><span class="n">hz</span><span class="p">,</span> <span class="n">m_uv</span><span class="p">,</span> <span class="n">alpha_star</span><span class="p">,</span> <span class="n">t_star</span><span class="p">,</span> <span class="n">f_star10</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_m</span><span class="p">,</span> <span class="n">mh</span> <span class="o">=</span> <span class="n">mh</span><span class="p">)</span> <span class="c1"># shape (q, r, s)</span>
+    <span class="n">dndmh</span>    <span class="o">=</span> <span class="n">dn_dm</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">mh</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">omega_m</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">sheth_a</span><span class="o">=</span><span class="n">sheth_a</span><span class="p">,</span> <span class="n">sheth_q</span><span class="o">=</span><span class="n">sheth_q</span><span class="p">,</span> <span class="n">sheth_p</span><span class="o">=</span><span class="n">sheth_p</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">c</span><span class="p">)</span> <span class="c1"># shape (q, r, s)</span>
+
+    <span class="k">return</span> <span class="n">f_duty</span><span class="p">(</span><span class="n">mh</span><span class="p">,</span> <span class="n">m_turn</span><span class="p">)</span> <span class="o">*</span> <span class="n">dndmh</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dmh_dmuv</span><span class="p">)</span></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Gaétan Facchinetti.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
