@@ -160,7 +160,15 @@ class Regressor(NeuralNetwork):
     
     
     
-def train_regressor(model: Regressor, dataset: DataSet, optimizer:torch.optim.Optimizer, *, epochs = 50, learning_rate = 1e-3, verbose = True, batch_size = 64, **kwargs):
+def train_regressor(model: Regressor, 
+                    dataset: DataSet, 
+                    optimizer: torch.optim.Optimizer, 
+                    *, 
+                    epochs = 50, 
+                    learning_rate = 1e-3, 
+                    verbose = True, 
+                    batch_size = 64, 
+                    **kwargs):
     
     # set the metadata and parition object of the model
     model.set_check_metadata_and_partition(dataset)

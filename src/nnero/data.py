@@ -366,31 +366,41 @@ class MetaData:
 
 class DataSet:
     """
-        DataSet class
+    DataSet class
     
-    compile the data necessary for training
-
-    Parameters:
-    -----------
-    - file_path: str
-        path to the file that contains the raw data
-    - z: np.ndarray
-        array of the redshits of interpolation of the nn
-    - frac_test: float 
-        fraction of test data out of the total sample
-    - frac_valid: float
-        fraction of validation data out of the total sample
-    - seed_split: int
-        random seed for data partitioning
+    Compile the data necessary for training.
     """
 
     def __init__(self, 
                  file_path : str, 
                  z : np.ndarray | None = None, 
                  *, 
+                 use_PCA: bool     = True,
+                 precision_PCA: float = 1e-3,
                  frac_test: float  = 0.1, 
                  frac_valid: float = 0.1,
                  seed_split: int   = 1994) -> None:
+        """
+        Parameters:
+        -----------
+        file_path: str
+            path to the file that contains the raw data
+        z: np.ndarray
+            array of the redshits of interpolation of the nn
+        use_PCA: bool, optional
+            prepare the data to perform the regression in the principal component basis -- default is True
+        precision_PCA: float, optional
+            if use_PCA is `True`, select the number of useful eigenvectors from this coefficient 
+            -- only the eigenvectors with eigenvalues larger than precision_PCA * the largest eigenvalue
+            are considered as useful
+        frac_test: float, optional 
+            fraction of test data out of the total sample -- default is 0.1
+        frac_valid: float, optional
+            fraction of validation data out of the total sample -- default is 0.1
+        seed_split: int, optional
+            random seed for data partitioning -- default is 1994
+        """
+
 
         # --------------------------------
         # initialisation from input values 
@@ -460,8 +470,45 @@ class DataSet:
         
         self._x_array = true_to_uniform(self._features, self.metadata.parameters_min_val, self.metadata.parameters_max_val)
         
+        # set 0 to the late reionization and 1 to that are early enough
         self._y_classifier = np.zeros(len(self._features))
         self._y_classifier[self.partition.early] = 1.0
+
+
+        self._mean_log10_xHIIdb         = None
+        self._log10_xHIIdb_eigenvalues  = None
+        self._log10_xHIIdb_eigenvectors = None
+        self._n_eigenvectors            = None
+
+        # perform the principal component analysis on all the training data
+        # SHOULD SET THAT IN THE METADATA SO THAT THE NETWORK CAN RECONSTRUCT 
+        # THE TRUE FUNCTION FROM THE EIGENVECTORS AND THE COEFFICIENT IT PREDICTS
+        if use_PCA is True:
+
+            # function on the redshift we want to evaluate
+            log10_xHIIdb = interpolate.interp1d(self._redshifts, np.log10(self._xHIIdb[self.partition.early_train, :]))(self.metadata.z)
+            
+            # mean of the functions
+            self._mean_log10_xHIIdb = np.mean(log10_xHIIdb, axis=0)
+
+            # shift the function to a centered distribution
+            xHIIdb_centered = log10_xHIIdb - self._mean_log10_xHIIdb
+
+            # self-covariance matrix
+            cov = np.cov(xHIIdb_centered, rowvar=False)
+
+            # eigenvalues of the covariance operator
+            eigenvalues, eigenvectors = np.linalg.eigh(cov)
+
+            # reorganise the eigenvector from decreasing eigenvalues
+            # and transpose the eigenvector matrix
+            # now eigenvector[i, :] is the i-th eigenvector
+            idx = np.argsort(eigenvalues)[::-1]
+            self._log10_xHIIdb_eigenvalues  = eigenvalues[idx]
+            self._log10_xHIIdb_eigenvectors = eigenvectors[:, idx].T
+
+            # define the number of vectors from the precision on the eigenvalues
+            self._n_eigenvectors = np.where(np.sqrt(self._log10_xHIIdb_eigenvalues)/self._log10_xHIIdb_eigenvalues[0] < precision_PCA)[0][0]
 
         self._y_regressor = np.zeros((n_tot, len(self.metadata.z) + 1))
         for i in range(n_tot):
@@ -504,6 +551,24 @@ class DataSet:
     @property
     def tau(self):
         return self._tau
+    
+    @property
+    def mean_log10_xHIIdb(self):
+        return self._mean_log10_xHIIdb
+    
+    @property
+    def log10_xHIIdb_eigenvectors(self):
+        return self._log10_xHIIdb_eigenvectors
+    
+    @property
+    def log10_xHIIdb_eigenvalues(self):
+        return self._log10_xHIIdb_eigenvalues
+    
+    @property
+    def n_eigenvectors(self):
+        return self._n_eigenvectors
+
+    
     
     
 

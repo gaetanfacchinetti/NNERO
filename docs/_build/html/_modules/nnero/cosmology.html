@@ -124,7 +124,7 @@
 <a class="viewcode-back" href="../../nnero.html#nnero.cosmology.rho_baryons">[docs]</a>
 <span class="k">def</span> <span class="nf">rho_baryons</span><span class="p">(</span><span class="n">omega_b</span> <span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    baryon energy density (in eV / m^3)</span>
+<span class="sd">    Baryon energy density (in eV / m^3)</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -144,7 +144,7 @@
 <a class="viewcode-back" href="../../nnero.html#nnero.cosmology.n_baryons">[docs]</a>
 <span class="k">def</span> <span class="nf">n_baryons</span><span class="p">(</span><span class="n">omega_b</span> <span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    baryon number density (in 1 / m^3)</span>
+<span class="sd">    Baryon number density (in 1 / m^3)</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -164,7 +164,7 @@
 <a class="viewcode-back" href="../../nnero.html#nnero.cosmology.n_ur">[docs]</a>
 <span class="k">def</span> <span class="nf">n_ur</span><span class="p">(</span><span class="n">m_nus</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    number of ultra-relativistic degrees of freedom</span>
+<span class="sd">    Number of ultra-relativistic degrees of freedom</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -174,7 +174,7 @@
 <span class="sd">    </span>
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    np.ndarray | torch.Tenso with shape (q1, q2, ..., qn)</span>
+<span class="sd">    np.ndarray or torch.Tensor with shape (q1, q2, ..., qn)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">return</span> <span class="n">CST_NO_DIM</span><span class="o">.</span><span class="n">Neff</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">m_nus</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
@@ -185,7 +185,7 @@
 <a class="viewcode-back" href="../../nnero.html#nnero.cosmology.omega_r">[docs]</a>
 <span class="k">def</span> <span class="nf">omega_r</span><span class="p">(</span><span class="n">m_nus</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    reduced abundance of radiation today</span>
+<span class="sd">    Reduced abundance of radiation today</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    -----------</span>
@@ -195,7 +195,7 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    np.ndarray | torch.Tensor with shape (q1, q2, ..., qn)</span>
+<span class="sd">    np.ndarray or torch.Tensor with shape (q1, q2, ..., qn)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span>  <span class="mf">4.48162687719e-7</span> <span class="o">*</span> <span class="n">CST_EV_M_S_K</span><span class="o">.</span><span class="n">T0</span><span class="o">**</span><span class="mi">4</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="mf">0.227107317660239</span> <span class="o">*</span> <span class="n">n_ur</span><span class="p">(</span><span class="n">m_nus</span><span class="p">))</span></div>
 
@@ -226,7 +226,7 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    numpy.ndarray | torch.Tensor with shape (q1, ..., qn, p)</span>
+<span class="sd">    numpy.ndarray or torch.Tensor with shape (q1, ..., qn, p)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># convert z to an array if it is a float</span>
@@ -276,21 +276,20 @@
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    - z : float | numpy.ndarray | torch.Tensor</span>
+<span class="sd">    z: float | numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (p, ) if array, redshift range</span>
-<span class="sd">    - omega_b : float | numpy.ndarray | torch.Tensor</span>
+<span class="sd">    omega_b: float | numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (q1,..., qn) if array, reduced abundance of baryons (i.e. times h^2)</span>
-<span class="sd">    - omega_c : float | numpy.ndarray | torch.Tensor</span>
+<span class="sd">    omega_c: float | numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (q1,..., qn) if array, reduced abundance of dark matter (i.e. times h^2)</span>
-<span class="sd">    - h : float | numpy.ndarray | torch.Tensor</span>
+<span class="sd">    h: float | numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (q1,..., qn) if array,, Hubble factor</span>
-<span class="sd">    - mnus : numpy.ndarray | torch.Tensor</span>
+<span class="sd">    mnus: numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (q1,..., qn, 3) if array or at least shape (, 3), mass of the neutrinos</span>
 <span class="sd">       </span>
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    - E(z) : numpy.ndarray | torch.Tensor</span>
-<span class="sd">        shape (q1,..., qn, p), hubble factor E(z) = H(z) / H0 </span>
+<span class="sd">    numpy.ndarray or torch.Tensor with shape (q1,..., qn, p)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># convert the input if they are just floats</span>
@@ -338,19 +337,18 @@
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    - z : float | numpy.ndarray | torch.Tensor</span>
+<span class="sd">    z: float | numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (p, ) if array, redshift range</span>
-<span class="sd">    - omega_b : float | numpy.ndarray | torch.Tensor</span>
+<span class="sd">    omega_b: float | numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (q1,..., qn) if array, reduced abundance of baryons (i.e. times h^2)</span>
-<span class="sd">    - omega_c : float | numpy.ndarray | torch.Tensor</span>
+<span class="sd">    omega_c: float | numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (q1,..., qn) if array, reduced abundance of dark matter (i.e. times h^2)</span>
-<span class="sd">    - h : float | numpy.ndarray | torch.Tensor</span>
+<span class="sd">    h: float | numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (q1,..., qn) if array, Hubble factor</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    - E(z) : numpy.ndarray | torch.Tensor</span>
-<span class="sd">        shape (q1,..., qn, p), hubble factor E(z) = H(z) / H0 </span>
+<span class="sd">    numpy.ndarray or torch.Tensor with shape (q1,..., qn, p)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># convert the input if they are just floats</span>
@@ -393,26 +391,25 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    - z : float | numpy.ndarray | torch.Tensor</span>
+<span class="sd">    z: float | numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (p,) if array, redshift range</span>
-<span class="sd">    - xHII : numpy.ndarray | torch.Tensor</span>
+<span class="sd">    xHII: numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (n, p), ionization fraction vs the redshift for the n models</span>
-<span class="sd">    - omega_b : float | numpy.ndarray | torch.Tensor</span>
+<span class="sd">    omega_b: float | numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (n,) if array, reduced abundance of baryons (i.e. times h^2)</span>
-<span class="sd">    - omega_c : float | numpy.ndarray | torch.Tensor</span>
+<span class="sd">    omega_c: float | numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (n,) if array, reduced abundance of dark matter (i.e. times h^2)</span>
-<span class="sd">    - h : float | numpy.ndarray | torch.Tensor</span>
+<span class="sd">    h: float | numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (n,) if array, Hubble factor</span>
-<span class="sd">    - m_nus : np.ndarray | torch.Tensor</span>
+<span class="sd">    m_nus: np.ndarray | torch.Tensor</span>
 <span class="sd">        shape (n, 3), mass of the three neutrinos in a given model</span>
-<span class="sd">    - low_value : float</span>
+<span class="sd">    low_value: float</span>
 <span class="sd">        value of xHII at redshift smaller than min(z)</span>
 
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    - optical depth: numpy.ndarray | torch.Tensor</span>
-<span class="sd">        shape(n, p)</span>
+<span class="sd">    numpy.ndarray or torch.Tensor with shape(n, p)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># define if we work with torch or numpy</span>
@@ -476,24 +473,23 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    - z : float | numpy.ndarray | torch.Tensor</span>
+<span class="sd">    z: float | numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (p,) if array, redshift range</span>
-<span class="sd">    - xHII : numpy.ndarray | torch.Tensor</span>
+<span class="sd">    xHII: numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (n, p), ionization fraction vs the redshift for the n models</span>
-<span class="sd">    - omega_b : float | numpy.ndarray | torch.Tensor</span>
+<span class="sd">    omega_b: float | numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (n,) if array, reduced abundance of baryons (i.e. times h^2)</span>
-<span class="sd">    - omega_c : float | numpy.ndarray | torch.Tensor</span>
+<span class="sd">    omega_c: float | numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (n,) if array, reduced abundance of dark matter (i.e. times h^2)</span>
-<span class="sd">    - h : float | numpy.ndarray | torch.Tensor</span>
+<span class="sd">    h: float | numpy.ndarray | torch.Tensor</span>
 <span class="sd">        shape (n,) if array, Hubble factor</span>
-<span class="sd">    - low_value : float</span>
+<span class="sd">    low_value: float</span>
 <span class="sd">        value of xHII at redshift smaller than min(z)</span>
 
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    - optical depth: numpy.ndarray | torch.Tensor</span>
-<span class="sd">        shape(n, p)</span>
+<span class="sd">    numpy.ndarray or torch.Tensor with shape(n, p)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="c1"># define if we work with torch or numpy</span>
@@ -599,21 +595,20 @@
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    - radius : float | numpy.ndarray </span>
+<span class="sd">    radius: float | numpy.ndarray </span>
 <span class="sd">        shape (s,) or (q1, ..., qn, r1, ..., rm, s), smoothing scale r in Mpc</span>
-<span class="sd">    - k : numpy.ndarray</span>
+<span class="sd">    k: numpy.ndarray</span>
 <span class="sd">        shape (q1, ..., qn, p), modes in Mpc^{-1}</span>
-<span class="sd">    - pk : numpy.ndarray</span>
+<span class="sd">    pk: numpy.ndarray</span>
 <span class="sd">        shape (q1, ..., qn, p), power spectrum in Mpc^3</span>
-<span class="sd">    - window : str, optional</span>
+<span class="sd">    window: str, optional</span>
 <span class="sd">        smoothing function</span>
-<span class="sd">    - ik_radius : numpy.ndarray, optional</span>
+<span class="sd">    ik_radius: numpy.ndarray, optional</span>
 <span class="sd">        shape of radius, indices of the k array corresponding to k = 1/radius</span>
 <span class="sd">        </span>
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    - smoothed sigma : numpy.ndarray</span>
-<span class="sd">        shape (q1, ..., qn, r1, ..., rm, s) or (q1, ..., qn, s)</span>
+<span class="sd">    numpy.ndarray with shape (q1, ..., qn, r1, ..., rm, s) or (q1, ..., qn, s)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># make an array out of the input radius if it was not one</span>
@@ -683,21 +678,20 @@
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    - radius : float | numpy.ndarray </span>
+<span class="sd">    radius: float | numpy.ndarray </span>
 <span class="sd">        shape (q1, ..., qn, r1, ..., rm, s), smoothing scale r in Mpc</span>
-<span class="sd">    - k : numpy.ndarray</span>
+<span class="sd">    k: numpy.ndarray</span>
 <span class="sd">        shape (q1, ..., qn, p), modes in Mpc^{-1}</span>
-<span class="sd">    - pk : numpy.ndarray</span>
+<span class="sd">    pk: numpy.ndarray</span>
 <span class="sd">        shape (q1, ..., qn, p), power spectrum in Mpc^3</span>
-<span class="sd">    - window : str, optional</span>
+<span class="sd">    window: str, optional</span>
 <span class="sd">        smoothing function</span>
-<span class="sd">    - ik_radius : numpy.ndarray, optional</span>
+<span class="sd">    ik_radius: numpy.ndarray, optional</span>
 <span class="sd">        shape of radius, indices of the k array corresponding to k = 1/radius</span>
 <span class="sd">        </span>
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    - d smoothed sigma / dr : numpy.ndarray in Mpc^{-1}</span>
-<span class="sd">        shape (q1, ..., qn, r1, ..., rm, s)</span>
+<span class="sd">    numpy.ndarray with shape (q1, ..., qn, r1, ..., rm, s)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">m</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">radius</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="c1"># dimension of parameters r</span>
@@ -756,25 +750,24 @@
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    - mass: float | numpy.ndarray</span>
+<span class="sd">    mass: float | numpy.ndarray</span>
 <span class="sd">        shape (q1, ..., qn, r1, ..., rm, s) mass scale in Msol</span>
-<span class="sd">    - k : numpy.ndarray</span>
+<span class="sd">    k: numpy.ndarray</span>
 <span class="sd">        shape (q1, ..., qn, p), modes in Mpc^{-1}</span>
-<span class="sd">    - pk : numpy.ndarray</span>
+<span class="sd">    pk: numpy.ndarray</span>
 <span class="sd">        shape (q1, ..., qn, p), power spectrum in Mpc^3</span>
-<span class="sd">    - omega_m: float, np.ndarray </span>
+<span class="sd">    omega_m: float, np.ndarray </span>
 <span class="sd">        shape (q1, ..., qn)</span>
-<span class="sd">    - window : str, optional</span>
+<span class="sd">    window: str, optional</span>
 <span class="sd">        smoothing function</span>
-<span class="sd">    - ik_radius : numpy.ndarray, optional</span>
+<span class="sd">    ik_radius: numpy.ndarray, optional</span>
 <span class="sd">        shape of radius, indices of the k array corresponding to k = 1/radius</span>
-<span class="sd">    - c :  float, optional</span>
+<span class="sd">    c: float, optional</span>
 <span class="sd">        conversion factor for the mass in the sharpk window function</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    - smoothed sigma : np.ndarray</span>
-<span class="sd">        shape (q1, ..., qn, r1, ..., rm, s)</span>
+<span class="sd">    numpy.ndarray with shape (q1, ..., qn, r1, ..., rm, s)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">mass</span>    <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span>
@@ -821,25 +814,24 @@
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    - mass: float | numpy.ndarray</span>
+<span class="sd">    mass: float | numpy.ndarray</span>
 <span class="sd">        shape (q1, ..., qn, r1, ..., rm, s) mass scale in Msol</span>
-<span class="sd">    - k : numpy.ndarray</span>
+<span class="sd">    k: numpy.ndarray</span>
 <span class="sd">        shape (q1, ..., qn, p), modes in Mpc^{-1}</span>
-<span class="sd">    - pk : numpy.ndarray</span>
+<span class="sd">    pk: numpy.ndarray</span>
 <span class="sd">        shape (q1, ..., qn, p), power spectrum in Mpc^3</span>
-<span class="sd">    - omega_m: float, np.ndarray </span>
+<span class="sd">    omega_m: float, np.ndarray </span>
 <span class="sd">        shape (q1, ..., qn)</span>
-<span class="sd">    - window : str, optional</span>
+<span class="sd">    window: str, optional</span>
 <span class="sd">        smoothing function</span>
-<span class="sd">    - ik_radius : numpy.ndarray, optional</span>
-<span class="sd">        shape of radius, indices of the k array corresponding to k = 1/radius</span>
-<span class="sd">    - c :  float, optional</span>
+<span class="sd">    sigma_mass: numpy.ndarray, optional</span>
+<span class="sd">        shape of mass, value of sigma_m at input mass</span>
+<span class="sd">    c: float, optional</span>
 <span class="sd">        conversion factor for the mass in the sharpk window function</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    - d smoothed sigma / dm : np.ndarray in Msol^{-1}</span>
-<span class="sd">        shape (q1, ..., qn, r1, ..., rm, s)</span>
+<span class="sd">    numpy.ndarray with shape (q1, ..., qn, r1, ..., rm, s)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">mass</span>    <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span>
     <span class="n">omega_m</span> <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">omega_m</span><span class="p">)</span>
@@ -876,9 +868,22 @@
                     <span class="n">omega_m</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
                     <span class="n">h</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Growth function of the linear density contrast</span>
+
+<span class="sd">    Analatical fit from Caroll</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    z: float | numpy.ndarray</span>
+<span class="sd">        shape (r,) if array, redshift range</span>
+<span class="sd">    omega_m: float, numpy.ndarray </span>
+<span class="sd">        shape (q1, ..., qn), reduced matter abundance</span>
+<span class="sd">    h: float, numpy.ndarray</span>
+<span class="sd">        shape (q1, ..., qn), reduced hubble constant</span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">        shape (q1, ..., qn, r)</span>
+<span class="sd">    numpy.ndarray with shape (q1, ..., qn, r)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">z</span>       <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
@@ -912,8 +917,7 @@
           <span class="n">sheth_q</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
           <span class="n">sheth_p</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span>
           <span class="o">*</span><span class="p">,</span> 
-          <span class="n">window</span><span class="p">:</span> 
-          <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;sharpk&#39;</span><span class="p">,</span> 
+          <span class="n">window</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;sharpk&#39;</span><span class="p">,</span> 
           <span class="n">c</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.5</span><span class="p">):</span>
 <span class="w">    </span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -921,27 +925,26 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    - z: float | numpy.ndarray </span>
+<span class="sd">    z: float | numpy.ndarray </span>
 <span class="sd">        shape (r,) redshift values </span>
-<span class="sd">    - mass: float | numpy.ndarray</span>
+<span class="sd">    mass: float | numpy.ndarray</span>
 <span class="sd">        shape (s,) or (q, r, s,) mass scale in Msol</span>
-<span class="sd">    - k : numpy.ndarray</span>
+<span class="sd">    k : numpy.ndarray</span>
 <span class="sd">        shape (q, p), modes in Mpc^{-1}</span>
-<span class="sd">    - pk : numpy.ndarray</span>
+<span class="sd">    pk : numpy.ndarray</span>
 <span class="sd">        shape (q, p), power spectrum in Mpc^3</span>
-<span class="sd">    - omega_m: float, np.ndarray </span>
-<span class="sd">        shape (q,)</span>
-<span class="sd">    - window : str, optional</span>
+<span class="sd">    omega_m: float, np.ndarray </span>
+<span class="sd">        shape (q,), reduced matter abundance</span>
+<span class="sd">    h: float, numpy.ndarray</span>
+<span class="sd">        shape (q1, ..., qn), reduced hubble constant</span>
+<span class="sd">    window : str, optional</span>
 <span class="sd">        smoothing function</span>
-<span class="sd">    - ik_radius : numpy.ndarray, optional</span>
-<span class="sd">        shape of radius, indices of the k array corresponding to k = 1/radius</span>
-<span class="sd">    - c :  float, optional</span>
+<span class="sd">    c : float, optional</span>
 <span class="sd">        conversion factor for the mass in the sharpk window function</span>
 
-<span class="sd">    Return</span>
-<span class="sd">    ------</span>
-<span class="sd">    - res : numpy.ndarrray</span>
-<span class="sd">        shape (q, r, s) in Msol / Mpc^3</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    numpy.ndarrray with shape (q, r, s) -- in Msol / Mpc^3</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 
@@ -981,152 +984,6 @@
     <span class="n">nuhat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">sheth_q</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.686</span> <span class="o">*</span> <span class="n">one_over_sigma</span> <span class="o">*</span> <span class="n">growth_0</span> <span class="o">/</span> <span class="n">growth_z</span> <span class="c1"># shape (q, r, s)</span>
 
     <span class="k">return</span> <span class="o">-</span><span class="p">(</span><span class="n">rhom0</span><span class="o">/</span><span class="n">mass</span><span class="p">)</span> <span class="o">*</span> <span class="n">dsigmadm</span> <span class="o">*</span> <span class="n">one_over_sigma</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">*</span> <span class="n">sheth_a</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span> <span class="n">nuhat</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">sheth_p</span><span class="p">))</span> <span class="o">*</span> <span class="n">nuhat</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">nuhat</span><span class="o">*</span><span class="n">nuhat</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)</span></div>
-
-
-
-
-
-
-
-
-
-
-<span class="c1">#############################################</span>
-<span class="c1"># User friendy Cosmology class</span>
-
-<div class="viewcode-block" id="ParamsDefault">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.ParamsDefault">[docs]</a>
-<span class="k">class</span> <span class="nc">ParamsDefault</span><span class="p">:</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_params</span><span class="p">:</span><span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-
-        <span class="c1"># either pass the input as a dictionnary or through kwargs</span>
-        <span class="k">if</span> <span class="n">new_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">new_params</span> <span class="o">=</span> <span class="p">(</span><span class="n">new_params</span> <span class="o">|</span> <span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">new_params</span> <span class="o">=</span> <span class="n">kwargs</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">create_params</span><span class="p">(</span><span class="n">new_params</span><span class="p">)</span>
-        
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-
-
-    <span class="c1"># define the params dictionary</span>
-<div class="viewcode-block" id="ParamsDefault.create_params">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.ParamsDefault.create_params">[docs]</a>
-    <span class="k">def</span> <span class="nf">create_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-
-        <span class="k">if</span> <span class="n">new_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">new_params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="c1"># can only set parameters already present in the default dictionnary</span>
-            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Trying to initialise parameter &quot;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot; that is not in the default list&quot;</span><span class="p">)</span></div>
-
-
-    <span class="c1"># modify the __setattr__ to prevent any unwanted modifications</span>
-    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-
-        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Attributes are read only! Use update() to modify them.&quot;</span><span class="p">)</span>
-
-    <span class="c1"># reinitialise to the default values</span>
-<div class="viewcode-block" id="ParamsDefault.set_defaults">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.ParamsDefault.set_defaults">[docs]</a>
-    <span class="k">def</span> <span class="nf">set_defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-
-         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-                <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
-
-
-
-<div class="viewcode-block" id="ParamsDefault.update">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.ParamsDefault.update">[docs]</a>
-    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">new_params</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; update parameters &quot;&quot;&quot;</span>
-
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">new_params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-                <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Trying to modify a parameter not in default&quot;</span><span class="p">)</span></div>
-
-    
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;NNERO object with parameters: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
-    
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span></div>
-
-    
-
-<span class="c1">## Define a simple cosmology class</span>
-<div class="viewcode-block" id="Cosmology">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.Cosmology">[docs]</a>
-<span class="k">class</span> <span class="nc">Cosmology</span><span class="p">(</span><span class="n">ParamsDefault</span><span class="p">):</span>
-    
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_params</span> <span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        
-        <span class="bp">self</span><span class="o">.</span><span class="n">_defaults</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;h&quot;</span>       <span class="p">:</span> <span class="mf">0.6735837</span><span class="p">,</span> 
-        <span class="s2">&quot;omega_b&quot;</span> <span class="p">:</span> <span class="mf">0.02242</span><span class="p">,</span>
-        <span class="s2">&quot;omega_c&quot;</span> <span class="p">:</span> <span class="mf">0.11933</span><span class="p">,</span>
-        <span class="s2">&quot;mnu1&quot;</span>    <span class="p">:</span> <span class="mf">0.06</span><span class="p">,</span>
-        <span class="s2">&quot;mnu2&quot;</span>    <span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-        <span class="s2">&quot;mnu3&quot;</span>    <span class="p">:</span> <span class="mf">0.0</span><span class="p">}</span>
-
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">new_params</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">m_nus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">mnu1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mnu2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mnu3</span><span class="p">])</span>
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">n_ur</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Neff</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m_nus</span><span class="p">)</span> 
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">omega_r</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">omega_r</span><span class="p">(</span><span class="n">cosmo</span><span class="o">.</span><span class="n">m_nus</span><span class="p">)</span>
-    
-<div class="viewcode-block" id="Cosmology.omega_nu">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.Cosmology.omega_nu">[docs]</a>
-    <span class="k">def</span> <span class="nf">omega_nu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
-        
-        <span class="n">res</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">a</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="p">(</span><span class="mf">1.0</span><span class="o">+</span><span class="n">z</span><span class="p">)</span>
-        
-        <span class="k">for</span> <span class="n">mnu</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_nus</span><span class="p">:</span>  
-            <span class="k">if</span> <span class="n">mnu</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">y</span> <span class="o">=</span> <span class="n">mnu</span><span class="o">/</span><span class="n">CST_EV_M_S_K</span><span class="o">.</span><span class="n">k_Boltz</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Tnu0</span><span class="o">/</span><span class="n">a</span><span class="p">)</span>
-                <span class="c1"># This interpolation formula was taken from  the HYREC-2 code: https://github.com/nanoomlee/HYREC-2</span>
-                <span class="n">res</span> <span class="o">=</span> <span class="n">res</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="mf">0.317322</span><span class="o">*</span><span class="mf">0.0457584</span><span class="o">*</span><span class="n">y</span><span class="o">**</span><span class="p">(</span><span class="mf">3.47446</span><span class="o">+</span><span class="mf">1.</span><span class="p">)</span> <span class="o">+</span> <span class="mf">2.05298</span><span class="o">*</span><span class="mf">0.0457584</span><span class="o">*</span><span class="n">y</span><span class="o">**</span><span class="p">(</span><span class="mf">3.47446</span><span class="o">-</span><span class="mf">1.</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="mf">0.0457584</span><span class="o">*</span><span class="n">y</span><span class="o">**</span><span class="p">(</span><span class="mf">3.47446</span><span class="p">))</span><span class="o">*</span><span class="p">(</span><span class="mf">3.45e-8</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Tnu0</span><span class="o">**</span><span class="mi">4</span><span class="p">))</span><span class="o">*</span><span class="mf">5.6822</span><span class="o">*</span><span class="mi">2</span> 
-
-        <span class="k">return</span> <span class="n">res</span></div>
-
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">omega_l</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span><span class="o">^</span><span class="mi">2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega_c</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega_b</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega_r</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega_nu</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">rho_b</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">rho_baryons</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">omega_b</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">n_b</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho_b</span> <span class="o">/</span> <span class="n">CST_EV_M_S_K</span><span class="o">.</span><span class="n">mass_proton</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">CST_NO_DIM</span><span class="o">.</span><span class="n">YHe</span> <span class="o">/</span> <span class="mi">4</span> <span class="o">*</span> <span class="p">(</span><span class="n">CST_EV_M_S_K</span><span class="o">.</span><span class="n">mass_helium</span><span class="o">/</span><span class="n">CST_EV_M_S_K</span><span class="o">.</span><span class="n">mass_hydrogen</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="c1"># in 1/m^3</span></div>
 
 </pre></div>
 

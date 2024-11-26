@@ -48,7 +48,7 @@ def convert_array(arr: float, to_torch: bool = False) -> (np.ndarray | torch.Ten
 
 def rho_baryons(omega_b : float | np.ndarray | torch.Tensor) -> (float | np.ndarray | torch.Tensor):
     """
-    baryon energy density (in eV / m^3)
+    Baryon energy density (in eV / m^3)
 
     Parameters
     ----------
@@ -65,7 +65,7 @@ def rho_baryons(omega_b : float | np.ndarray | torch.Tensor) -> (float | np.ndar
 
 def n_baryons(omega_b : float | np.ndarray | torch.Tensor) -> (float | np.ndarray | torch.Tensor):
     """
-    baryon number density (in 1 / m^3)
+    Baryon number density (in 1 / m^3)
 
     Parameters
     ----------
@@ -82,7 +82,7 @@ def n_baryons(omega_b : float | np.ndarray | torch.Tensor) -> (float | np.ndarra
 
 def n_ur(m_nus: np.ndarray | torch.Tensor) -> (np.ndarray | torch.Tensor):
     """
-    number of ultra-relativistic degrees of freedom
+    Number of ultra-relativistic degrees of freedom
     
     Parameters
     ----------
@@ -92,7 +92,7 @@ def n_ur(m_nus: np.ndarray | torch.Tensor) -> (np.ndarray | torch.Tensor):
     
     Returns
     -------
-    np.ndarray | torch.Tenso with shape (q1, q2, ..., qn)
+    np.ndarray or torch.Tensor with shape (q1, q2, ..., qn)
     """
 
     return CST_NO_DIM.Neff - np.count_nonzero(m_nus, axis=-1)
@@ -100,7 +100,7 @@ def n_ur(m_nus: np.ndarray | torch.Tensor) -> (np.ndarray | torch.Tensor):
 
 def omega_r(m_nus: np.ndarray | torch.Tensor) -> (np.ndarray | torch.Tensor):
     """
-    reduced abundance of radiation today
+    Reduced abundance of radiation today
     
     Parameters
     -----------
@@ -110,7 +110,7 @@ def omega_r(m_nus: np.ndarray | torch.Tensor) -> (np.ndarray | torch.Tensor):
 
     Returns
     -------
-    np.ndarray | torch.Tensor with shape (q1, q2, ..., qn)
+    np.ndarray or torch.Tensor with shape (q1, q2, ..., qn)
     """
     return  4.48162687719e-7 * CST_EV_M_S_K.T0**4 * (1.0 + 0.227107317660239 * n_ur(m_nus))
 
@@ -138,7 +138,7 @@ def omega_nu(z:     float | np.ndarray | torch.Tensor,
 
     Returns
     -------
-    numpy.ndarray | torch.Tensor with shape (q1, ..., qn, p)
+    numpy.ndarray or torch.Tensor with shape (q1, ..., qn, p)
     """
 
     # convert z to an array if it is a float
@@ -185,21 +185,20 @@ def h_factor_numpy(z:       float | np.ndarray | torch.Tensor,
     
     Parameters
     ----------
-    - z : float | numpy.ndarray | torch.Tensor
+    z: float | numpy.ndarray | torch.Tensor
         shape (p, ) if array, redshift range
-    - omega_b : float | numpy.ndarray | torch.Tensor
+    omega_b: float | numpy.ndarray | torch.Tensor
         shape (q1,..., qn) if array, reduced abundance of baryons (i.e. times h^2)
-    - omega_c : float | numpy.ndarray | torch.Tensor
+    omega_c: float | numpy.ndarray | torch.Tensor
         shape (q1,..., qn) if array, reduced abundance of dark matter (i.e. times h^2)
-    - h : float | numpy.ndarray | torch.Tensor
+    h: float | numpy.ndarray | torch.Tensor
         shape (q1,..., qn) if array,, Hubble factor
-    - mnus : numpy.ndarray | torch.Tensor
+    mnus: numpy.ndarray | torch.Tensor
         shape (q1,..., qn, 3) if array or at least shape (, 3), mass of the neutrinos
        
     Returns
     -------
-    - E(z) : numpy.ndarray | torch.Tensor
-        shape (q1,..., qn, p), hubble factor E(z) = H(z) / H0 
+    numpy.ndarray or torch.Tensor with shape (q1,..., qn, p)
     """
 
     # convert the input if they are just floats
@@ -244,19 +243,18 @@ def h_factor_no_rad(z:       float | np.ndarray | torch.Tensor,
     
     Parameters
     ----------
-    - z : float | numpy.ndarray | torch.Tensor
+    z: float | numpy.ndarray | torch.Tensor
         shape (p, ) if array, redshift range
-    - omega_b : float | numpy.ndarray | torch.Tensor
+    omega_b: float | numpy.ndarray | torch.Tensor
         shape (q1,..., qn) if array, reduced abundance of baryons (i.e. times h^2)
-    - omega_c : float | numpy.ndarray | torch.Tensor
+    omega_c: float | numpy.ndarray | torch.Tensor
         shape (q1,..., qn) if array, reduced abundance of dark matter (i.e. times h^2)
-    - h : float | numpy.ndarray | torch.Tensor
+    h: float | numpy.ndarray | torch.Tensor
         shape (q1,..., qn) if array, Hubble factor
 
     Returns
     -------
-    - E(z) : numpy.ndarray | torch.Tensor
-        shape (q1,..., qn, p), hubble factor E(z) = H(z) / H0 
+    numpy.ndarray or torch.Tensor with shape (q1,..., qn, p)
     """
 
     # convert the input if they are just floats
@@ -296,26 +294,25 @@ def optical_depth_numpy(z, xHII, omega_b, omega_c, h, m_nus : np.ndarray, low_va
 
     Parameters
     ----------
-    - z : float | numpy.ndarray | torch.Tensor
+    z: float | numpy.ndarray | torch.Tensor
         shape (p,) if array, redshift range
-    - xHII : numpy.ndarray | torch.Tensor
+    xHII: numpy.ndarray | torch.Tensor
         shape (n, p), ionization fraction vs the redshift for the n models
-    - omega_b : float | numpy.ndarray | torch.Tensor
+    omega_b: float | numpy.ndarray | torch.Tensor
         shape (n,) if array, reduced abundance of baryons (i.e. times h^2)
-    - omega_c : float | numpy.ndarray | torch.Tensor
+    omega_c: float | numpy.ndarray | torch.Tensor
         shape (n,) if array, reduced abundance of dark matter (i.e. times h^2)
-    - h : float | numpy.ndarray | torch.Tensor
+    h: float | numpy.ndarray | torch.Tensor
         shape (n,) if array, Hubble factor
-    - m_nus : np.ndarray | torch.Tensor
+    m_nus: np.ndarray | torch.Tensor
         shape (n, 3), mass of the three neutrinos in a given model
-    - low_value : float
+    low_value: float
         value of xHII at redshift smaller than min(z)
 
 
     Returns
     -------
-    - optical depth: numpy.ndarray | torch.Tensor
-        shape(n, p)
+    numpy.ndarray or torch.Tensor with shape(n, p)
     """
 
     # define if we work with torch or numpy
@@ -369,31 +366,33 @@ def optical_depth_no_rad(z:       float | np.ndarray | torch.Tensor,
                          *, 
                          low_value: float = 1.0):
     """
-    Efficient evaluation of the opetical depth to reionization
-    optical depth to reionization (dimensionless)
-    uses fast numpy operations with trapezoid rule
-    (assume that radiation is neglibible on the range of z)
+    Optical depth to reionization without radiation.
+
+    Efficient evaluation of the opetical depth to reionization (dimensionless)
+    uses fast numpy / torch operations with trapezoid rule
+    (assume that radiation is neglibible on the range of z). Also neglegts the
+    influence of double reionization of helium at small redshifts
+
 
     Parameters
     ----------
-    - z : float | numpy.ndarray | torch.Tensor
+    z: float | numpy.ndarray | torch.Tensor
         shape (p,) if array, redshift range
-    - xHII : numpy.ndarray | torch.Tensor
+    xHII: numpy.ndarray | torch.Tensor
         shape (n, p), ionization fraction vs the redshift for the n models
-    - omega_b : float | numpy.ndarray | torch.Tensor
+    omega_b: float | numpy.ndarray | torch.Tensor
         shape (n,) if array, reduced abundance of baryons (i.e. times h^2)
-    - omega_c : float | numpy.ndarray | torch.Tensor
+    omega_c: float | numpy.ndarray | torch.Tensor
         shape (n,) if array, reduced abundance of dark matter (i.e. times h^2)
-    - h : float | numpy.ndarray | torch.Tensor
+    h: float | numpy.ndarray | torch.Tensor
         shape (n,) if array, Hubble factor
-    - low_value : float
+    low_value: float
         value of xHII at redshift smaller than min(z)
 
 
     Returns
     -------
-    - optical depth: numpy.ndarray | torch.Tensor
-        shape(n, p)
+    numpy.ndarray or torch.Tensor with shape(n, p)
     """
     
     # define if we work with torch or numpy
@@ -490,21 +489,20 @@ def sigma_r(radius: float | np.ndarray,
     
     Parameters
     ----------
-    - radius : float | numpy.ndarray 
+    radius: float | numpy.ndarray 
         shape (s,) or (q1, ..., qn, r1, ..., rm, s), smoothing scale r in Mpc
-    - k : numpy.ndarray
+    k: numpy.ndarray
         shape (q1, ..., qn, p), modes in Mpc^{-1}
-    - pk : numpy.ndarray
+    pk: numpy.ndarray
         shape (q1, ..., qn, p), power spectrum in Mpc^3
-    - window : str, optional
+    window: str, optional
         smoothing function
-    - ik_radius : numpy.ndarray, optional
+    ik_radius: numpy.ndarray, optional
         shape of radius, indices of the k array corresponding to k = 1/radius
         
     Returns
     -------
-    - smoothed sigma : numpy.ndarray
-        shape (q1, ..., qn, r1, ..., rm, s) or (q1, ..., qn, s)
+    numpy.ndarray with shape (q1, ..., qn, r1, ..., rm, s) or (q1, ..., qn, s)
     """
 
     # make an array out of the input radius if it was not one
@@ -571,21 +569,20 @@ def dsigma_r_dr(radius: float | np.ndarray,
     
     Parameters
     ----------
-    - radius : float | numpy.ndarray 
+    radius: float | numpy.ndarray 
         shape (q1, ..., qn, r1, ..., rm, s), smoothing scale r in Mpc
-    - k : numpy.ndarray
+    k: numpy.ndarray
         shape (q1, ..., qn, p), modes in Mpc^{-1}
-    - pk : numpy.ndarray
+    pk: numpy.ndarray
         shape (q1, ..., qn, p), power spectrum in Mpc^3
-    - window : str, optional
+    window: str, optional
         smoothing function
-    - ik_radius : numpy.ndarray, optional
+    ik_radius: numpy.ndarray, optional
         shape of radius, indices of the k array corresponding to k = 1/radius
         
     Returns
     -------
-    - d smoothed sigma / dr : numpy.ndarray in Mpc^{-1}
-        shape (q1, ..., qn, r1, ..., rm, s)
+    numpy.ndarray with shape (q1, ..., qn, r1, ..., rm, s)
     """
 
     m = len(radius.shape) - len(k.shape) # dimension of parameters r
@@ -641,25 +638,24 @@ def sigma_m(mass:float | np.ndarray,
     
     Parameters
     ----------
-    - mass: float | numpy.ndarray
+    mass: float | numpy.ndarray
         shape (q1, ..., qn, r1, ..., rm, s) mass scale in Msol
-    - k : numpy.ndarray
+    k: numpy.ndarray
         shape (q1, ..., qn, p), modes in Mpc^{-1}
-    - pk : numpy.ndarray
+    pk: numpy.ndarray
         shape (q1, ..., qn, p), power spectrum in Mpc^3
-    - omega_m: float, np.ndarray 
+    omega_m: float, np.ndarray 
         shape (q1, ..., qn)
-    - window : str, optional
+    window: str, optional
         smoothing function
-    - ik_radius : numpy.ndarray, optional
+    ik_radius: numpy.ndarray, optional
         shape of radius, indices of the k array corresponding to k = 1/radius
-    - c :  float, optional
+    c: float, optional
         conversion factor for the mass in the sharpk window function
 
     Returns
     -------
-    - smoothed sigma : np.ndarray
-        shape (q1, ..., qn, r1, ..., rm, s)
+    numpy.ndarray with shape (q1, ..., qn, r1, ..., rm, s)
     """
 
     mass    = convert_array(mass)
@@ -703,25 +699,24 @@ def dsigma_m_dm(mass:float | np.ndarray,
     
     Parameters
     ----------
-    - mass: float | numpy.ndarray
+    mass: float | numpy.ndarray
         shape (q1, ..., qn, r1, ..., rm, s) mass scale in Msol
-    - k : numpy.ndarray
+    k: numpy.ndarray
         shape (q1, ..., qn, p), modes in Mpc^{-1}
-    - pk : numpy.ndarray
+    pk: numpy.ndarray
         shape (q1, ..., qn, p), power spectrum in Mpc^3
-    - omega_m: float, np.ndarray 
+    omega_m: float, np.ndarray 
         shape (q1, ..., qn)
-    - window : str, optional
+    window: str, optional
         smoothing function
-    - ik_radius : numpy.ndarray, optional
-        shape of radius, indices of the k array corresponding to k = 1/radius
-    - c :  float, optional
+    sigma_mass: numpy.ndarray, optional
+        shape of mass, value of sigma_m at input mass
+    c: float, optional
         conversion factor for the mass in the sharpk window function
 
     Returns
     -------
-    - d smoothed sigma / dm : np.ndarray in Msol^{-1}
-        shape (q1, ..., qn, r1, ..., rm, s)
+    numpy.ndarray with shape (q1, ..., qn, r1, ..., rm, s)
     """
     mass    = convert_array(mass)
     omega_m = convert_array(omega_m)
@@ -755,9 +750,22 @@ def growth_function(z: float | np.ndarray,
                     omega_m: float | np.ndarray, 
                     h: float | np.ndarray):
     """
+    Growth function of the linear density contrast
+
+    Analatical fit from Caroll
+
+    Parameters
+    ----------
+    z: float | numpy.ndarray
+        shape (r,) if array, redshift range
+    omega_m: float, numpy.ndarray 
+        shape (q1, ..., qn), reduced matter abundance
+    h: float, numpy.ndarray
+        shape (q1, ..., qn), reduced hubble constant
+
     Returns
     -------
-        shape (q1, ..., qn, r)
+    numpy.ndarray with shape (q1, ..., qn, r)
     """
 
     z       = convert_array(z)
@@ -788,8 +796,7 @@ def dn_dm(z: float | np.ndarray,
           sheth_q: float = 1.0,
           sheth_p: float = 0.3,
           *, 
-          window: 
-          str = 'sharpk', 
+          window: str = 'sharpk', 
           c: float = 2.5):
     
     """
@@ -797,27 +804,26 @@ def dn_dm(z: float | np.ndarray,
 
     Parameters
     ----------
-    - z: float | numpy.ndarray 
+    z: float | numpy.ndarray 
         shape (r,) redshift values 
-    - mass: float | numpy.ndarray
+    mass: float | numpy.ndarray
         shape (s,) or (q, r, s,) mass scale in Msol
-    - k : numpy.ndarray
+    k : numpy.ndarray
         shape (q, p), modes in Mpc^{-1}
-    - pk : numpy.ndarray
+    pk : numpy.ndarray
         shape (q, p), power spectrum in Mpc^3
-    - omega_m: float, np.ndarray 
-        shape (q,)
-    - window : str, optional
+    omega_m: float, np.ndarray 
+        shape (q,), reduced matter abundance
+    h: float, numpy.ndarray
+        shape (q1, ..., qn), reduced hubble constant
+    window : str, optional
         smoothing function
-    - ik_radius : numpy.ndarray, optional
-        shape of radius, indices of the k array corresponding to k = 1/radius
-    - c :  float, optional
+    c : float, optional
         conversion factor for the mass in the sharpk window function
 
-    Return
-    ------
-    - res : numpy.ndarrray
-        shape (q, r, s) in Msol / Mpc^3
+    Returns
+    -------
+    numpy.ndarrray with shape (q, r, s) -- in Msol / Mpc^3
     """
 
 
@@ -857,131 +863,3 @@ def dn_dm(z: float | np.ndarray,
     nuhat = np.sqrt(sheth_q) * 1.686 * one_over_sigma * growth_0 / growth_z # shape (q, r, s)
 
     return -(rhom0/mass) * dsigmadm * one_over_sigma * np.sqrt(2./np.pi)* sheth_a * (1+ nuhat**(-2*sheth_p)) * nuhat * np.exp(-nuhat*nuhat/2.0)
-
-
-
-
-
-
-
-
-
-#############################################
-# User friendy Cosmology class
-
-class ParamsDefault:
-
-    def __init__(self, new_params:dict = None, **kwargs) -> None:
-
-        # either pass the input as a dictionnary or through kwargs
-        if new_params is not None:
-            new_params = (new_params | kwargs)
-        else:
-            new_params = kwargs
-
-        self.create_params(new_params)
-        
-        for key, value in self._params.items():
-            self.__dict__[key] = value
-
-
-    # define the params dictionary
-    def create_params(self, new_params: dict) -> None:
-        self._params = self._defaults.copy()
-
-        if new_params is None:
-            return None
-
-        for key, value in new_params.items():
-            # can only set parameters already present in the default dictionnary
-            if key in self._defaults:
-                self._params[key] = value
-            else:
-                raise ValueError("Trying to initialise parameter " + key + " that is not in the default list")
-
-    # modify the __setattr__ to prevent any unwanted modifications
-    def __setattr__(self, name, value):
-
-        self.__dict__[name] = value
-
-        if name in self._defaults:
-            raise Exception("Attributes are read only! Use update() to modify them.")
-
-    # reinitialise to the default values
-    def set_defaults(self):
-
-         for key, value in self._defaults.items():
-            if key in self._defaults:
-                self._params[key] = value
-                self.__dict__[key] = value
-
-
-    def update(self, **new_params):
-        """ update parameters """
-
-        for key, value in new_params.items():
-            if key in self._defaults:
-                self._params[key] = value
-                self.__dict__[key] = value
-            else:
-                raise ValueError("Trying to modify a parameter not in default")
-    
-    def __str__(self):
-        return "NNERO object with parameters: " + str(self._params)
-    
-    def __call__(self):
-        return self._params
-    
-
-## Define a simple cosmology class
-class Cosmology(ParamsDefault):
-    
-    def __init__(self, new_params : dict = None, **kwargs) -> None:
-        
-        self._defaults = {
-        "h"       : 0.6735837, 
-        "omega_b" : 0.02242,
-        "omega_c" : 0.11933,
-        "mnu1"    : 0.06,
-        "mnu2"    : 0.0,
-        "mnu3"    : 0.0}
-
-        super().__init__(new_params, **kwargs)
-
-
-    @property
-    def m_nus(self):
-        return np.array([self.mnu1, self.mnu2, self.mnu3])
-    
-    @property
-    def n_ur(self):
-        return self.Neff - np.count_nonzero(self.m_nus) 
-
-    @property
-    def omega_r(self):
-        return omega_r(cosmo.m_nus)
-    
-    def omega_nu(self, z):
-        
-        res = 0
-        a = 1.0/(1.0+z)
-        
-        for mnu in self.m_nus:  
-            if mnu > 0:
-                y = mnu/CST_EV_M_S_K.k_Boltz/(self.Tnu0/a)
-                # This interpolation formula was taken from  the HYREC-2 code: https://github.com/nanoomlee/HYREC-2
-                res = res + (1.+0.317322*0.0457584*y**(3.47446+1.) + 2.05298*0.0457584*y**(3.47446-1.))/(1.+0.0457584*y**(3.47446))*(3.45e-8*(self.Tnu0**4))*5.6822*2 
-
-        return res
-    
-    @property
-    def omega_l(self):
-        return self.h^2 - self.omega_c - self.omega_b - self.omega_r - self.omega_nu(0)
-
-    @property
-    def rho_b(self):
-        return rho_baryons(self.omega_b)
-
-    @property
-    def n_b(self):
-        return self.rho_b / CST_EV_M_S_K.mass_proton / (1 + CST_NO_DIM.YHe / 4 * (CST_EV_M_S_K.mass_helium/CST_EV_M_S_K.mass_hydrogen -1)) # in 1/m^3
