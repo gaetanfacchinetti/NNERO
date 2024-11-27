@@ -32,23 +32,50 @@ import pkg_resources
 DATA_PATH = pkg_resources.resource_filename('nnero', 'nn_data/')
 
 
-
-
 class Regressor(NeuralNetwork):
 
-    def __init__(self, *, 
-                 n_input: int = 16, n_output: int = 50, 
-                 n_hidden_features: int = 80, n_hidden_layers: int = 5, 
+    def __init__(self, 
+                 *, 
+                 n_input: int = 16, 
+                 n_output: int = 50, 
+                 n_hidden_features: int = 80, 
+                 n_hidden_layers: int = 5, 
                  alpha_tau : float = 0.5,
-                 model = None, name: str | None = None):
+                 model = None, 
+                 name: str | None = None,
+                 use_pca: bool = True,
+                 pca_precision: float = 1e-3,
+                 dataset: DataSet | None = None):
 
         if name is None:
             name = "DefaultRegressor"
 
+        # save as attribute wether or not we want to work
+        # in the principal component eigenbasis
+        self._use_pca = use_pca
+        self._pca_precision = pca_precision
+        
+        # if we provide a dataset with pca_precision we override
+        # the number of output to correspond to the number of
+        # usefull eigenvectors
+        # if no dataset is given, need to know in advance how
+        # many usefull eigenvectors there are and pass is as n_input
+        # ----
+        # this also initialises the pca vectors in the metadata 
+        # attribute of the dataset object
+        # ----
+        # when loading from a file we do not provide a dataset
+        # and therefore do not redo the initialisation of the pca,
+        # pca eigenvectors and all are read from the saved metadata
+        if (self.use_pca is True) and (dataset is not None):
+            n_output = dataset.init_principal_components(self.pca_precision)
+            
+            
         # give a default empty array for the structure
         # stays None if a complex model is passed as input
         struct = np.empty(0)
 
+        # definition of the model if none is given as input
         if model is None:
             
             hidden_layers = []
@@ -59,9 +86,10 @@ class Regressor(NeuralNetwork):
             # create a sequential model
             model = nn.Sequential(nn.Linear(n_input, n_hidden_features), *hidden_layers, nn.Linear(n_hidden_features, n_output))
         
-            # save the structure of this sequential model
-            struct = np.array([n_input, n_hidden_features, n_hidden_layers])
+            # save the structure of this sequential model and more
+            struct = np.array([n_input, n_output, n_hidden_features, n_hidden_layers, alpha_tau, use_pca, pca_precision])
         
+        # call the (grand)parent constructors
         super(Regressor, self).__init__(name)
         super(NeuralNetwork, self).__init__()
 
@@ -69,10 +97,14 @@ class Regressor(NeuralNetwork):
         self._struct = struct
         
         # define the model
-        self._model     = model
+        self._model = model
 
         # define parameters in the loss
         self._alpha_tau = alpha_tau
+
+        # if the dataset is already given, set it as the dataset of the network
+        if dataset is not None:
+            self.set_check_metadata_and_partition(dataset)
 
         # print the number of parameters
         self.print_parameters()
@@ -87,13 +119,15 @@ class Regressor(NeuralNetwork):
             with open(path  + '_struct.npy', 'rb') as file:
                 struct  = np.load(file)
 
-                if len(struct) == 5:
+                if len(struct) == 7:
 
                     regressor = Regressor(n_input=int(struct[0]), 
                                           n_output=int(struct[1]), 
                                           n_hidden_features=int(struct[2]), 
                                           n_hidden_layers=int(struct[3]),
-                                          alpha_tau=struct[4])
+                                          alpha_tau=struct[4],
+                                          use_pca=bool(struct[5]),
+                                          pca_precision=struct[6])
                     regressor.load_weights_and_extras(path)
                     regressor.eval()
 
@@ -111,7 +145,14 @@ class Regressor(NeuralNetwork):
 
         
     def forward(self, x):
-        return torch.clamp(self._model(x), max=1.0)
+        if self.use_pca is True:
+            # reconstruct the value of the function in the principal component eigenbasis
+            y = torch.matmul(self._model(x), self.metadata.torch_pca_eigenvectors[0:self.metadata.pca_n_eigenvectors, :])
+            y = y + self.metadata.torch_pca_mean_values
+            y = 10**y
+        else:
+            y = self._model(x)
+        return torch.clamp(y, max=1.0)
     
     def tau_ion(self, x, y):
         z_tensor = torch.tensor(self.metadata.z, dtype=torch.float32)
@@ -157,6 +198,13 @@ class Regressor(NeuralNetwork):
     def alpha_tau(self):
         return self._alpha_tau
 
+    @property
+    def use_pca(self):
+        return self._use_pca
+    
+    @property
+    def pca_precision(self):
+        return self._pca_precision
     
     
     
@@ -170,14 +218,19 @@ def train_regressor(model: Regressor,
                     batch_size = 64, 
                     **kwargs):
     
-    # set the metadata and parition object of the model
+    # if we use pca but have not yet initialised it in metadata do it at first training step
+    # this can happen if no dataset is given to initialise the model while havind use_pca = True
+    if (len(model.train_loss) == 0) and (model.use_pca is True) and (len(dataset.metadata.pca_eigenvalues) == 0):
+        dataset.init_principal_components(model.pca_precision)
+
+    # set or check the metadata and parition attributes of the model
     model.set_check_metadata_and_partition(dataset)
 
     # format the data for the regressor
     train_dataset = TorchDataset(dataset.x_array[dataset.partition.early_train], dataset.y_regressor[dataset.partition.early_train])
     valid_dataset = TorchDataset(dataset.x_array[dataset.partition.early_valid], dataset.y_regressor[dataset.partition.early_valid])
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, **kwargs)
-    valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size, **kwargs)
+    train_loader  = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, **kwargs)
+    valid_loader  = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size, **kwargs)
 
     # we have only one param_group here
     # we modify the learning rate of that group

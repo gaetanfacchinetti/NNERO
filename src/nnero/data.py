@@ -241,7 +241,7 @@ class DataPartition:
 
 class MetaData:
     """
-        MetaData class
+    MetaData class
     
     metadata that is saved with the neural network for predictions
     """
@@ -267,12 +267,26 @@ class MetaData:
         self._max_omega_c = self._parameters_max_val[self._pos_omega_c]
         self._max_hlittle = self._parameters_max_val[self._pos_hlittle]
 
+        # principal component analysis quantities
+
+        self._pca_mean_values  = np.empty(0)
+        self._pca_eigenvalues  = np.empty(0)
+        self._pca_eigenvectors = np.empty((0, 0))
+        self._pca_n_eigenvectors = 0
+
+        self._torch_pca_mean_values  = torch.tensor(self._pca_mean_values,  dtype=torch.float32)
+        self._torch_pca_eigenvectors = torch.tensor(self._pca_eigenvectors, dtype=torch.float32)
+        
+    
 
     def __call__(self):
         return {'z' : self._z, 
-                'parameters_name' : self._parameters_name, 
+                'parameters_name'    : self._parameters_name, 
                 'parameters_min_val' : self._parameters_min_val,
-                'parameters_max_val' : self._parameters_max_val,}
+                'parameters_max_val' : self._parameters_max_val,
+                'pca_eigenvalues'    : self._pca_eigenvalues,
+                'pca_eigenvectors'   : self._pca_eigenvectors,
+                'pca_mean_values'    : self._pca_mean_values}
 
     def __eq__(self, other):
         
@@ -288,25 +302,45 @@ class MetaData:
                 return False
             if  (val is not None) and (other_dict[key] is None):
                 return False
+        
+        if self.pca_n_eigenvectors != other.pca_n_eigenvectors:
+            return False
             
         return True
     
     def save(self, name):
 
         with open(name + '.npz', 'wb') as file:
-            np.savez(file = file, z = self.z, parameters_name = self.parameters_name,
-                     parameters_min_val = self._parameters_min_val,
-                     parameters_max_val = self.parameters_max_val)
+            np.savez(file = file, 
+                     z = self.z, 
+                     parameters_name = self.parameters_name,
+                     parameters_min_val = self.parameters_min_val,
+                     parameters_max_val = self.parameters_max_val,
+                     pca_mean_values    = self.pca_mean_values,
+                     pca_eigenvalues    = self.pca_eigenvalues,
+                     pca_eigenvectors   = self.pca_eigenvectors,
+                     pca_n_eigenvectors = self.pca_n_eigenvectors)
 
     @classmethod
     def load(cls, path):
         
         with open(path + '.npz', 'rb') as file:
             data = np.load(file, allow_pickle=True)    
-            return MetaData(data.get('z'), 
+            metadata = MetaData(data.get('z'), 
                             data.get('parameters_name'), 
                             data.get('parameters_min_val'), 
                             data.get('parameters_max_val'))
+            
+            # get the pca decomposition
+            metadata._pca_eigenvalues    = data.get('pca_eigenvalues',    np.empty(0))
+            metadata._pca_eigenvectors   = data.get('pca_eigenvectors',   np.empty(0))
+            metadata._pca_mean_values    = data.get('pca_mean_values',    np.empty(0))
+            metadata._pca_n_eigenvectors = data.get('pca_n_eigenvectors', 0)
+
+            metadata._torch_pca_mean_values  = torch.tensor(metadata.pca_mean_values,  dtype=torch.float32)
+            metadata._torch_pca_eigenvectors = torch.tensor(metadata.pca_eigenvectors, dtype=torch.float32)
+
+            return metadata
 
     @property
     def z(self):
@@ -360,6 +394,30 @@ class MetaData:
     def max_hlittle(self):
         return self._max_hlittle
     
+    @property
+    def pca_mean_values(self):
+        return self._pca_mean_values
+    
+    @property
+    def pca_eigenvalues(self):
+        return self._pca_eigenvalues
+    
+    @property
+    def pca_eigenvectors(self):
+        return self._pca_eigenvectors
+    
+    @property
+    def pca_n_eigenvectors(self):
+        return self._pca_n_eigenvectors
+    
+    @property
+    def torch_pca_eigenvectors(self):
+        return self._torch_pca_eigenvectors
+    
+    @property
+    def torch_pca_mean_values(self):
+        return self._torch_pca_mean_values
+    
 
 
 
@@ -375,8 +433,6 @@ class DataSet:
                  file_path : str, 
                  z : np.ndarray | None = None, 
                  *, 
-                 use_PCA: bool     = True,
-                 precision_PCA: float = 1e-3,
                  frac_test: float  = 0.1, 
                  frac_valid: float = 0.1,
                  seed_split: int   = 1994) -> None:
@@ -474,42 +530,7 @@ class DataSet:
         self._y_classifier = np.zeros(len(self._features))
         self._y_classifier[self.partition.early] = 1.0
 
-
-        self._mean_log10_xHIIdb         = None
-        self._log10_xHIIdb_eigenvalues  = None
-        self._log10_xHIIdb_eigenvectors = None
-        self._n_eigenvectors            = None
-
-        # perform the principal component analysis on all the training data
-        # SHOULD SET THAT IN THE METADATA SO THAT THE NETWORK CAN RECONSTRUCT 
-        # THE TRUE FUNCTION FROM THE EIGENVECTORS AND THE COEFFICIENT IT PREDICTS
-        if use_PCA is True:
-
-            # function on the redshift we want to evaluate
-            log10_xHIIdb = interpolate.interp1d(self._redshifts, np.log10(self._xHIIdb[self.partition.early_train, :]))(self.metadata.z)
-            
-            # mean of the functions
-            self._mean_log10_xHIIdb = np.mean(log10_xHIIdb, axis=0)
-
-            # shift the function to a centered distribution
-            xHIIdb_centered = log10_xHIIdb - self._mean_log10_xHIIdb
-
-            # self-covariance matrix
-            cov = np.cov(xHIIdb_centered, rowvar=False)
-
-            # eigenvalues of the covariance operator
-            eigenvalues, eigenvectors = np.linalg.eigh(cov)
-
-            # reorganise the eigenvector from decreasing eigenvalues
-            # and transpose the eigenvector matrix
-            # now eigenvector[i, :] is the i-th eigenvector
-            idx = np.argsort(eigenvalues)[::-1]
-            self._log10_xHIIdb_eigenvalues  = eigenvalues[idx]
-            self._log10_xHIIdb_eigenvectors = eigenvectors[:, idx].T
-
-            # define the number of vectors from the precision on the eigenvalues
-            self._n_eigenvectors = np.where(np.sqrt(self._log10_xHIIdb_eigenvalues)/self._log10_xHIIdb_eigenvalues[0] < precision_PCA)[0][0]
-
+           
         self._y_regressor = np.zeros((n_tot, len(self.metadata.z) + 1))
         for i in range(n_tot):
             self._y_regressor[i, -1] = self._tau[i]
@@ -522,6 +543,48 @@ class DataSet:
         self._y_regressor  = np.array(self._y_regressor, np.float32)
         # --------------------------
 
+
+    def init_principal_components(self, pca_precision:float = 1e-3) -> int:
+        """
+        Initialise the principal component analysis decomposition
+        """
+
+        # array on which we perform the principal component analysis
+        arr = interpolate.interp1d(self._redshifts, np.log10(self._xHIIdb[self.partition.early_train, :]))(self.metadata.z)
+        
+        # mean of the functions
+        pca_mean_values = np.mean(arr, axis=0)
+
+        # shift the function to a centered distribution
+        arr_centered = arr - pca_mean_values
+
+        # self-covariance matrix
+        cov = np.cov(arr_centered, rowvar=False)
+
+        # eigenvalues of the covariance operator
+        eigenvalues, eigenvectors = np.linalg.eigh(cov)
+
+        # reorganise the eigenvector from decreasing eigenvalues
+        # and transpose the eigenvector matrix
+        # now eigenvector[i, :] is the i-th eigenvector
+        idx = np.argsort(eigenvalues)[::-1]
+        pca_eigenvalues  = eigenvalues[idx]
+        pca_eigenvectors = eigenvectors[:, idx].T
+
+        # define the number of vectors from the precision on the eigenvalues
+        pca_n_eigenvectors = np.where(np.sqrt(pca_eigenvalues)/pca_eigenvalues[0] < pca_precision)[0][0]
+
+        # update the metadata accordingly
+        self.metadata._pca_mean_values    = pca_mean_values
+        self.metadata._pca_eigenvalues    = pca_eigenvalues
+        self.metadata._pca_eigenvectors   = pca_eigenvectors
+        self.metadata._pca_n_eigenvectors = pca_n_eigenvectors
+
+        # define de torch version of the eigenvectors and mean values
+        self.metadata._torch_pca_mean_values  = torch.tensor(self.metadata.pca_mean_values,  dtype=torch.float32)
+        self.metadata._torch_pca_eigenvectors = torch.tensor(self.metadata.pca_eigenvectors, dtype=torch.float32)
+
+        return pca_n_eigenvectors
     
 
     @property
@@ -552,25 +615,7 @@ class DataSet:
     def tau(self):
         return self._tau
     
-    @property
-    def mean_log10_xHIIdb(self):
-        return self._mean_log10_xHIIdb
-    
-    @property
-    def log10_xHIIdb_eigenvectors(self):
-        return self._log10_xHIIdb_eigenvectors
-    
-    @property
-    def log10_xHIIdb_eigenvalues(self):
-        return self._log10_xHIIdb_eigenvalues
-    
-    @property
-    def n_eigenvectors(self):
-        return self._n_eigenvectors
 
-    
-    
-    
 
 
 class TorchDataset(torch.utils.data.Dataset):
@@ -586,3 +631,7 @@ class TorchDataset(torch.utils.data.Dataset):
         x = self.x_data[idx]
         y = self.y_data[idx]
         return x, y
+
+
+
+
