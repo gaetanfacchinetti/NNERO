@@ -35,7 +35,7 @@ from .data import DataSet, MetaData, DataPartition
 
 class NeuralNetwork(torch.nn.Module):
     """
-    A class wrapping torch.nn.Module for neural network models
+    A class wrapping py:class:`torch.nn.Module` for neural network models
 
     Attributes
     ----------

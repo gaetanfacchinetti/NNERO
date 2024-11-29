@@ -443,10 +443,19 @@ def optical_depth_no_rad(z:       float | np.ndarray | torch.Tensor,
 
 class ShortPowerSpectrumRange(Exception):
     """
-    Exception raised for short exceptions
+    Exception raised for too short ranges of modes to accurately compute integrals
 
-    Attributes:
-        message: explanation of the error
+    Attributes
+    ----------
+    message: str
+        Explanation of the error.
+
+    Parameters
+    ----------
+    scales: np.ndarray
+        Range of modes we consider.
+    message: str
+        Explanation of the error.
     """
 
     def __init__(self, scales: np.ndarray, message: str ="Matter power spectrum range is too short") -> None:
@@ -460,7 +469,24 @@ class ShortPowerSpectrumRange(Exception):
 
 ## Structure formation
 
-def check_ik_R(ik_radius, p, radius: np.ndarray):
+def check_ik_R(ik_radius: int, p: int, radius: np.ndarray) -> None:
+    """
+    Check that the array of mode is long enough for the radius considered.
+
+    Parameters
+    ----------
+    ik_radius : int
+        Index of the array of mode where equal (or closest) to the desired radius.
+    p : int
+        Length of the array of modes.
+    radius : np.ndarray
+        Array of radiuses corresponding to the modes.
+
+    Raises
+    ------
+    ShortPowerSpectrumRange
+        If array not long enough.
+    """
 
     # as no way to control the precision of the integral, 
     # require that at least it is computed on enough points
@@ -481,7 +507,7 @@ def sigma_r(radius: float | np.ndarray,
            pk: np.ndarray, 
            *, 
            window: str = 'sharpk', 
-           ik_radius : np.ndarray | None = None):
+           ik_radius : np.ndarray | None = None) -> np.ndarray:
     
     """
     Standard deviation of the matter power spectrum inside `radius`.
@@ -562,7 +588,7 @@ def dsigma_r_dr(radius: float | np.ndarray,
                 pk: np.ndarray, 
                 *, 
                 window: str = 'sharpk', 
-                sigma_radius : np.ndarray | None = None):
+                sigma_radius : np.ndarray | None = None) -> np.ndarray:
     """
     Derivative of the standard deviation of the matter power spectrum 
     inside `radius`. Note that all physical dimensions must be self consistent.

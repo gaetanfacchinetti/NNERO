@@ -39,7 +39,11 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/tutorial.html">Introduction to the Tutorial</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">nnero</a></li>
 </ul>
@@ -105,10 +109,10 @@
 
 
 <div class="viewcode-block" id="NeuralNetwork">
-<a class="viewcode-back" href="../../nnero.html#nnero.network.NeuralNetwork">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.network.html#nnero.network.NeuralNetwork">[docs]</a>
 <span class="k">class</span> <span class="nc">NeuralNetwork</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A class wrapping torch.nn.Module for neural network models</span>
+<span class="sd">    A class wrapping py:class:`torch.nn.Module` for neural network models</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -153,7 +157,7 @@
 
 
 <div class="viewcode-block" id="NeuralNetwork.save">
-<a class="viewcode-back" href="../../nnero.html#nnero.network.NeuralNetwork.save">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.network.html#nnero.network.NeuralNetwork.save">[docs]</a>
     <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="n">save_partition</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        save the neural network model in a bunch of files</span>
@@ -210,7 +214,7 @@
 
 
 <div class="viewcode-block" id="NeuralNetwork.load_weights_and_extras">
-<a class="viewcode-back" href="../../nnero.html#nnero.network.NeuralNetwork.load_weights_and_extras">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.network.html#nnero.network.NeuralNetwork.load_weights_and_extras">[docs]</a>
     <span class="k">def</span> <span class="nf">load_weights_and_extras</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        loads the network weights and extra information</span>
@@ -259,7 +263,7 @@
 
 
 <div class="viewcode-block" id="NeuralNetwork.set_check_metadata_and_partition">
-<a class="viewcode-back" href="../../nnero.html#nnero.network.NeuralNetwork.set_check_metadata_and_partition">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.network.html#nnero.network.NeuralNetwork.set_check_metadata_and_partition">[docs]</a>
     <span class="k">def</span> <span class="nf">set_check_metadata_and_partition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">DataSet</span><span class="p">,</span> <span class="n">check_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        set and check the medatada and partition attributes</span>
@@ -295,7 +299,7 @@
             
 
 <div class="viewcode-block" id="NeuralNetwork.print_parameters">
-<a class="viewcode-back" href="../../nnero.html#nnero.network.NeuralNetwork.print_parameters">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.network.html#nnero.network.NeuralNetwork.print_parameters">[docs]</a>
     <span class="k">def</span> <span class="nf">print_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        prints the list of parameters in the model</span>

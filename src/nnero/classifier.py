@@ -27,35 +27,39 @@ from .network import NeuralNetwork
 import os
 import pkg_resources
 
+from typing import Self
+
 DATA_PATH = pkg_resources.resource_filename('nnero', 'nn_data/')
 
 class Classifier(NeuralNetwork):
     """
-    This is :py:class:`Classifier`, a daughter class of :py:class:`NeuralNetwork` specialised for classifier
+    Daughter class of :py:class:`NeuralNetwork` specialised for classifier
     
+    Parameters
+    ----------
+    model: torch.nn.Module | None
+        If not None, the model that will be used for classifier. 
+        Otherwise, a new model is constructed from `n_input`, `n_hidden_features` 
+        and `n_hidden_layers`. Default is None.
+    n_input: int, optional
+        Number of input on the neural network 
+        (corresponds to the number of parameters).
+        Default is 16.
+    n_hidden_features: int, optional
+        Number of hidden features per layer. Default is 32.
+    n_hidden_layers: int, optional
+        Number of layers. Default is 4.
+    name: str | None
+        Name of the neural network. If None, automatically set to DefaultClassifier.
+        Default is None.
+    dataset: Dataset | None
+        Dataset on which the model will be trained. 
+        If provided, gets `n_input` from the data and overrides the user input value.
+
     Attributes
     ----------
     - name : str
         the name of the model
-    - metadata : Metadata
-        metadata on which the model is trained
-    - partition : DataPartition
-        partitioning of the data on which the model is trained
-    - train_loss : np.ndarray
-        1D array training loss for each training epoch
-    - valid_loss : np.ndarray
-        1D array validation losses for each training epoch
-    - train_accuracy : np.ndarray
-        1D array training accuracy for each training epoch
-    - valid_accuracy : np.ndarray
-        1D array validation accuracy for each training epoch
-
-    Methods
-    -------
-    - save(path=".", save_partition=True)
-        save the neural network
-    - load_weights_and_extras(path)
-        load the weights and extra available info on the network 
     """
 
     def __init__(self, 
@@ -63,16 +67,22 @@ class Classifier(NeuralNetwork):
                 n_input: int = 16, 
                 n_hidden_features: int = 32, 
                 n_hidden_layers: int = 4, 
-                model = None, name: str | None = None):
+                model: torch.nn.Module | None = None, 
+                name: str | None = None,
+                dataset: DataSet | None = None) -> None:
 
         # if no name, give a default
         if name is None:
             name = "DefaultClassifier"
 
+        if dataset is not None:     
+            n_input = len(dataset.metadata.parameters_name)
+
+
         # give a default empty array for the structure
         # stays None if a complex model is passed as input
         struct = np.empty(0)
-
+    
         # if no model defined in input give a model
         if model is None:
             
@@ -101,12 +111,32 @@ class Classifier(NeuralNetwork):
         # define the loss function (here binary cross-entropy)
         self._loss_fn = nn.BCELoss()
 
+        # if the dataset is already given, set it as the dataset of the network
+        if dataset is not None:
+            self.set_check_metadata_and_partition(dataset)
+
         # print the number of parameters
         self.print_parameters()
 
 
     @classmethod
-    def load(cls, path = os.path.join(DATA_PATH, "DefaultClassifier")):
+    def load(cls, path: str | None = None) -> Self:
+        """
+        Loads a classifier.
+
+        Parameters
+        ----------
+        path: str | None
+            Path to the saved files containing the classifier data.
+            If None automatically fetch the DefaultClassifier.
+
+        Returns
+        -------
+        Classifier
+        """
+
+        if path is None: 
+            path = os.path.join(DATA_PATH, "DefaultClassifier")
         
         if os.path.isfile(path  + '_struct.npy'):
 
@@ -132,14 +162,30 @@ class Classifier(NeuralNetwork):
         raise ValueError("Could not find a fully saved classifier model at: " + path)
 
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward evaluation of the model
+
+        Parameters
+        ----------
+        x: torch.Tensor
+            input features
+        """
         return torch.flatten(self._model(x))
     
     @property
     def loss_fn(self):
         return self._loss_fn
     
-    def test(self, dataset:DataSet):
+    def test(self, dataset: DataSet) -> None:
+        """
+        Test the efficiency of the classifier.
+
+        Parameters
+        ----------
+        dataset: DataSet
+            DataSet containing the training partition and the test partition.
+        """
 
         self.set_check_metadata_and_partition(dataset, check_only = True)
         x_test = torch.tensor(dataset.x_array[dataset.partition.total_test],      dtype=torch.float32)
@@ -157,12 +203,31 @@ def train_classifier(model: Classifier,
                      dataset: DataSet, 
                      optimizer:torch.optim.Optimizer, 
                      *, 
-                     epochs = 50, 
-                     learning_rate = 1e-3, 
-                     verbose = True, 
-                     batch_size = 64, 
-                     **kwargs):
-    
+                     epochs: int = 50, 
+                     learning_rate: float = 1e-3, 
+                     verbose: bool = True, 
+                     batch_size: int = 64, 
+                     **kwargs)-> None:
+    """
+    Trains a given classifier.
+
+    Parameters
+    ----------
+    model : Classifier
+        Classifier model to train.
+    dataset : DataSet
+        Dataset on which to train the classifier.
+    optimizer : torch.optim.Optimizer
+        Optimizer used for training.
+    epochs : int, optional
+        Number of epochs, by default 50
+    learning_rate : float, optional
+        Learning rate for training, by default 1e-3
+    verbose : bool, optional
+        If true, outputs a summary of the losses at each epoch, by default True
+    batch_size : int, optional
+        Size of the training batches, by default 64
+    """
     # set the metadata and parition object of the model
     model.set_check_metadata_and_partition(dataset)
 

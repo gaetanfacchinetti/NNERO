@@ -39,7 +39,11 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/tutorial.html">Introduction to the Tutorial</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">nnero</a></li>
 </ul>
@@ -103,27 +107,29 @@
 
 
 <div class="viewcode-block" id="m_halo">
-<a class="viewcode-back" href="../../nnero.html#nnero.astrophysics.m_halo">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.astrophysics.html#nnero.astrophysics.m_halo">[docs]</a>
 <span class="k">def</span> <span class="nf">m_halo</span><span class="p">(</span><span class="n">hz</span><span class="p">:</span>         <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
            <span class="n">m_uv</span><span class="p">:</span>       <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
            <span class="n">alpha_star</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
            <span class="n">t_star</span><span class="p">:</span>     <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
            <span class="n">f_star10</span><span class="p">:</span>   <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
            <span class="n">omega_b</span><span class="p">:</span>    <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-           <span class="n">omega_m</span><span class="p">:</span>    <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+           <span class="n">omega_m</span><span class="p">:</span>    <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Halo mass in term of the UV magnitude for a given astrophysical model</span>
 
-<span class="sd">    Parameters:</span>
+<span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    - hz: float, np.ndarray </span>
-<span class="sd">        shape (q, r). Hubble factor given in s^{-1}</span>
+<span class="sd">    hz: float, np.ndarray </span>
+<span class="sd">        Shape (q, r). Hubble factor given in s^{-1}</span>
 <span class="sd">    m_uv: float, np.ndarry (s,) or (r, s)</span>
+<span class="sd">        UV magnitude.</span>
 <span class="sd">    omega_b: float, np.ndaray (q,)</span>
+<span class="sd">        Reduced abundance of baryons</span>
 
-<span class="sd">    Returns:</span>
+<span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    result of shape (q, r, s)</span>
+<span class="sd">    numpy.ndarray with shape (q, r, s)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">hz</span>         <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">hz</span><span class="p">)</span>
@@ -177,7 +183,7 @@
 
 
 <div class="viewcode-block" id="dmhalo_dmuv">
-<a class="viewcode-back" href="../../nnero.html#nnero.astrophysics.dmhalo_dmuv">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.astrophysics.html#nnero.astrophysics.dmhalo_dmuv">[docs]</a>
 <span class="k">def</span> <span class="nf">dmhalo_dmuv</span><span class="p">(</span><span class="n">hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
              <span class="n">m_uv</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
              <span class="n">alpha_star</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
@@ -199,7 +205,7 @@
 
 
 <div class="viewcode-block" id="f_duty">
-<a class="viewcode-back" href="../../nnero.html#nnero.astrophysics.f_duty">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.astrophysics.html#nnero.astrophysics.f_duty">[docs]</a>
 <span class="k">def</span> <span class="nf">f_duty</span><span class="p">(</span><span class="n">mh</span> <span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">m_turn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
 
     <span class="c1"># result of shape (q, r, s)</span>
@@ -212,7 +218,7 @@
 
 
 <div class="viewcode-block" id="phi_uv">
-<a class="viewcode-back" href="../../nnero.html#nnero.astrophysics.phi_uv">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.astrophysics.html#nnero.astrophysics.phi_uv">[docs]</a>
 <span class="k">def</span> <span class="nf">phi_uv</span><span class="p">(</span><span class="n">z</span><span class="p">:</span>          <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
            <span class="n">hz</span><span class="p">:</span>         <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
            <span class="n">m_uv</span><span class="p">:</span>       <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>

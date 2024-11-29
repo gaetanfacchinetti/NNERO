@@ -1,0 +1,280 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Network &mdash; NNERO 0.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=7026087e"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Classifier" href="nnero.classifier.html" />
+    <link rel="prev" title="Data" href="nnero.data.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            NNERO
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/tutorial.html">Introduction to the Tutorial</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../modules.html">nnero</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="nnero.cosmology.html">Cosmology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.astrophysics.html">Astrophysics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.data.html">Data</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Network</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.network.NeuralNetwork"><code class="docutils literal notranslate"><span class="pre">NeuralNetwork</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.network.NeuralNetwork.name"><code class="docutils literal notranslate"><span class="pre">NeuralNetwork.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.network.NeuralNetwork.metadata"><code class="docutils literal notranslate"><span class="pre">NeuralNetwork.metadata</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.network.NeuralNetwork.partition"><code class="docutils literal notranslate"><span class="pre">NeuralNetwork.partition</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.network.NeuralNetwork.train_loss"><code class="docutils literal notranslate"><span class="pre">NeuralNetwork.train_loss</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.network.NeuralNetwork.valid_loss"><code class="docutils literal notranslate"><span class="pre">NeuralNetwork.valid_loss</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.network.NeuralNetwork.train_accuracy"><code class="docutils literal notranslate"><span class="pre">NeuralNetwork.train_accuracy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.network.NeuralNetwork.valid_accuracy"><code class="docutils literal notranslate"><span class="pre">NeuralNetwork.valid_accuracy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.network.NeuralNetwork.load_weights_and_extras"><code class="docutils literal notranslate"><span class="pre">NeuralNetwork.load_weights_and_extras()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.network.NeuralNetwork.print_parameters"><code class="docutils literal notranslate"><span class="pre">NeuralNetwork.print_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.network.NeuralNetwork.save"><code class="docutils literal notranslate"><span class="pre">NeuralNetwork.save()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.network.NeuralNetwork.set_check_metadata_and_partition"><code class="docutils literal notranslate"><span class="pre">NeuralNetwork.set_check_metadata_and_partition()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.classifier.html">Classifier</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.regressor.html">Regressor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.predictor.html">Predictor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.mcmc.html">MCMC</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">NNERO</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../modules.html">nnero</a></li>
+      <li class="breadcrumb-item active">Network</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/nnero.network.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-nnero.network">
+<span id="network"></span><h1>Network<a class="headerlink" href="#module-nnero.network" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="nnero.network.NeuralNetwork">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.network.</span></span><span class="sig-name descname"><span class="pre">NeuralNetwork</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/network.html#NeuralNetwork"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.network.NeuralNetwork" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>A class wrapping py:class:<cite>torch.nn.Module</cite> for neural network models</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.network.NeuralNetwork.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#nnero.network.NeuralNetwork.name" title="Link to this definition"></a></dt>
+<dd><p>the name of the model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.network.NeuralNetwork.metadata">
+<span class="sig-name descname"><span class="pre">metadata</span></span><a class="headerlink" href="#nnero.network.NeuralNetwork.metadata" title="Link to this definition"></a></dt>
+<dd><p>metadata on which the model is trained</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Metadata</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.network.NeuralNetwork.partition">
+<span class="sig-name descname"><span class="pre">partition</span></span><a class="headerlink" href="#nnero.network.NeuralNetwork.partition" title="Link to this definition"></a></dt>
+<dd><p>partitioning of the data on which the model is trained</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="nnero.data.html#nnero.data.DataPartition" title="nnero.data.DataPartition">DataPartition</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.network.NeuralNetwork.train_loss">
+<span class="sig-name descname"><span class="pre">train_loss</span></span><a class="headerlink" href="#nnero.network.NeuralNetwork.train_loss" title="Link to this definition"></a></dt>
+<dd><p>1D array training loss for each training epoch</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.network.NeuralNetwork.valid_loss">
+<span class="sig-name descname"><span class="pre">valid_loss</span></span><a class="headerlink" href="#nnero.network.NeuralNetwork.valid_loss" title="Link to this definition"></a></dt>
+<dd><p>1D array validation losses for each training epoch</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.network.NeuralNetwork.train_accuracy">
+<span class="sig-name descname"><span class="pre">train_accuracy</span></span><a class="headerlink" href="#nnero.network.NeuralNetwork.train_accuracy" title="Link to this definition"></a></dt>
+<dd><p>1D array training accuracy for each training epoch</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.network.NeuralNetwork.valid_accuracy">
+<span class="sig-name descname"><span class="pre">valid_accuracy</span></span><a class="headerlink" href="#nnero.network.NeuralNetwork.valid_accuracy" title="Link to this definition"></a></dt>
+<dd><p>1D array validation accuracy for each training epoch</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.network.NeuralNetwork.load_weights_and_extras">
+<span class="sig-name descname"><span class="pre">load_weights_and_extras</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/nnero/network.html#NeuralNetwork.load_weights_and_extras"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.network.NeuralNetwork.load_weights_and_extras" title="Link to this definition"></a></dt>
+<dd><p>loads the network weights and extra information</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – path to the network to load</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If not all necessary files exists where path points.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.network.NeuralNetwork.print_parameters">
+<span class="sig-name descname"><span class="pre">print_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/network.html#NeuralNetwork.print_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.network.NeuralNetwork.print_parameters" title="Link to this definition"></a></dt>
+<dd><p>prints the list of parameters in the model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.network.NeuralNetwork.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_partition</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/nnero/network.html#NeuralNetwork.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.network.NeuralNetwork.save" title="Link to this definition"></a></dt>
+<dd><p>save the neural network model in a bunch of files</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em><em>, </em><em>optional</em>) – path where to save the neural network
+– default is the current directory “.”</p></li>
+<li><p><strong>save_partition</strong> (<em>bool</em><em>, </em><em>optional</em>) – if save_partition is false the partitioning of the data into
+train, valid and test is not saved (useless for instance once
+we have a fully trained model that we just want to use)
+– default is True</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.network.NeuralNetwork.set_check_metadata_and_partition">
+<span class="sig-name descname"><span class="pre">set_check_metadata_and_partition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.data.html#nnero.data.DataSet" title="nnero.data.DataSet"><span class="pre">DataSet</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_only</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/nnero/network.html#NeuralNetwork.set_check_metadata_and_partition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.network.NeuralNetwork.set_check_metadata_and_partition" title="Link to this definition"></a></dt>
+<dd><p>set and check the medatada and partition attributes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> (<a class="reference internal" href="nnero.data.html#nnero.data.DataSet" title="nnero.data.DataSet"><em>DataSet</em></a>) – dataset to compare or to assign to the object</p></li>
+<li><p><strong>check_only</strong> (<em>bool</em><em>, </em><em>optional</em>) – option to only compare the compatibility
+– default is False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – if the dataset is incompatible with the current metadata or partition</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="nnero.data.html" class="btn btn-neutral float-left" title="Data" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="nnero.classifier.html" class="btn btn-neutral float-right" title="Classifier" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Gaétan Facchinetti.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

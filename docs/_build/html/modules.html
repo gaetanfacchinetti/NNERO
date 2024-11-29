@@ -19,8 +19,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="nnero package" href="nnero.html" />
-    <link rel="prev" title="NNERO documentation" href="index.html" /> 
+    <link rel="next" title="Cosmology" href="source/nnero.cosmology.html" />
+    <link rel="prev" title="Introduction to the Tutorial" href="tutorial/tutorial.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,10 +42,21 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/tutorial.html">Introduction to the Tutorial</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">nnero</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="nnero.html">nnero package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/nnero.cosmology.html">Cosmology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/nnero.astrophysics.html">Astrophysics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/nnero.data.html">Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/nnero.network.html">Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/nnero.classifier.html">Classifier</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/nnero.regressor.html">Regressor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/nnero.predictor.html">Predictor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/nnero.mcmc.html">MCMC</a></li>
 </ul>
 </li>
 </ul>
@@ -78,43 +89,14 @@
 <h1>nnero<a class="headerlink" href="#nnero" title="Link to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="nnero.html">nnero package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="nnero.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="nnero.html#nnero-astrophysics-module">nnero.astrophysics module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="nnero.html#nnero-classifier-module">nnero.classifier module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="nnero.html#module-nnero.constants">nnero.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="nnero.html#module-nnero.cosmology">nnero.cosmology module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="nnero.html#nnero.cosmology.ShortPowerSpectrumRange"><code class="docutils literal notranslate"><span class="pre">ShortPowerSpectrumRange</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="nnero.html#nnero.cosmology.ShortPowerSpectrumRange.message"><code class="docutils literal notranslate"><span class="pre">ShortPowerSpectrumRange.message</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="nnero.html#nnero.cosmology.check_ik_R"><code class="docutils literal notranslate"><span class="pre">check_ik_R()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nnero.html#nnero.cosmology.convert_array"><code class="docutils literal notranslate"><span class="pre">convert_array()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nnero.html#nnero.cosmology.dn_dm"><code class="docutils literal notranslate"><span class="pre">dn_dm()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nnero.html#nnero.cosmology.dsigma_m_dm"><code class="docutils literal notranslate"><span class="pre">dsigma_m_dm()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nnero.html#nnero.cosmology.dsigma_r_dr"><code class="docutils literal notranslate"><span class="pre">dsigma_r_dr()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nnero.html#nnero.cosmology.growth_function"><code class="docutils literal notranslate"><span class="pre">growth_function()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nnero.html#nnero.cosmology.h_factor_no_rad"><code class="docutils literal notranslate"><span class="pre">h_factor_no_rad()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nnero.html#nnero.cosmology.h_factor_numpy"><code class="docutils literal notranslate"><span class="pre">h_factor_numpy()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nnero.html#nnero.cosmology.n_baryons"><code class="docutils literal notranslate"><span class="pre">n_baryons()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nnero.html#nnero.cosmology.n_ur"><code class="docutils literal notranslate"><span class="pre">n_ur()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nnero.html#nnero.cosmology.omega_nu"><code class="docutils literal notranslate"><span class="pre">omega_nu()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nnero.html#nnero.cosmology.omega_r"><code class="docutils literal notranslate"><span class="pre">omega_r()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nnero.html#nnero.cosmology.optical_depth_no_rad"><code class="docutils literal notranslate"><span class="pre">optical_depth_no_rad()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nnero.html#nnero.cosmology.optical_depth_numpy"><code class="docutils literal notranslate"><span class="pre">optical_depth_numpy()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nnero.html#nnero.cosmology.rho_baryons"><code class="docutils literal notranslate"><span class="pre">rho_baryons()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nnero.html#nnero.cosmology.sigma_m"><code class="docutils literal notranslate"><span class="pre">sigma_m()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nnero.html#nnero.cosmology.sigma_r"><code class="docutils literal notranslate"><span class="pre">sigma_r()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="nnero.html#nnero-data-module">nnero.data module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="nnero.html#nnero-mcmc-module">nnero.mcmc module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="nnero.html#nnero-network-module">nnero.network module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="nnero.html#nnero-predictor-module">nnero.predictor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="nnero.html#nnero-regressor-module">nnero.regressor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="nnero.html#module-contents">Module contents</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="source/nnero.cosmology.html">Cosmology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/nnero.astrophysics.html">Astrophysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/nnero.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/nnero.network.html">Network</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/nnero.classifier.html">Classifier</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/nnero.regressor.html">Regressor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/nnero.predictor.html">Predictor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/nnero.mcmc.html">MCMC</a></li>
 </ul>
 </div>
 </section>
@@ -123,8 +105,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="NNERO documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="nnero.html" class="btn btn-neutral float-right" title="nnero package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="tutorial/tutorial.html" class="btn btn-neutral float-left" title="Introduction to the Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="source/nnero.cosmology.html" class="btn btn-neutral float-right" title="Cosmology" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

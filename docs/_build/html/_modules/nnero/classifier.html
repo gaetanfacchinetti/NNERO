@@ -39,7 +39,11 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/tutorial.html">Introduction to the Tutorial</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">nnero</a></li>
 </ul>
@@ -98,37 +102,41 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">pkg_resources</span>
 
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Self</span>
+
 <span class="n">DATA_PATH</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;nnero&#39;</span><span class="p">,</span> <span class="s1">&#39;nn_data/&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Classifier">
-<a class="viewcode-back" href="../../nnero.html#nnero.classifier.Classifier">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.classifier.html#nnero.classifier.Classifier">[docs]</a>
 <span class="k">class</span> <span class="nc">Classifier</span><span class="p">(</span><span class="n">NeuralNetwork</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This is :py:class:`Classifier`, a daughter class of :py:class:`NeuralNetwork` specialised for classifier</span>
+<span class="sd">    Daughter class of :py:class:`NeuralNetwork` specialised for classifier</span>
 <span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model: torch.nn.Module | None</span>
+<span class="sd">        If not None, the model that will be used for classifier. </span>
+<span class="sd">        Otherwise, a new model is constructed from `n_input`, `n_hidden_features` </span>
+<span class="sd">        and `n_hidden_layers`. Default is None.</span>
+<span class="sd">    n_input: int, optional</span>
+<span class="sd">        Number of input on the neural network </span>
+<span class="sd">        (corresponds to the number of parameters).</span>
+<span class="sd">        Default is 16.</span>
+<span class="sd">    n_hidden_features: int, optional</span>
+<span class="sd">        Number of hidden features per layer. Default is 32.</span>
+<span class="sd">    n_hidden_layers: int, optional</span>
+<span class="sd">        Number of layers. Default is 4.</span>
+<span class="sd">    name: str | None</span>
+<span class="sd">        Name of the neural network. If None, automatically set to DefaultClassifier.</span>
+<span class="sd">        Default is None.</span>
+<span class="sd">    dataset: Dataset | None</span>
+<span class="sd">        Dataset on which the model will be trained. </span>
+<span class="sd">        If provided, gets `n_input` from the data and overrides the user input value.</span>
+
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    - name : str</span>
 <span class="sd">        the name of the model</span>
-<span class="sd">    - metadata : Metadata</span>
-<span class="sd">        metadata on which the model is trained</span>
-<span class="sd">    - partition : DataPartition</span>
-<span class="sd">        partitioning of the data on which the model is trained</span>
-<span class="sd">    - train_loss : np.ndarray</span>
-<span class="sd">        1D array training loss for each training epoch</span>
-<span class="sd">    - valid_loss : np.ndarray</span>
-<span class="sd">        1D array validation losses for each training epoch</span>
-<span class="sd">    - train_accuracy : np.ndarray</span>
-<span class="sd">        1D array training accuracy for each training epoch</span>
-<span class="sd">    - valid_accuracy : np.ndarray</span>
-<span class="sd">        1D array validation accuracy for each training epoch</span>
-
-<span class="sd">    Methods</span>
-<span class="sd">    -------</span>
-<span class="sd">    - save(path=&quot;.&quot;, save_partition=True)</span>
-<span class="sd">        save the neural network</span>
-<span class="sd">    - load_weights_and_extras(path)</span>
-<span class="sd">        load the weights and extra available info on the network </span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
@@ -136,16 +144,22 @@
                 <span class="n">n_input</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span> 
                 <span class="n">n_hidden_features</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span> 
                 <span class="n">n_hidden_layers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> 
-                <span class="n">model</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">dataset</span><span class="p">:</span> <span class="n">DataSet</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
         <span class="c1"># if no name, give a default</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;DefaultClassifier&quot;</span>
 
+        <span class="k">if</span> <span class="n">dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>     
+            <span class="n">n_input</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">parameters_name</span><span class="p">)</span>
+
+
         <span class="c1"># give a default empty array for the structure</span>
         <span class="c1"># stays None if a complex model is passed as input</span>
         <span class="n">struct</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-
+    
         <span class="c1"># if no model defined in input give a model</span>
         <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             
@@ -174,14 +188,34 @@
         <span class="c1"># define the loss function (here binary cross-entropy)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_loss_fn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BCELoss</span><span class="p">()</span>
 
+        <span class="c1"># if the dataset is already given, set it as the dataset of the network</span>
+        <span class="k">if</span> <span class="n">dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_check_metadata_and_partition</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+
         <span class="c1"># print the number of parameters</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">print_parameters</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="Classifier.load">
-<a class="viewcode-back" href="../../nnero.html#nnero.classifier.Classifier.load">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.classifier.html#nnero.classifier.Classifier.load">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">DATA_PATH</span><span class="p">,</span> <span class="s2">&quot;DefaultClassifier&quot;</span><span class="p">)):</span>
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads a classifier.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path: str | None</span>
+<span class="sd">            Path to the saved files containing the classifier data.</span>
+<span class="sd">            If None automatically fetch the DefaultClassifier.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Classifier</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
+            <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">DATA_PATH</span><span class="p">,</span> <span class="s2">&quot;DefaultClassifier&quot;</span><span class="p">)</span>
         
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span>  <span class="o">+</span> <span class="s1">&#39;_struct.npy&#39;</span><span class="p">):</span>
 
@@ -209,8 +243,16 @@
 
 
 <div class="viewcode-block" id="Classifier.forward">
-<a class="viewcode-back" href="../../nnero.html#nnero.classifier.Classifier.forward">[docs]</a>
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<a class="viewcode-back" href="../../source/nnero.classifier.html#nnero.classifier.Classifier.forward">[docs]</a>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Forward evaluation of the model</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x: torch.Tensor</span>
+<span class="sd">            input features</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
 
     
@@ -219,8 +261,16 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_fn</span>
     
 <div class="viewcode-block" id="Classifier.test">
-<a class="viewcode-back" href="../../nnero.html#nnero.classifier.Classifier.test">[docs]</a>
-    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span><span class="n">DataSet</span><span class="p">):</span>
+<a class="viewcode-back" href="../../source/nnero.classifier.html#nnero.classifier.Classifier.test">[docs]</a>
+    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">DataSet</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Test the efficiency of the classifier.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dataset: DataSet</span>
+<span class="sd">            DataSet containing the training partition and the test partition.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">set_check_metadata_and_partition</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">check_only</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
         <span class="n">x_test</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">x_array</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">total_test</span><span class="p">],</span>      <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
@@ -237,17 +287,36 @@
 
     
 <div class="viewcode-block" id="train_classifier">
-<a class="viewcode-back" href="../../nnero.html#nnero.classifier.train_classifier">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.classifier.html#nnero.classifier.train_classifier">[docs]</a>
 <span class="k">def</span> <span class="nf">train_classifier</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Classifier</span><span class="p">,</span> 
                      <span class="n">dataset</span><span class="p">:</span> <span class="n">DataSet</span><span class="p">,</span> 
                      <span class="n">optimizer</span><span class="p">:</span><span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Optimizer</span><span class="p">,</span> 
                      <span class="o">*</span><span class="p">,</span> 
-                     <span class="n">epochs</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> 
-                     <span class="n">learning_rate</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">,</span> 
-                     <span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> 
-                     <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span> 
-                     <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    
+                     <span class="n">epochs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> 
+                     <span class="n">learning_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">,</span> 
+                     <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> 
+                     <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span> 
+                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Trains a given classifier.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model : Classifier</span>
+<span class="sd">        Classifier model to train.</span>
+<span class="sd">    dataset : DataSet</span>
+<span class="sd">        Dataset on which to train the classifier.</span>
+<span class="sd">    optimizer : torch.optim.Optimizer</span>
+<span class="sd">        Optimizer used for training.</span>
+<span class="sd">    epochs : int, optional</span>
+<span class="sd">        Number of epochs, by default 50</span>
+<span class="sd">    learning_rate : float, optional</span>
+<span class="sd">        Learning rate for training, by default 1e-3</span>
+<span class="sd">    verbose : bool, optional</span>
+<span class="sd">        If true, outputs a summary of the losses at each epoch, by default True</span>
+<span class="sd">    batch_size : int, optional</span>
+<span class="sd">        Size of the training batches, by default 64</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># set the metadata and parition object of the model</span>
     <span class="n">model</span><span class="o">.</span><span class="n">set_check_metadata_and_partition</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
 

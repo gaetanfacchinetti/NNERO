@@ -37,20 +37,22 @@ def m_halo(hz:         float | np.ndarray,
            t_star:     float | np.ndarray, 
            f_star10:   float | np.ndarray,
            omega_b:    float | np.ndarray,
-           omega_m:    float | np.ndarray):
+           omega_m:    float | np.ndarray) -> np.ndarray:
     """
     Halo mass in term of the UV magnitude for a given astrophysical model
 
-    Parameters:
+    Parameters
     ----------
-    - hz: float, np.ndarray 
-        shape (q, r). Hubble factor given in s^{-1}
+    hz: float, np.ndarray 
+        Shape (q, r). Hubble factor given in s^{-1}
     m_uv: float, np.ndarry (s,) or (r, s)
+        UV magnitude.
     omega_b: float, np.ndaray (q,)
+        Reduced abundance of baryons
 
-    Returns:
+    Returns
     -------
-    result of shape (q, r, s)
+    numpy.ndarray with shape (q, r, s)
     """
 
     hz         = convert_array(hz)

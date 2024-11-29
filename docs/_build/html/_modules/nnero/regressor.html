@@ -39,7 +39,11 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/tutorial.html">Introduction to the Tutorial</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">nnero</a></li>
 </ul>
@@ -103,25 +107,59 @@
 <span class="n">DATA_PATH</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;nnero&#39;</span><span class="p">,</span> <span class="s1">&#39;nn_data/&#39;</span><span class="p">)</span>
 
 
-
-
 <div class="viewcode-block" id="Regressor">
-<a class="viewcode-back" href="../../nnero.html#nnero.regressor.Regressor">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.regressor.html#nnero.regressor.Regressor">[docs]</a>
 <span class="k">class</span> <span class="nc">Regressor</span><span class="p">(</span><span class="n">NeuralNetwork</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> 
-                 <span class="n">n_input</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span> <span class="n">n_output</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> 
-                 <span class="n">n_hidden_features</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">80</span><span class="p">,</span> <span class="n">n_hidden_layers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> 
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="o">*</span><span class="p">,</span> 
+                 <span class="n">n_input</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span> 
+                 <span class="n">n_output</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> 
+                 <span class="n">n_hidden_features</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">80</span><span class="p">,</span> 
+                 <span class="n">n_hidden_layers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> 
                  <span class="n">alpha_tau</span> <span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
-                 <span class="n">model</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+                 <span class="n">model</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">use_pca</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                 <span class="n">pca_precision</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">,</span>
+                 <span class="n">dataset</span><span class="p">:</span> <span class="n">DataSet</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 
         <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;DefaultRegressor&quot;</span>
 
+        <span class="c1"># save as attribute wether or not we want to work</span>
+        <span class="c1"># in the principal component eigenbasis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_use_pca</span> <span class="o">=</span> <span class="n">use_pca</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pca_precision</span> <span class="o">=</span> <span class="n">pca_precision</span>
+        
+        <span class="c1"># if we provide a dataset with pca_precision we override</span>
+        <span class="c1"># the number of output to correspond to the number of</span>
+        <span class="c1"># usefull eigenvectors otherwise it is set to the number </span>
+        <span class="c1"># of redshift bins used </span>
+        <span class="c1"># if no dataset is given, need to know in advance how</span>
+        <span class="c1"># many usefull eigenvectors there are and pass is as n_output</span>
+        <span class="c1"># ----</span>
+        <span class="c1"># this also initialises the pca vectors in the metadata </span>
+        <span class="c1"># attribute of the dataset object</span>
+        <span class="c1"># ----</span>
+        <span class="c1"># when loading from a file we do not provide a dataset</span>
+        <span class="c1"># and therefore do not redo the initialisation of the pca,</span>
+        <span class="c1"># pca eigenvectors and all are read from the saved metadata</span>
+        <span class="k">if</span> <span class="n">dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            
+            <span class="n">n_input</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">parameters_name</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">use_pca</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">n_output</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">init_principal_components</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pca_precision</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">n_output</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+            
+            
         <span class="c1"># give a default empty array for the structure</span>
         <span class="c1"># stays None if a complex model is passed as input</span>
         <span class="n">struct</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
+        <span class="c1"># definition of the model if none is given as input</span>
         <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             
             <span class="n">hidden_layers</span> <span class="o">=</span> <span class="p">[]</span>
@@ -132,9 +170,10 @@
             <span class="c1"># create a sequential model</span>
             <span class="n">model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">n_input</span><span class="p">,</span> <span class="n">n_hidden_features</span><span class="p">),</span> <span class="o">*</span><span class="n">hidden_layers</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">n_hidden_features</span><span class="p">,</span> <span class="n">n_output</span><span class="p">))</span>
         
-            <span class="c1"># save the structure of this sequential model</span>
-            <span class="n">struct</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">n_input</span><span class="p">,</span> <span class="n">n_hidden_features</span><span class="p">,</span> <span class="n">n_hidden_layers</span><span class="p">])</span>
+            <span class="c1"># save the structure of this sequential model and more</span>
+            <span class="n">struct</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">n_input</span><span class="p">,</span> <span class="n">n_output</span><span class="p">,</span> <span class="n">n_hidden_features</span><span class="p">,</span> <span class="n">n_hidden_layers</span><span class="p">,</span> <span class="n">alpha_tau</span><span class="p">,</span> <span class="n">use_pca</span><span class="p">,</span> <span class="n">pca_precision</span><span class="p">])</span>
         
+        <span class="c1"># call the (grand)parent constructors</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Regressor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">NeuralNetwork</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
@@ -142,10 +181,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_struct</span> <span class="o">=</span> <span class="n">struct</span>
         
         <span class="c1"># define the model</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span>     <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">model</span>
 
         <span class="c1"># define parameters in the loss</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_alpha_tau</span> <span class="o">=</span> <span class="n">alpha_tau</span>
+
+        <span class="c1"># if the dataset is already given, set it as the dataset of the network</span>
+        <span class="k">if</span> <span class="n">dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_check_metadata_and_partition</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
 
         <span class="c1"># print the number of parameters</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">print_parameters</span><span class="p">()</span>
@@ -153,7 +196,7 @@
 
 
 <div class="viewcode-block" id="Regressor.load">
-<a class="viewcode-back" href="../../nnero.html#nnero.regressor.Regressor.load">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.regressor.html#nnero.regressor.Regressor.load">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">DATA_PATH</span><span class="p">,</span> <span class="s2">&quot;DefaultRegressor&quot;</span><span class="p">)):</span>
         
@@ -162,13 +205,15 @@
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span>  <span class="o">+</span> <span class="s1">&#39;_struct.npy&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
                 <span class="n">struct</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
 
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span> <span class="o">==</span> <span class="mi">7</span><span class="p">:</span>
 
                     <span class="n">regressor</span> <span class="o">=</span> <span class="n">Regressor</span><span class="p">(</span><span class="n">n_input</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">struct</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> 
                                           <span class="n">n_output</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">struct</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> 
                                           <span class="n">n_hidden_features</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">struct</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> 
                                           <span class="n">n_hidden_layers</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">struct</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span>
-                                          <span class="n">alpha_tau</span><span class="o">=</span><span class="n">struct</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+                                          <span class="n">alpha_tau</span><span class="o">=</span><span class="n">struct</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+                                          <span class="n">use_pca</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">struct</span><span class="p">[</span><span class="mi">5</span><span class="p">]),</span>
+                                          <span class="n">pca_precision</span><span class="o">=</span><span class="n">struct</span><span class="p">[</span><span class="mi">6</span><span class="p">])</span>
                     <span class="n">regressor</span><span class="o">.</span><span class="n">load_weights_and_extras</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
                     <span class="n">regressor</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
 
@@ -187,13 +232,20 @@
 
         
 <div class="viewcode-block" id="Regressor.forward">
-<a class="viewcode-back" href="../../nnero.html#nnero.regressor.Regressor.forward">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.regressor.html#nnero.regressor.Regressor.forward">[docs]</a>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">max</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_pca</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># reconstruct the value of the function in the principal component eigenbasis</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">torch_pca_eigenvectors</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">pca_n_eigenvectors</span><span class="p">,</span> <span class="p">:])</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">torch_pca_mean_values</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="n">y</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span></div>
 
     
 <div class="viewcode-block" id="Regressor.tau_ion">
-<a class="viewcode-back" href="../../nnero.html#nnero.regressor.Regressor.tau_ion">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.regressor.html#nnero.regressor.Regressor.tau_ion">[docs]</a>
     <span class="k">def</span> <span class="nf">tau_ion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
         <span class="n">z_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="n">omega_b</span>  <span class="o">=</span> <span class="n">uniform_to_true</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_b</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">min_omega_b</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">max_omega_b</span><span class="p">)</span>
@@ -203,19 +255,19 @@
 
     
 <div class="viewcode-block" id="Regressor.loss_xHII">
-<a class="viewcode-back" href="../../nnero.html#nnero.regressor.Regressor.loss_xHII">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.regressor.html#nnero.regressor.Regressor.loss_xHII">[docs]</a>
     <span class="k">def</span> <span class="nf">loss_xHII</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])))</span></div>
 
 
 <div class="viewcode-block" id="Regressor.loss_tau">
-<a class="viewcode-back" href="../../nnero.html#nnero.regressor.Regressor.loss_tau">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.regressor.html#nnero.regressor.Regressor.loss_tau">[docs]</a>
     <span class="k">def</span> <span class="nf">loss_tau</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tau_pred</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="n">tau_pred</span><span class="p">,</span> <span class="n">target</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])))</span></div>
 
     
 <div class="viewcode-block" id="Regressor.test_tau">
-<a class="viewcode-back" href="../../nnero.html#nnero.regressor.Regressor.test_tau">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.regressor.html#nnero.regressor.Regressor.test_tau">[docs]</a>
     <span class="k">def</span> <span class="nf">test_tau</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span><span class="n">DataSet</span><span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">set_check_metadata_and_partition</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">check_only</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
@@ -232,7 +284,7 @@
 
 
 <div class="viewcode-block" id="Regressor.test_xHII">
-<a class="viewcode-back" href="../../nnero.html#nnero.regressor.Regressor.test_xHII">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.regressor.html#nnero.regressor.Regressor.test_xHII">[docs]</a>
     <span class="k">def</span> <span class="nf">test_xHII</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span><span class="n">DataSet</span><span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">set_check_metadata_and_partition</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">check_only</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
@@ -249,24 +301,44 @@
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">alpha_tau</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha_tau</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha_tau</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">use_pca</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_pca</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pca_precision</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pca_precision</span></div>
 
     
     
     
 <div class="viewcode-block" id="train_regressor">
-<a class="viewcode-back" href="../../nnero.html#nnero.regressor.train_regressor">[docs]</a>
-<span class="k">def</span> <span class="nf">train_regressor</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Regressor</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">DataSet</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">:</span><span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Optimizer</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">epochs</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">learning_rate</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<a class="viewcode-back" href="../../source/nnero.regressor.html#nnero.regressor.train_regressor">[docs]</a>
+<span class="k">def</span> <span class="nf">train_regressor</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Regressor</span><span class="p">,</span> 
+                    <span class="n">dataset</span><span class="p">:</span> <span class="n">DataSet</span><span class="p">,</span> 
+                    <span class="n">optimizer</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Optimizer</span><span class="p">,</span> 
+                    <span class="o">*</span><span class="p">,</span> 
+                    <span class="n">epochs</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> 
+                    <span class="n">learning_rate</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">,</span> 
+                    <span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> 
+                    <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span> 
+                    <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     
-    <span class="c1"># set the metadata and parition object of the model</span>
+    <span class="c1"># if we use pca but have not yet initialised it in metadata do it at first training step</span>
+    <span class="c1"># this can happen if no dataset is given to initialise the model while havind use_pca = True</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">train_loss</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">use_pca</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">pca_eigenvalues</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">dataset</span><span class="o">.</span><span class="n">init_principal_components</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">pca_precision</span><span class="p">)</span>
+
+    <span class="c1"># set or check the metadata and parition attributes of the model</span>
     <span class="n">model</span><span class="o">.</span><span class="n">set_check_metadata_and_partition</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
 
     <span class="c1"># format the data for the regressor</span>
     <span class="n">train_dataset</span> <span class="o">=</span> <span class="n">TorchDataset</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">x_array</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">early_train</span><span class="p">],</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y_regressor</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">early_train</span><span class="p">])</span>
     <span class="n">valid_dataset</span> <span class="o">=</span> <span class="n">TorchDataset</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">x_array</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">early_valid</span><span class="p">],</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y_regressor</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">early_valid</span><span class="p">])</span>
-    <span class="n">train_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="n">valid_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">valid_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">train_loader</span>  <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">valid_loader</span>  <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">valid_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="c1"># we have only one param_group here</span>
     <span class="c1"># we modify the learning rate of that group</span>

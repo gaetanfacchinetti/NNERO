@@ -2,6 +2,15 @@ nnero
 =====
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
 
-   nnero
+   source/nnero.cosmology
+   source/nnero.astrophysics
+   source/nnero.data
+   source/nnero.network
+   source/nnero.classifier
+   source/nnero.regressor
+   source/nnero.predictor
+   source/nnero.mcmc
+   
+   

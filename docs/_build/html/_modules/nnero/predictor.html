@@ -39,7 +39,11 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/tutorial.html">Introduction to the Tutorial</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">nnero</a></li>
 </ul>
@@ -111,7 +115,7 @@
 <span class="c1"># CHECKS AND PREPARATION OF THE DATA TO FED TO THE NN</span>
 
 <div class="viewcode-block" id="check_values">
-<a class="viewcode-back" href="../../nnero.html#nnero.predictor.check_values">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.check_values">[docs]</a>
 <span class="k">def</span> <span class="nf">check_values</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">metadata</span> <span class="p">:</span> <span class="n">MetaData</span><span class="p">):</span>
 
     <span class="n">params_name</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">parameters_name</span>
@@ -142,7 +146,7 @@
 
     
 <div class="viewcode-block" id="input_values">
-<a class="viewcode-back" href="../../nnero.html#nnero.predictor.input_values">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.input_values">[docs]</a>
 <span class="k">def</span> <span class="nf">input_values</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="n">MetaData</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
     <span class="n">params_name</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">parameters_name</span>
@@ -191,14 +195,14 @@
 
 
 <div class="viewcode-block" id="uniform_input_values">
-<a class="viewcode-back" href="../../nnero.html#nnero.predictor.uniform_input_values">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.uniform_input_values">[docs]</a>
 <span class="k">def</span> <span class="nf">uniform_input_values</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="n">MetaData</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">vals</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">true_to_uniform</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">parameters_min_val</span><span class="p">,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">parameters_max_val</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="uniform_input_array">
-<a class="viewcode-back" href="../../nnero.html#nnero.predictor.uniform_input_array">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.uniform_input_array">[docs]</a>
 <span class="k">def</span> <span class="nf">uniform_input_array</span><span class="p">(</span><span class="n">theta</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">metadata</span><span class="p">:</span> <span class="n">MetaData</span><span class="p">):</span>
     <span class="n">check_values</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">true_to_uniform</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">parameters_min_val</span><span class="p">,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">parameters_max_val</span><span class="p">)</span></div>
@@ -211,7 +215,7 @@
 
 
 <div class="viewcode-block" id="predict_classifier">
-<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_classifier">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_classifier">[docs]</a>
 <span class="k">def</span> <span class="nf">predict_classifier</span><span class="p">(</span><span class="n">classifier</span><span class="p">:</span><span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Prediction of the classifier</span>
@@ -248,7 +252,7 @@
 
 
 <div class="viewcode-block" id="predict_classifier_numpy">
-<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_classifier_numpy">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_classifier_numpy">[docs]</a>
 <span class="k">def</span> <span class="nf">predict_classifier_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 
     <span class="k">if</span> <span class="n">classifier</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -268,7 +272,7 @@
 
 
 <div class="viewcode-block" id="predict_regressor">
-<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_regressor">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_regressor">[docs]</a>
 <span class="k">def</span> <span class="nf">predict_regressor</span><span class="p">(</span><span class="n">regressor</span><span class="p">:</span> <span class="n">Regressor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        prediction of the regressor</span>
@@ -305,7 +309,7 @@
 
 
 <div class="viewcode-block" id="predict_regressor_numpy">
-<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_regressor_numpy">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_regressor_numpy">[docs]</a>
 <span class="k">def</span> <span class="nf">predict_regressor_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">regressor</span><span class="p">:</span> <span class="n">Regressor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 
     <span class="k">if</span> <span class="n">regressor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -323,7 +327,7 @@
 
 
 <div class="viewcode-block" id="predict_xHII">
-<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_xHII">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_xHII">[docs]</a>
 <span class="k">def</span> <span class="nf">predict_xHII</span><span class="p">(</span><span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
             <span class="n">regressor</span><span class="p">:</span>  <span class="n">Regressor</span>  <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -339,7 +343,7 @@
 
 
 <div class="viewcode-block" id="predict_xHII_numpy">
-<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_xHII_numpy">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_xHII_numpy">[docs]</a>
 <span class="k">def</span> <span class="nf">predict_xHII_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
             <span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
             <span class="n">regressor</span><span class="p">:</span>  <span class="n">Regressor</span>  <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
@@ -355,7 +359,7 @@
 
 
 <div class="viewcode-block" id="predict_tau_from_xHII">
-<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_tau_from_xHII">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_tau_from_xHII">[docs]</a>
 <span class="k">def</span> <span class="nf">predict_tau_from_xHII</span><span class="p">(</span><span class="n">xHII</span><span class="p">,</span> <span class="n">metadata</span> <span class="p">:</span> <span class="n">MetaData</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
     <span class="n">vals</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -369,7 +373,7 @@
 
 
 <div class="viewcode-block" id="predict_tau_from_xHII_numpy">
-<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_tau_from_xHII_numpy">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_tau_from_xHII_numpy">[docs]</a>
 <span class="k">def</span> <span class="nf">predict_tau_from_xHII_numpy</span><span class="p">(</span><span class="n">xHII</span><span class="p">,</span> <span class="n">theta</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">metadata</span> <span class="p">:</span> <span class="n">MetaData</span><span class="p">):</span>
     
     <span class="n">omega_b</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[:,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_b</span><span class="p">]</span>
@@ -381,7 +385,7 @@
 
 
 <div class="viewcode-block" id="predict_tau">
-<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_tau">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_tau">[docs]</a>
 <span class="k">def</span> <span class="nf">predict_tau</span><span class="p">(</span><span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="n">regressor</span><span class="p">:</span> <span class="n">Regressor</span>   <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -397,7 +401,7 @@
 
 
 <div class="viewcode-block" id="predict_tau_numpy">
-<a class="viewcode-back" href="../../nnero.html#nnero.predictor.predict_tau_numpy">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_tau_numpy">[docs]</a>
 <span class="k">def</span> <span class="nf">predict_tau_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
                 <span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="n">regressor</span><span class="p">:</span> <span class="n">Regressor</span>   <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>

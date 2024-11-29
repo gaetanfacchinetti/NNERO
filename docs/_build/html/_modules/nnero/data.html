@@ -39,7 +39,11 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/tutorial.html">Introduction to the Tutorial</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">nnero</a></li>
 </ul>
@@ -105,7 +109,7 @@
                   <span class="s1">&#39;INVERSE_M_WDM&#39;</span> <span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;$1/m_{\rm WDM} ~[{\rm keV}^{-1}]$&#39;</span><span class="p">,</span> <span class="s1">&#39;FRAC_WDM&#39;</span> <span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;$f_{\rm WDM}$&#39;</span><span class="p">,</span> <span class="s1">&#39;NEUTRINO_MASS_1&#39;</span> <span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;$m_{\nu_1}$&#39;</span><span class="p">}</span>
 
 <div class="viewcode-block" id="label_to_plot">
-<a class="viewcode-back" href="../../nnero.html#nnero.data.label_to_plot">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.label_to_plot">[docs]</a>
 <span class="k">def</span> <span class="nf">label_to_plot</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">_LABELS_TO_PLOT_</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span> 
         <span class="k">return</span> <span class="n">_LABELS_TO_PLOT_</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
@@ -115,7 +119,7 @@
 
 
 <div class="viewcode-block" id="preprocess_raw_data">
-<a class="viewcode-back" href="../../nnero.html#nnero.data.preprocess_raw_data">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.preprocess_raw_data">[docs]</a>
 <span class="k">def</span> <span class="nf">preprocess_raw_data</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">1994</span><span class="p">,</span> <span class="n">frac_test</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">frac_valid</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        preprocessing a raw .npz file</span>
@@ -224,14 +228,14 @@
 
 
 <div class="viewcode-block" id="true_to_uniform">
-<a class="viewcode-back" href="../../nnero.html#nnero.data.true_to_uniform">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.true_to_uniform">[docs]</a>
 <span class="k">def</span> <span class="nf">true_to_uniform</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">min</span><span class="p">,</span> <span class="nb">max</span><span class="p">):</span>
     <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="nb">min</span> <span class="o">&lt;=</span> <span class="nb">max</span><span class="p">),</span> <span class="s2">&quot;The minimum value is bigger than the maximum one&quot;</span> 
     <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="nb">min</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">max</span> <span class="o">-</span> <span class="nb">min</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="uniform_to_true">
-<a class="viewcode-back" href="../../nnero.html#nnero.data.uniform_to_true">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.uniform_to_true">[docs]</a>
 <span class="k">def</span> <span class="nf">uniform_to_true</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">min</span><span class="p">,</span> <span class="nb">max</span><span class="p">):</span>
     <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="nb">min</span> <span class="o">&lt;=</span> <span class="nb">max</span><span class="p">),</span> <span class="s2">&quot;The minimum value is bigger than the maximum one&quot;</span> 
     <span class="k">return</span> <span class="p">(</span><span class="nb">max</span> <span class="o">-</span> <span class="nb">min</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="nb">min</span></div>
@@ -239,7 +243,7 @@
 
 
 <div class="viewcode-block" id="DataPartition">
-<a class="viewcode-back" href="../../nnero.html#nnero.data.DataPartition">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.DataPartition">[docs]</a>
 <span class="k">class</span> <span class="nc">DataPartition</span><span class="p">:</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">early_train</span><span class="p">,</span>  <span class="n">early_valid</span><span class="p">,</span> <span class="n">early_test</span><span class="p">,</span> <span class="n">total_train</span><span class="p">,</span>  <span class="n">total_valid</span><span class="p">,</span> <span class="n">total_test</span><span class="p">):</span>
@@ -272,7 +276,7 @@
         <span class="k">return</span> <span class="kc">True</span>
     
 <div class="viewcode-block" id="DataPartition.save">
-<a class="viewcode-back" href="../../nnero.html#nnero.data.DataPartition.save">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.DataPartition.save">[docs]</a>
     <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;.npz&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
@@ -286,7 +290,7 @@
 
 
 <div class="viewcode-block" id="DataPartition.load">
-<a class="viewcode-back" href="../../nnero.html#nnero.data.DataPartition.load">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.DataPartition.load">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         
@@ -332,10 +336,10 @@
 
 
 <div class="viewcode-block" id="MetaData">
-<a class="viewcode-back" href="../../nnero.html#nnero.data.MetaData">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.MetaData">[docs]</a>
 <span class="k">class</span> <span class="nc">MetaData</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        MetaData class</span>
+<span class="sd">    MetaData class</span>
 <span class="sd">    </span>
 <span class="sd">    metadata that is saved with the neural network for predictions</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -361,12 +365,26 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_max_omega_c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters_max_val</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_pos_omega_c</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_max_hlittle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters_max_val</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_pos_hlittle</span><span class="p">]</span>
 
+        <span class="c1"># principal component analysis quantities</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pca_mean_values</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pca_eigenvalues</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pca_eigenvectors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pca_n_eigenvectors</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_torch_pca_mean_values</span>  <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pca_mean_values</span><span class="p">,</span>  <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_torch_pca_eigenvectors</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pca_eigenvectors</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        
+    
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;z&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">,</span> 
-                <span class="s1">&#39;parameters_name&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters_name</span><span class="p">,</span> 
+                <span class="s1">&#39;parameters_name&#39;</span>    <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters_name</span><span class="p">,</span> 
                 <span class="s1">&#39;parameters_min_val&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters_min_val</span><span class="p">,</span>
-                <span class="s1">&#39;parameters_max_val&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters_max_val</span><span class="p">,}</span>
+                <span class="s1">&#39;parameters_max_val&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters_max_val</span><span class="p">,</span>
+                <span class="s1">&#39;pca_eigenvalues&#39;</span>    <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pca_eigenvalues</span><span class="p">,</span>
+                <span class="s1">&#39;pca_eigenvectors&#39;</span>   <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pca_eigenvectors</span><span class="p">,</span>
+                <span class="s1">&#39;pca_mean_values&#39;</span>    <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pca_mean_values</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         
@@ -382,30 +400,50 @@
                 <span class="k">return</span> <span class="kc">False</span>
             <span class="k">if</span>  <span class="p">(</span><span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">other_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
                 <span class="k">return</span> <span class="kc">False</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pca_n_eigenvectors</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">pca_n_eigenvectors</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
             
         <span class="k">return</span> <span class="kc">True</span>
     
 <div class="viewcode-block" id="MetaData.save">
-<a class="viewcode-back" href="../../nnero.html#nnero.data.MetaData.save">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.MetaData.save">[docs]</a>
     <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;.npz&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span><span class="n">file</span> <span class="o">=</span> <span class="n">file</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="n">parameters_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters_name</span><span class="p">,</span>
-                     <span class="n">parameters_min_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters_min_val</span><span class="p">,</span>
-                     <span class="n">parameters_max_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters_max_val</span><span class="p">)</span></div>
+            <span class="n">np</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span><span class="n">file</span> <span class="o">=</span> <span class="n">file</span><span class="p">,</span> 
+                     <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> 
+                     <span class="n">parameters_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters_name</span><span class="p">,</span>
+                     <span class="n">parameters_min_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters_min_val</span><span class="p">,</span>
+                     <span class="n">parameters_max_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters_max_val</span><span class="p">,</span>
+                     <span class="n">pca_mean_values</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pca_mean_values</span><span class="p">,</span>
+                     <span class="n">pca_eigenvalues</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pca_eigenvalues</span><span class="p">,</span>
+                     <span class="n">pca_eigenvectors</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pca_eigenvectors</span><span class="p">,</span>
+                     <span class="n">pca_n_eigenvectors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pca_n_eigenvectors</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="MetaData.load">
-<a class="viewcode-back" href="../../nnero.html#nnero.data.MetaData.load">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.MetaData.load">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="s1">&#39;.npz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>    
-            <span class="k">return</span> <span class="n">MetaData</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">),</span> 
+            <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">),</span> 
                             <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parameters_name&#39;</span><span class="p">),</span> 
                             <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parameters_min_val&#39;</span><span class="p">),</span> 
-                            <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parameters_max_val&#39;</span><span class="p">))</span></div>
+                            <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parameters_max_val&#39;</span><span class="p">))</span>
+            
+            <span class="c1"># get the pca decomposition</span>
+            <span class="n">metadata</span><span class="o">.</span><span class="n">_pca_eigenvalues</span>    <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pca_eigenvalues&#39;</span><span class="p">,</span>    <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+            <span class="n">metadata</span><span class="o">.</span><span class="n">_pca_eigenvectors</span>   <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pca_eigenvectors&#39;</span><span class="p">,</span>   <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+            <span class="n">metadata</span><span class="o">.</span><span class="n">_pca_mean_values</span>    <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pca_mean_values&#39;</span><span class="p">,</span>    <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+            <span class="n">metadata</span><span class="o">.</span><span class="n">_pca_n_eigenvectors</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pca_n_eigenvectors&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+            <span class="n">metadata</span><span class="o">.</span><span class="n">_torch_pca_mean_values</span>  <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">pca_mean_values</span><span class="p">,</span>  <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">metadata</span><span class="o">.</span><span class="n">_torch_pca_eigenvectors</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">pca_eigenvectors</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">metadata</span></div>
 
 
     <span class="nd">@property</span>
@@ -458,7 +496,31 @@
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">max_hlittle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_hlittle</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_hlittle</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pca_mean_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pca_mean_values</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pca_eigenvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pca_eigenvalues</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pca_eigenvectors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pca_eigenvectors</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pca_n_eigenvectors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pca_n_eigenvectors</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">torch_pca_eigenvectors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_torch_pca_eigenvectors</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">torch_pca_mean_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_torch_pca_mean_values</span></div>
 
     
 
@@ -466,25 +528,12 @@
 
 
 <div class="viewcode-block" id="DataSet">
-<a class="viewcode-back" href="../../nnero.html#nnero.data.DataSet">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.DataSet">[docs]</a>
 <span class="k">class</span> <span class="nc">DataSet</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        DataSet class</span>
+<span class="sd">    DataSet class</span>
 <span class="sd">    </span>
-<span class="sd">    compile the data necessary for training</span>
-
-<span class="sd">    Parameters:</span>
-<span class="sd">    -----------</span>
-<span class="sd">    - file_path: str</span>
-<span class="sd">        path to the file that contains the raw data</span>
-<span class="sd">    - z: np.ndarray</span>
-<span class="sd">        array of the redshits of interpolation of the nn</span>
-<span class="sd">    - frac_test: float </span>
-<span class="sd">        fraction of test data out of the total sample</span>
-<span class="sd">    - frac_valid: float</span>
-<span class="sd">        fraction of validation data out of the total sample</span>
-<span class="sd">    - seed_split: int</span>
-<span class="sd">        random seed for data partitioning</span>
+<span class="sd">    Compile the data necessary for training.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
@@ -494,6 +543,27 @@
                  <span class="n">frac_test</span><span class="p">:</span> <span class="nb">float</span>  <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> 
                  <span class="n">frac_valid</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
                  <span class="n">seed_split</span><span class="p">:</span> <span class="nb">int</span>   <span class="o">=</span> <span class="mi">1994</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        file_path: str</span>
+<span class="sd">            path to the file that contains the raw data</span>
+<span class="sd">        z: np.ndarray</span>
+<span class="sd">            array of the redshits of interpolation of the nn</span>
+<span class="sd">        use_PCA: bool, optional</span>
+<span class="sd">            prepare the data to perform the regression in the principal component basis -- default is True</span>
+<span class="sd">        precision_PCA: float, optional</span>
+<span class="sd">            if use_PCA is `True`, select the number of useful eigenvectors from this coefficient </span>
+<span class="sd">            -- only the eigenvectors with eigenvalues larger than precision_PCA * the largest eigenvalue</span>
+<span class="sd">            are considered as useful</span>
+<span class="sd">        frac_test: float, optional </span>
+<span class="sd">            fraction of test data out of the total sample -- default is 0.1</span>
+<span class="sd">        frac_valid: float, optional</span>
+<span class="sd">            fraction of validation data out of the total sample -- default is 0.1</span>
+<span class="sd">        seed_split: int, optional</span>
+<span class="sd">            random seed for data partitioning -- default is 1994</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
 
         <span class="c1"># --------------------------------</span>
         <span class="c1"># initialisation from input values </span>
@@ -563,9 +633,11 @@
         
         <span class="bp">self</span><span class="o">.</span><span class="n">_x_array</span> <span class="o">=</span> <span class="n">true_to_uniform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_features</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">parameters_min_val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">parameters_max_val</span><span class="p">)</span>
         
+        <span class="c1"># set 0 to the late reionization and 1 to that are early enough</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_y_classifier</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_features</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_y_classifier</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">early</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
 
+           
         <span class="bp">self</span><span class="o">.</span><span class="n">_y_regressor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_tot</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">z</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_tot</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_y_regressor</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
@@ -577,6 +649,51 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_y_classifier</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_y_classifier</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_y_regressor</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_y_regressor</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="c1"># --------------------------</span>
+
+
+<div class="viewcode-block" id="DataSet.init_principal_components">
+<a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.DataSet.init_principal_components">[docs]</a>
+    <span class="k">def</span> <span class="nf">init_principal_components</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pca_precision</span><span class="p">:</span><span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialise the principal component analysis decomposition</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># array on which we perform the principal component analysis</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_redshifts</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xHIIdb</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">early_train</span><span class="p">,</span> <span class="p">:]))(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+        
+        <span class="c1"># mean of the functions</span>
+        <span class="n">pca_mean_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># shift the function to a centered distribution</span>
+        <span class="n">arr_centered</span> <span class="o">=</span> <span class="n">arr</span> <span class="o">-</span> <span class="n">pca_mean_values</span>
+
+        <span class="c1"># self-covariance matrix</span>
+        <span class="n">cov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cov</span><span class="p">(</span><span class="n">arr_centered</span><span class="p">,</span> <span class="n">rowvar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># eigenvalues of the covariance operator</span>
+        <span class="n">eigenvalues</span><span class="p">,</span> <span class="n">eigenvectors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigh</span><span class="p">(</span><span class="n">cov</span><span class="p">)</span>
+
+        <span class="c1"># reorganise the eigenvector from decreasing eigenvalues</span>
+        <span class="c1"># and transpose the eigenvector matrix</span>
+        <span class="c1"># now eigenvector[i, :] is the i-th eigenvector</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">eigenvalues</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">pca_eigenvalues</span>  <span class="o">=</span> <span class="n">eigenvalues</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">pca_eigenvectors</span> <span class="o">=</span> <span class="n">eigenvectors</span><span class="p">[:,</span> <span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="c1"># define the number of vectors from the precision on the eigenvalues</span>
+        <span class="n">pca_n_eigenvectors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">pca_eigenvalues</span><span class="p">)</span><span class="o">/</span><span class="n">pca_eigenvalues</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">pca_precision</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># update the metadata accordingly</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">_pca_mean_values</span>    <span class="o">=</span> <span class="n">pca_mean_values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">_pca_eigenvalues</span>    <span class="o">=</span> <span class="n">pca_eigenvalues</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">_pca_eigenvectors</span>   <span class="o">=</span> <span class="n">pca_eigenvectors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">_pca_n_eigenvectors</span> <span class="o">=</span> <span class="n">pca_n_eigenvectors</span>
+
+        <span class="c1"># define de torch version of the eigenvectors and mean values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">_torch_pca_mean_values</span>  <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">pca_mean_values</span><span class="p">,</span>  <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">_torch_pca_eigenvectors</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">pca_eigenvectors</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">pca_n_eigenvectors</span></div>
 
     
 
@@ -609,11 +726,11 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span></div>
 
     
-    
+
 
 
 <div class="viewcode-block" id="TorchDataset">
-<a class="viewcode-back" href="../../nnero.html#nnero.data.TorchDataset">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.TorchDataset">[docs]</a>
 <span class="k">class</span> <span class="nc">TorchDataset</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_data</span><span class="p">,</span> <span class="n">y_data</span><span class="p">):</span>
@@ -627,6 +744,10 @@
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
         <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_data</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span></div>
+
+
+
+
 
 </pre></div>
 

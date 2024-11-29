@@ -57,9 +57,10 @@ class Regressor(NeuralNetwork):
         
         # if we provide a dataset with pca_precision we override
         # the number of output to correspond to the number of
-        # usefull eigenvectors
+        # usefull eigenvectors otherwise it is set to the number 
+        # of redshift bins used 
         # if no dataset is given, need to know in advance how
-        # many usefull eigenvectors there are and pass is as n_input
+        # many usefull eigenvectors there are and pass is as n_output
         # ----
         # this also initialises the pca vectors in the metadata 
         # attribute of the dataset object
@@ -67,8 +68,14 @@ class Regressor(NeuralNetwork):
         # when loading from a file we do not provide a dataset
         # and therefore do not redo the initialisation of the pca,
         # pca eigenvectors and all are read from the saved metadata
-        if (self.use_pca is True) and (dataset is not None):
-            n_output = dataset.init_principal_components(self.pca_precision)
+        if dataset is not None:
+            
+            n_input = len(dataset.metadata.parameters_name)
+
+            if use_pca is True:
+                n_output = dataset.init_principal_components(self.pca_precision)
+            else:
+                n_output = len(dataset.metadata.z)
             
             
         # give a default empty array for the structure

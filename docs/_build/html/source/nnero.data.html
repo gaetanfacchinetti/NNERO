@@ -1,0 +1,220 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data &mdash; NNERO 0.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=7026087e"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Network" href="nnero.network.html" />
+    <link rel="prev" title="Astrophysics" href="nnero.astrophysics.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            NNERO
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/tutorial.html">Introduction to the Tutorial</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../modules.html">nnero</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="nnero.cosmology.html">Cosmology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.astrophysics.html">Astrophysics</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.data.DataPartition"><code class="docutils literal notranslate"><span class="pre">DataPartition</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.data.DataPartition.load"><code class="docutils literal notranslate"><span class="pre">DataPartition.load()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.data.DataPartition.save"><code class="docutils literal notranslate"><span class="pre">DataPartition.save()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.data.DataSet"><code class="docutils literal notranslate"><span class="pre">DataSet</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.data.DataSet.init_principal_components"><code class="docutils literal notranslate"><span class="pre">DataSet.init_principal_components()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.data.MetaData"><code class="docutils literal notranslate"><span class="pre">MetaData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.data.MetaData.load"><code class="docutils literal notranslate"><span class="pre">MetaData.load()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.data.MetaData.save"><code class="docutils literal notranslate"><span class="pre">MetaData.save()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.data.TorchDataset"><code class="docutils literal notranslate"><span class="pre">TorchDataset</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.data.label_to_plot"><code class="docutils literal notranslate"><span class="pre">label_to_plot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.data.preprocess_raw_data"><code class="docutils literal notranslate"><span class="pre">preprocess_raw_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.data.true_to_uniform"><code class="docutils literal notranslate"><span class="pre">true_to_uniform()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.data.uniform_to_true"><code class="docutils literal notranslate"><span class="pre">uniform_to_true()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.network.html">Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.classifier.html">Classifier</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.regressor.html">Regressor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.predictor.html">Predictor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.mcmc.html">MCMC</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">NNERO</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../modules.html">nnero</a></li>
+      <li class="breadcrumb-item active">Data</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/nnero.data.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-nnero.data">
+<span id="data"></span><h1>Data<a class="headerlink" href="#module-nnero.data" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="nnero.data.DataPartition">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">DataPartition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">early_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">early_valid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">early_test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_valid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_test</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#DataPartition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.DataPartition" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.data.DataPartition.load">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#DataPartition.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.DataPartition.load" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.data.DataPartition.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#DataPartition.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.DataPartition.save" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nnero.data.DataSet">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">DataSet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frac_test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frac_valid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed_split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1994</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#DataSet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.DataSet" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>DataSet class</p>
+<p>Compile the data necessary for training.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.data.DataSet.init_principal_components">
+<span class="sig-name descname"><span class="pre">init_principal_components</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pca_precision</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../_modules/nnero/data.html#DataSet.init_principal_components"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.DataSet.init_principal_components" title="Link to this definition"></a></dt>
+<dd><p>Initialise the principal component analysis decomposition</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nnero.data.MetaData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">MetaData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters_min_val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters_max_val</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#MetaData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.MetaData" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>MetaData class</p>
+<p>metadata that is saved with the neural network for predictions</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.data.MetaData.load">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#MetaData.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.MetaData.load" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.data.MetaData.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#MetaData.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.MetaData.save" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nnero.data.TorchDataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">TorchDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#TorchDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.TorchDataset" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.data.label_to_plot">
+<span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">label_to_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/nnero/data.html#label_to_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.label_to_plot" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.data.preprocess_raw_data">
+<span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">preprocess_raw_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1994</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frac_test</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frac_valid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#preprocess_raw_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.preprocess_raw_data" title="Link to this definition"></a></dt>
+<dd><p>preprocessing a raw .npz file</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.data.true_to_uniform">
+<span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">true_to_uniform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#true_to_uniform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.true_to_uniform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.data.uniform_to_true">
+<span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">uniform_to_true</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#uniform_to_true"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.uniform_to_true" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="nnero.astrophysics.html" class="btn btn-neutral float-left" title="Astrophysics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="nnero.network.html" class="btn btn-neutral float-right" title="Network" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Gaétan Facchinetti.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

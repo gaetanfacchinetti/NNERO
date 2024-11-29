@@ -39,7 +39,11 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/tutorial.html">Introduction to the Tutorial</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">nnero</a></li>
 </ul>
@@ -105,7 +109,7 @@
 
 
 <div class="viewcode-block" id="convert_array">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.convert_array">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.convert_array">[docs]</a>
 <span class="k">def</span> <span class="nf">convert_array</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">to_torch</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">arr</span>
@@ -121,7 +125,7 @@
 <span class="c1"># Densities and abundances</span>
 
 <div class="viewcode-block" id="rho_baryons">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.rho_baryons">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.rho_baryons">[docs]</a>
 <span class="k">def</span> <span class="nf">rho_baryons</span><span class="p">(</span><span class="n">omega_b</span> <span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Baryon energy density (in eV / m^3)</span>
@@ -141,7 +145,7 @@
 
 
 <div class="viewcode-block" id="n_baryons">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.n_baryons">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.n_baryons">[docs]</a>
 <span class="k">def</span> <span class="nf">n_baryons</span><span class="p">(</span><span class="n">omega_b</span> <span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Baryon number density (in 1 / m^3)</span>
@@ -161,7 +165,7 @@
 
 
 <div class="viewcode-block" id="n_ur">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.n_ur">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.n_ur">[docs]</a>
 <span class="k">def</span> <span class="nf">n_ur</span><span class="p">(</span><span class="n">m_nus</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Number of ultra-relativistic degrees of freedom</span>
@@ -182,7 +186,7 @@
 
 
 <div class="viewcode-block" id="omega_r">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.omega_r">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.omega_r">[docs]</a>
 <span class="k">def</span> <span class="nf">omega_r</span><span class="p">(</span><span class="n">m_nus</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Reduced abundance of radiation today</span>
@@ -208,7 +212,7 @@
 
 
 <div class="viewcode-block" id="omega_nu">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.omega_nu">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.omega_nu">[docs]</a>
 <span class="k">def</span> <span class="nf">omega_nu</span><span class="p">(</span><span class="n">z</span><span class="p">:</span>     <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> 
              <span class="n">m_nus</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
              <span class="p">)</span><span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="p">:</span>
@@ -260,7 +264,7 @@
 
 
 <div class="viewcode-block" id="h_factor_numpy">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.h_factor_numpy">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.h_factor_numpy">[docs]</a>
 <span class="k">def</span> <span class="nf">h_factor_numpy</span><span class="p">(</span><span class="n">z</span><span class="p">:</span>       <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
                    <span class="n">omega_b</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
                    <span class="n">omega_c</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> 
@@ -322,7 +326,7 @@
 
 
 <div class="viewcode-block" id="h_factor_no_rad">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.h_factor_no_rad">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.h_factor_no_rad">[docs]</a>
 <span class="k">def</span> <span class="nf">h_factor_no_rad</span><span class="p">(</span><span class="n">z</span><span class="p">:</span>       <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> 
                     <span class="n">omega_b</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> 
                     <span class="n">omega_c</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> 
@@ -382,7 +386,7 @@
 
 
 <div class="viewcode-block" id="optical_depth_numpy">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.optical_depth_numpy">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.optical_depth_numpy">[docs]</a>
 <span class="k">def</span> <span class="nf">optical_depth_numpy</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">xHII</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_c</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">m_nus</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">low_value</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Efficient evaluation of the opetical depth to reionization</span>
@@ -457,7 +461,7 @@
 
 
 <div class="viewcode-block" id="optical_depth_no_rad">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.optical_depth_no_rad">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.optical_depth_no_rad">[docs]</a>
 <span class="k">def</span> <span class="nf">optical_depth_no_rad</span><span class="p">(</span><span class="n">z</span><span class="p">:</span>       <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> 
                          <span class="n">xHII</span><span class="p">:</span>    <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
                          <span class="n">omega_b</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> 
@@ -466,10 +470,13 @@
                          <span class="o">*</span><span class="p">,</span> 
                          <span class="n">low_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Efficient evaluation of the opetical depth to reionization</span>
-<span class="sd">    optical depth to reionization (dimensionless)</span>
-<span class="sd">    uses fast numpy operations with trapezoid rule</span>
-<span class="sd">    (assume that radiation is neglibible on the range of z)</span>
+<span class="sd">    Optical depth to reionization without radiation.</span>
+
+<span class="sd">    Efficient evaluation of the opetical depth to reionization (dimensionless)</span>
+<span class="sd">    uses fast numpy / torch operations with trapezoid rule</span>
+<span class="sd">    (assume that radiation is neglibible on the range of z). Also neglegts the</span>
+<span class="sd">    influence of double reionization of helium at small redshifts</span>
+
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -540,13 +547,22 @@
 <span class="c1">#############################################</span>
 
 <div class="viewcode-block" id="ShortPowerSpectrumRange">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.ShortPowerSpectrumRange">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.ShortPowerSpectrumRange">[docs]</a>
 <span class="k">class</span> <span class="nc">ShortPowerSpectrumRange</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Exception raised for short exceptions</span>
+<span class="sd">    Exception raised for too short ranges of modes to accurately compute integrals</span>
 
-<span class="sd">    Attributes:</span>
-<span class="sd">        message: explanation of the error</span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    message: str</span>
+<span class="sd">        Explanation of the error.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    scales: np.ndarray</span>
+<span class="sd">        Range of modes we consider.</span>
+<span class="sd">    message: str</span>
+<span class="sd">        Explanation of the error.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scales</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span><span class="s2">&quot;Matter power spectrum range is too short&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -562,8 +578,25 @@
 <span class="c1">## Structure formation</span>
 
 <div class="viewcode-block" id="check_ik_R">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.check_ik_R">[docs]</a>
-<span class="k">def</span> <span class="nf">check_ik_R</span><span class="p">(</span><span class="n">ik_radius</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">radius</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.check_ik_R">[docs]</a>
+<span class="k">def</span> <span class="nf">check_ik_R</span><span class="p">(</span><span class="n">ik_radius</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">radius</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check that the array of mode is long enough for the radius considered.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ik_radius : int</span>
+<span class="sd">        Index of the array of mode where equal (or closest) to the desired radius.</span>
+<span class="sd">    p : int</span>
+<span class="sd">        Length of the array of modes.</span>
+<span class="sd">    radius : np.ndarray</span>
+<span class="sd">        Array of radiuses corresponding to the modes.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ShortPowerSpectrumRange</span>
+<span class="sd">        If array not long enough.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># as no way to control the precision of the integral, </span>
     <span class="c1"># require that at least it is computed on enough points</span>
@@ -581,13 +614,13 @@
 
 
 <div class="viewcode-block" id="sigma_r">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.sigma_r">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.sigma_r">[docs]</a>
 <span class="k">def</span> <span class="nf">sigma_r</span><span class="p">(</span><span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
            <span class="n">k</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
            <span class="n">pk</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
            <span class="o">*</span><span class="p">,</span> 
            <span class="n">window</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;sharpk&#39;</span><span class="p">,</span> 
-           <span class="n">ik_radius</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+           <span class="n">ik_radius</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Standard deviation of the matter power spectrum inside `radius`.</span>
@@ -665,13 +698,13 @@
 
 
 <div class="viewcode-block" id="dsigma_r_dr">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.dsigma_r_dr">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.dsigma_r_dr">[docs]</a>
 <span class="k">def</span> <span class="nf">dsigma_r_dr</span><span class="p">(</span><span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
                 <span class="n">k</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
                 <span class="n">pk</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
                 <span class="o">*</span><span class="p">,</span> 
                 <span class="n">window</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;sharpk&#39;</span><span class="p">,</span> 
-                <span class="n">sigma_radius</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">sigma_radius</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Derivative of the standard deviation of the matter power spectrum </span>
 <span class="sd">    inside `radius`. Note that all physical dimensions must be self consistent.</span>
@@ -734,7 +767,7 @@
 
 
 <div class="viewcode-block" id="sigma_m">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.sigma_m">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.sigma_m">[docs]</a>
 <span class="k">def</span> <span class="nf">sigma_m</span><span class="p">(</span><span class="n">mass</span><span class="p">:</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
             <span class="n">k</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
             <span class="n">pk</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
@@ -799,7 +832,7 @@
 
 
 <div class="viewcode-block" id="dsigma_m_dm">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.dsigma_m_dm">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.dsigma_m_dm">[docs]</a>
 <span class="k">def</span> <span class="nf">dsigma_m_dm</span><span class="p">(</span><span class="n">mass</span><span class="p">:</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
                 <span class="n">k</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
                 <span class="n">pk</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
@@ -863,7 +896,7 @@
 
 
 <div class="viewcode-block" id="growth_function">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.growth_function">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.growth_function">[docs]</a>
 <span class="k">def</span> <span class="nf">growth_function</span><span class="p">(</span><span class="n">z</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
                     <span class="n">omega_m</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
                     <span class="n">h</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
@@ -906,7 +939,7 @@
 
 
 <div class="viewcode-block" id="dn_dm">
-<a class="viewcode-back" href="../../nnero.html#nnero.cosmology.dn_dm">[docs]</a>
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.dn_dm">[docs]</a>
 <span class="k">def</span> <span class="nf">dn_dm</span><span class="p">(</span><span class="n">z</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
           <span class="n">mass</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
           <span class="n">k</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
