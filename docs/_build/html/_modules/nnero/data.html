@@ -120,9 +120,25 @@
 
 <div class="viewcode-block" id="preprocess_raw_data">
 <a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.preprocess_raw_data">[docs]</a>
-<span class="k">def</span> <span class="nf">preprocess_raw_data</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">1994</span><span class="p">,</span> <span class="n">frac_test</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">frac_valid</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">preprocess_raw_data</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1994</span><span class="p">,</span> <span class="n">frac_test</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">frac_valid</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        preprocessing a raw .npz file</span>
+<span class="sd">    Preprocess a raw .npz file. </span>
+<span class="sd">    Creates another numpy archive that can be directly used to create a :py:class:`DataSet` object.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file_path : str</span>
+<span class="sd">        Path to the raw data file. The raw data must be a .npz file with the following information. </span>
+<span class="sd">        - z (or z_glob): redshift array</span>
+<span class="sd">        - features_run:  Sequence of drawn input parameters for which there is a value for the ionization fraction</span>
+<span class="sd">        - features_fail: Sequence of drawn input parameters for which the simulator failed because reionization was too late</span>
+<span class="sd">        - ...</span>
+<span class="sd">    random_seed : int, optional</span>
+<span class="sd">        Random seed for splitting data into a training/validation/testing subset, by default 1994.</span>
+<span class="sd">    frac_test : float, optional</span>
+<span class="sd">       Fraction of the total data points in the test subset, by default 0.1.</span>
+<span class="sd">    frac_valid : float, optional</span>
+<span class="sd">        Fraction of the total data points in the validation subset, by default 0.1</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># start by setting the random seed</span>
@@ -141,6 +157,10 @@
         <span class="n">parameters_max_val</span>   <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parameters_max_val&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">xHIIdb</span>               <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;xHIIdb&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">parameters_name</span>      <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parameters_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="c1"># Check for different notations</span>
+        <span class="n">z_glob</span> <span class="o">=</span> <span class="n">z_glob</span> <span class="k">if</span> <span class="p">(</span><span class="n">z_glob</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="k">else</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">features_super_late</span> <span class="o">=</span> <span class="n">features_super_late</span> <span class="k">if</span> <span class="p">(</span><span class="n">features_super_late</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="k">else</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;features_fail&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="c1"># --------------------------</span>
 
@@ -215,10 +235,10 @@
                  <span class="n">parameters_min_val</span> <span class="o">=</span> <span class="n">parameters_min_val</span><span class="p">,</span> 
                  <span class="n">parameters_max_val</span> <span class="o">=</span> <span class="n">parameters_max_val</span><span class="p">,</span> 
                  <span class="n">parameters_name</span> <span class="o">=</span> <span class="n">parameters_name</span><span class="p">,</span>
-                 <span class="n">indices_early_test</span> <span class="o">=</span> <span class="n">indices_early_test</span><span class="p">,</span>
+                 <span class="n">indices_early_test</span>  <span class="o">=</span> <span class="n">indices_early_test</span><span class="p">,</span>
                  <span class="n">indices_early_valid</span> <span class="o">=</span> <span class="n">indices_early_valid</span><span class="p">,</span>
                  <span class="n">indices_early_train</span> <span class="o">=</span> <span class="n">indices_early_train</span><span class="p">,</span>
-                 <span class="n">indices_total_test</span> <span class="o">=</span> <span class="n">indices_total_test</span><span class="p">,</span>
+                 <span class="n">indices_total_test</span>  <span class="o">=</span> <span class="n">indices_total_test</span><span class="p">,</span>
                  <span class="n">indices_total_valid</span> <span class="o">=</span> <span class="n">indices_total_valid</span><span class="p">,</span>
                  <span class="n">indices_total_train</span> <span class="o">=</span> <span class="n">indices_total_train</span><span class="p">,</span>
                  <span class="n">random_seed</span> <span class="o">=</span> <span class="n">random_seed</span><span class="p">,</span>
@@ -229,7 +249,26 @@
 
 <div class="viewcode-block" id="true_to_uniform">
 <a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.true_to_uniform">[docs]</a>
-<span class="k">def</span> <span class="nf">true_to_uniform</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">min</span><span class="p">,</span> <span class="nb">max</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">true_to_uniform</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                    <span class="nb">min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                    <span class="nb">max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transforms features into uniform features.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : float | np.ndarray</span>
+<span class="sd">        _description_</span>
+<span class="sd">    min : float | np.ndarray</span>
+<span class="sd">        _description_</span>
+<span class="sd">    max : float | np.ndarray</span>
+<span class="sd">        _description_</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float | np.ndarray</span>
+<span class="sd">        _description_</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="nb">min</span> <span class="o">&lt;=</span> <span class="nb">max</span><span class="p">),</span> <span class="s2">&quot;The minimum value is bigger than the maximum one&quot;</span> 
     <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="nb">min</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">max</span> <span class="o">-</span> <span class="nb">min</span><span class="p">)</span></div>
 

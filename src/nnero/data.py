@@ -40,9 +40,25 @@ def label_to_plot(label) -> None:
         return label
 
 
-def preprocess_raw_data(file_path, *, random_seed=1994, frac_test=0.1, frac_valid=0.1):
+def preprocess_raw_data(file_path: str, *, random_seed: int = 1994, frac_test: float = 0.1, frac_valid: float = 0.1) -> None:
     """
-        preprocessing a raw .npz file
+    Preprocess a raw .npz file. 
+    Creates another numpy archive that can be directly used to create a :py:class:`DataSet` object.
+
+    Parameters
+    ----------
+    file_path : str
+        Path to the raw data file. The raw data must be a .npz file with the following information. 
+        - z (or z_glob): redshift array
+        - features_run:  Sequence of drawn input parameters for which there is a value for the ionization fraction
+        - features_fail: Sequence of drawn input parameters for which the simulator failed because reionization was too late
+        - ...
+    random_seed : int, optional
+        Random seed for splitting data into a training/validation/testing subset, by default 1994.
+    frac_test : float, optional
+       Fraction of the total data points in the test subset, by default 0.1.
+    frac_valid : float, optional
+        Fraction of the total data points in the validation subset, by default 0.1
     """
 
     # start by setting the random seed
@@ -61,6 +77,10 @@ def preprocess_raw_data(file_path, *, random_seed=1994, frac_test=0.1, frac_vali
         parameters_max_val   = data.get('parameters_max_val', None)
         xHIIdb               = data.get('xHIIdb', None)
         parameters_name      = data.get('parameters_name', None)
+
+        # Check for different notations
+        z_glob = z_glob if (z_glob is not None) else data.get('z', None)
+        features_super_late = features_super_late if (features_super_late is not None) else data.get('features_fail', None)
 
     # --------------------------
 
@@ -135,10 +155,10 @@ def preprocess_raw_data(file_path, *, random_seed=1994, frac_test=0.1, frac_vali
                  parameters_min_val = parameters_min_val, 
                  parameters_max_val = parameters_max_val, 
                  parameters_name = parameters_name,
-                 indices_early_test = indices_early_test,
+                 indices_early_test  = indices_early_test,
                  indices_early_valid = indices_early_valid,
                  indices_early_train = indices_early_train,
-                 indices_total_test = indices_total_test,
+                 indices_total_test  = indices_total_test,
                  indices_total_valid = indices_total_valid,
                  indices_total_train = indices_total_train,
                  random_seed = random_seed,
@@ -146,7 +166,26 @@ def preprocess_raw_data(file_path, *, random_seed=1994, frac_test=0.1, frac_vali
                  frac_valid = frac_valid)
 
 
-def true_to_uniform(x, min, max):
+def true_to_uniform(x: float | np.ndarray,
+                    min: float | np.ndarray,
+                    max: float | np.ndarray) -> float | np.ndarray:
+    """
+    Transforms features into uniform features.
+
+    Parameters
+    ----------
+    x : float | np.ndarray
+        _description_
+    min : float | np.ndarray
+        _description_
+    max : float | np.ndarray
+        _description_
+
+    Returns
+    -------
+    float | np.ndarray
+        _description_
+    """
     assert np.all(min <= max), "The minimum value is bigger than the maximum one" 
     return (x - min) / (max - min)
 

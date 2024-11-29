@@ -170,14 +170,45 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nnero.data.preprocess_raw_data">
-<span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">preprocess_raw_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1994</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frac_test</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frac_valid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#preprocess_raw_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.preprocess_raw_data" title="Link to this definition"></a></dt>
-<dd><p>preprocessing a raw .npz file</p>
+<span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">preprocess_raw_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1994</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frac_test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frac_valid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/nnero/data.html#preprocess_raw_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.preprocess_raw_data" title="Link to this definition"></a></dt>
+<dd><p>Preprocess a raw .npz file.
+Creates another numpy archive that can be directly used to create a <a class="reference internal" href="#nnero.data.DataSet" title="nnero.data.DataSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataSet</span></code></a> object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_path</strong> (<em>str</em>) – Path to the raw data file. The raw data must be a .npz file with the following information.
+- z (or z_glob): redshift array
+- features_run:  Sequence of drawn input parameters for which there is a value for the ionization fraction
+- features_fail: Sequence of drawn input parameters for which the simulator failed because reionization was too late
+- …</p></li>
+<li><p><strong>random_seed</strong> (<em>int</em><em>, </em><em>optional</em>) – Random seed for splitting data into a training/validation/testing subset, by default 1994.</p></li>
+<li><p><strong>frac_test</strong> (<em>float</em><em>, </em><em>optional</em>) – Fraction of the total data points in the test subset, by default 0.1.</p></li>
+<li><p><strong>frac_valid</strong> (<em>float</em><em>, </em><em>optional</em>) – Fraction of the total data points in the validation subset, by default 0.1</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nnero.data.true_to_uniform">
-<span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">true_to_uniform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#true_to_uniform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.true_to_uniform" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">true_to_uniform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/data.html#true_to_uniform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.true_to_uniform" title="Link to this definition"></a></dt>
+<dd><p>Transforms features into uniform features.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em><em> | </em><em>np.ndarray</em>) – _description_</p></li>
+<li><p><strong>min</strong> (<em>float</em><em> | </em><em>np.ndarray</em>) – _description_</p></li>
+<li><p><strong>max</strong> (<em>float</em><em> | </em><em>np.ndarray</em>) – _description_</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>_description_</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float | np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nnero.data.uniform_to_true">
