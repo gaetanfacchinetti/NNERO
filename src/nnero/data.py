@@ -24,6 +24,8 @@ import torch
 from scipy import interpolate
 from os.path import abspath, exists
 
+from typing import Self
+
 from .cosmology import optical_depth_no_rad
 
 
@@ -170,33 +172,94 @@ def true_to_uniform(x: float | np.ndarray,
                     min: float | np.ndarray,
                     max: float | np.ndarray) -> float | np.ndarray:
     """
-    Transforms features into uniform features.
+    Transforms features uniformely distributed along [a, b] into features
+    uniformely distributed between [0, 1] as fed to the neural networks.
 
     Parameters
     ----------
     x : float | np.ndarray
-        _description_
+        input featurs distributed uniformely on [a, b]
     min : float | np.ndarray
-        _description_
+        minimum value `a`
     max : float | np.ndarray
-        _description_
+        maximum value `b`
 
     Returns
     -------
     float | np.ndarray
-        _description_
+
+    Raises
+    ------
+    ValueError
+        min should be less than max
     """
-    assert np.all(min <= max), "The minimum value is bigger than the maximum one" 
+
+    if not np.all(min <= max):
+        raise ValueError("The minimum value is bigger than the maximum one")
+    
     return (x - min) / (max - min)
 
-def uniform_to_true(x, min, max):
-    assert np.all(min <= max), "The minimum value is bigger than the maximum one" 
+def uniform_to_true(x: float | np.ndarray,
+                    min: float | np.ndarray,
+                    max: float | np.ndarray) -> float | np.ndarray:
+    """
+    Inverse transformation of `true_to_uniform`.
+
+    Parameters
+    ----------
+    x : float | np.ndarray
+        input featurs distributed uniformely on [0, 1]
+    min : float | np.ndarray
+        minimum value `a`
+    max : float | np.ndarray
+        maximum value `b`
+
+    Returns
+    -------
+    float | np.ndarray
+
+    Raises
+    ------
+    ValueError
+        min should be less than max
+    """
+    
+    if not np.all(min <= max):
+        raise ValueError("The minimum value is bigger than the maximum one")
+    
     return (max - min) * x + min
 
 
-class DataPartition:
 
-    def __init__(self, early_train,  early_valid, early_test, total_train,  total_valid, total_test):
+class DataPartition:
+    """
+    DataPartition class. 
+
+    Partitioning of the data into a training set, a testing set and a validation set.
+
+    Parameters
+    ----------
+    early_train : np.ndarray
+        indices of the data array with an early enough reionization used for training
+    early_valid : np.ndarray
+        indices of the data array with an early enough reionization used for validation
+    early_test : np.ndarray
+        indices of the data array with an early enough reionization used for testing
+    total_train : np.ndarray
+        all indices of the data array used for training
+    total_valid : np.ndarray
+        all indices of the data array used for validation
+    total_test : np.ndarray
+        all indices of the data array used for testing
+    """
+
+    def __init__(self, 
+                 early_train: np.ndarray,
+                 early_valid: np.ndarray, 
+                 early_test: np.ndarray, 
+                 total_train: np.ndarray, 
+                 total_valid: np.ndarray, 
+                 total_test: np.ndarray) -> None:
         
         self._early_dict = {'train' : early_train, 'valid': early_valid, 'test' : early_test}
         self._total_dict = {'train' : total_train, 'valid': total_valid, 'test' : total_test}
@@ -225,7 +288,15 @@ class DataPartition:
             
         return True
     
-    def save(self, name):
+    def save(self, name:str) -> None:
+        """
+        Save the data partition.
+
+        Parameters
+        ----------
+        name : str
+            name of the data partition file
+        """
 
         with open(name + '.npz', 'wb') as file:
             np.savez(file = file, 
@@ -237,7 +308,19 @@ class DataPartition:
                      total_test  = self.total_test)
 
     @classmethod
-    def load(cls, path):
+    def load(cls, path: str) -> Self:
+        """
+        Load a previously saved data partition.
+
+        Parameters
+        ----------
+        path : str
+            path to the data partition saved file.
+
+        Returns
+        -------
+        DataPartition
+        """
         
         with open(path + '.npz', 'rb') as file:
             data = np.load(file, allow_pickle=False)    
@@ -282,13 +365,28 @@ class MetaData:
     """
     MetaData class
     
-    metadata that is saved with the neural network for predictions
+    Metadata that is saved with the neural network for predictions.
+
+    Parameters
+    ----------
+    z : np.ndarray
+        array of redshifts
+    parameters_name : list | np.ndarray
+        name of the parameters (input features)
+    parameters_min_val : np.ndarray
+        minimum value of the parameters (input features)
+    parameters_max_val : np.ndarray
+        maximum value of the parameters (input features)
     """
 
-    def __init__(self, z, parameters_name, parameters_min_val, parameters_max_val):
+    def __init__(self,
+                 z: np.ndarray,
+                 parameters_name: list | np.ndarray,
+                 parameters_min_val: np.ndarray,
+                 parameters_max_val: np.ndarray) -> None:
        
         self._z                  = z
-        self._parameters_name    = parameters_name
+        self._parameters_name    = np.array(parameters_name)
         self._parameters_min_val = parameters_min_val
         self._parameters_max_val = parameters_max_val
 
@@ -347,7 +445,15 @@ class MetaData:
             
         return True
     
-    def save(self, name):
+    def save(self, name: str) -> None:
+        """
+        Save the metadata.
+
+        Parameters
+        ----------
+        name : str
+            name of the metadata file
+        """
 
         with open(name + '.npz', 'wb') as file:
             np.savez(file = file, 
@@ -361,7 +467,19 @@ class MetaData:
                      pca_n_eigenvectors = self.pca_n_eigenvectors)
 
     @classmethod
-    def load(cls, path):
+    def load(cls, path: str) -> Self:
+        """
+        Load a previously saved metadata file.
+
+        Parameters
+        ----------
+        path : str
+            path to the metadata saved file.
+
+        Returns
+        -------
+        MetaData
+        """
         
         with open(path + '.npz', 'rb') as file:
             data = np.load(file, allow_pickle=True)    
@@ -464,8 +582,27 @@ class MetaData:
 class DataSet:
     """
     DataSet class
-    
+
     Compile the data necessary for training.
+
+    Parameters
+    ----------
+    file_path: str
+        path to the file that contains the raw data
+    z: np.ndarray
+        array of the redshits of interpolation of the nn
+    use_PCA: bool, optional
+        prepare the data to perform the regression in the principal component basis, default is True
+    precision_PCA: float, optional
+        if use_PCA is `True`, select the number of useful eigenvectors from this coefficient 
+        -- only the eigenvectors with eigenvalues larger than precision_PCA * the largest eigenvalue
+        are considered as useful
+    frac_test: float, optional 
+        fraction of test data out of the total sample, default is 0.1
+    frac_valid: float, optional
+        fraction of validation data out of the total sample, default is 0.1
+    seed_split: int, optional
+        random seed for data partitioning, default is 1994
     """
 
     def __init__(self, 
@@ -475,27 +612,6 @@ class DataSet:
                  frac_test: float  = 0.1, 
                  frac_valid: float = 0.1,
                  seed_split: int   = 1994) -> None:
-        """
-        Parameters:
-        -----------
-        file_path: str
-            path to the file that contains the raw data
-        z: np.ndarray
-            array of the redshits of interpolation of the nn
-        use_PCA: bool, optional
-            prepare the data to perform the regression in the principal component basis -- default is True
-        precision_PCA: float, optional
-            if use_PCA is `True`, select the number of useful eigenvectors from this coefficient 
-            -- only the eigenvectors with eigenvalues larger than precision_PCA * the largest eigenvalue
-            are considered as useful
-        frac_test: float, optional 
-            fraction of test data out of the total sample -- default is 0.1
-        frac_valid: float, optional
-            fraction of validation data out of the total sample -- default is 0.1
-        seed_split: int, optional
-            random seed for data partitioning -- default is 1994
-        """
-
 
         # --------------------------------
         # initialisation from input values 
@@ -586,6 +702,16 @@ class DataSet:
     def init_principal_components(self, pca_precision:float = 1e-3) -> int:
         """
         Initialise the principal component analysis decomposition
+
+        Parameters
+        ----------
+        pca_precision : float, optional
+            precision for the principal analysis reconstruction, by default 1e-3
+
+        Returns
+        -------
+        int
+            number of necessary eigenvectors to reach the desired precision
         """
 
         # array on which we perform the principal component analysis
@@ -658,15 +784,25 @@ class DataSet:
 
 
 class TorchDataset(torch.utils.data.Dataset):
+    """
+    Wrapper of torch Dataset.
+
+    Parameters
+    ----------
+    x_data : np.ndarray
+        input features
+    y_data : np.ndarray
+        output labels
+    """
     
-    def __init__(self, x_data, y_data):
+    def __init__(self, x_data: np.ndarray, y_data: np.ndarray) -> None:
         self.x_data = x_data
         self.y_data = y_data
     
     def __len__(self):
         return len(self.x_data)
     
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> tuple:
         x = self.x_data[idx]
         y = self.y_data[idx]
         return x, y

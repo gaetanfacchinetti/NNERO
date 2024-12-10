@@ -99,6 +99,8 @@
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">interpolate</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">exists</span>
 
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Self</span>
+
 <span class="kn">from</span> <span class="nn">.cosmology</span> <span class="kn">import</span> <span class="n">optical_depth_no_rad</span>
 
 
@@ -253,39 +255,100 @@
                     <span class="nb">min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
                     <span class="nb">max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Transforms features into uniform features.</span>
+<span class="sd">    Transforms features uniformely distributed along [a, b] into features</span>
+<span class="sd">    uniformely distributed between [0, 1] as fed to the neural networks.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    x : float | np.ndarray</span>
-<span class="sd">        _description_</span>
+<span class="sd">        input featurs distributed uniformely on [a, b]</span>
 <span class="sd">    min : float | np.ndarray</span>
-<span class="sd">        _description_</span>
+<span class="sd">        minimum value `a`</span>
 <span class="sd">    max : float | np.ndarray</span>
-<span class="sd">        _description_</span>
+<span class="sd">        maximum value `b`</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    float | np.ndarray</span>
-<span class="sd">        _description_</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        min should be less than max</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="nb">min</span> <span class="o">&lt;=</span> <span class="nb">max</span><span class="p">),</span> <span class="s2">&quot;The minimum value is bigger than the maximum one&quot;</span> 
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="nb">min</span> <span class="o">&lt;=</span> <span class="nb">max</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The minimum value is bigger than the maximum one&quot;</span><span class="p">)</span>
+    
     <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="nb">min</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">max</span> <span class="o">-</span> <span class="nb">min</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="uniform_to_true">
 <a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.uniform_to_true">[docs]</a>
-<span class="k">def</span> <span class="nf">uniform_to_true</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">min</span><span class="p">,</span> <span class="nb">max</span><span class="p">):</span>
-    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="nb">min</span> <span class="o">&lt;=</span> <span class="nb">max</span><span class="p">),</span> <span class="s2">&quot;The minimum value is bigger than the maximum one&quot;</span> 
+<span class="k">def</span> <span class="nf">uniform_to_true</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                    <span class="nb">min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                    <span class="nb">max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Inverse transformation of `true_to_uniform`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : float | np.ndarray</span>
+<span class="sd">        input featurs distributed uniformely on [0, 1]</span>
+<span class="sd">    min : float | np.ndarray</span>
+<span class="sd">        minimum value `a`</span>
+<span class="sd">    max : float | np.ndarray</span>
+<span class="sd">        maximum value `b`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float | np.ndarray</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        min should be less than max</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="nb">min</span> <span class="o">&lt;=</span> <span class="nb">max</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The minimum value is bigger than the maximum one&quot;</span><span class="p">)</span>
+    
     <span class="k">return</span> <span class="p">(</span><span class="nb">max</span> <span class="o">-</span> <span class="nb">min</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="nb">min</span></div>
+
 
 
 
 <div class="viewcode-block" id="DataPartition">
 <a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.DataPartition">[docs]</a>
 <span class="k">class</span> <span class="nc">DataPartition</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    DataPartition class. </span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">early_train</span><span class="p">,</span>  <span class="n">early_valid</span><span class="p">,</span> <span class="n">early_test</span><span class="p">,</span> <span class="n">total_train</span><span class="p">,</span>  <span class="n">total_valid</span><span class="p">,</span> <span class="n">total_test</span><span class="p">):</span>
+<span class="sd">    Partitioning of the data into a training set, a testing set and a validation set.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    early_train : np.ndarray</span>
+<span class="sd">        indices of the data array with an early enough reionization used for training</span>
+<span class="sd">    early_valid : np.ndarray</span>
+<span class="sd">        indices of the data array with an early enough reionization used for validation</span>
+<span class="sd">    early_test : np.ndarray</span>
+<span class="sd">        indices of the data array with an early enough reionization used for testing</span>
+<span class="sd">    total_train : np.ndarray</span>
+<span class="sd">        all indices of the data array used for training</span>
+<span class="sd">    total_valid : np.ndarray</span>
+<span class="sd">        all indices of the data array used for validation</span>
+<span class="sd">    total_test : np.ndarray</span>
+<span class="sd">        all indices of the data array used for testing</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">early_train</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">early_valid</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                 <span class="n">early_test</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                 <span class="n">total_train</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                 <span class="n">total_valid</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                 <span class="n">total_test</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">_early_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;train&#39;</span> <span class="p">:</span> <span class="n">early_train</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">:</span> <span class="n">early_valid</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span> <span class="p">:</span> <span class="n">early_test</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_total_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;train&#39;</span> <span class="p">:</span> <span class="n">total_train</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">:</span> <span class="n">total_valid</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span> <span class="p">:</span> <span class="n">total_test</span><span class="p">}</span>
@@ -316,7 +379,15 @@
     
 <div class="viewcode-block" id="DataPartition.save">
 <a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.DataPartition.save">[docs]</a>
-    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the data partition.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            name of the data partition file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;.npz&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
             <span class="n">np</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span><span class="n">file</span> <span class="o">=</span> <span class="n">file</span><span class="p">,</span> 
@@ -331,7 +402,19 @@
 <div class="viewcode-block" id="DataPartition.load">
 <a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.DataPartition.load">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load a previously saved data partition.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path : str</span>
+<span class="sd">            path to the data partition saved file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        DataPartition</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="s1">&#39;.npz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>    
@@ -380,13 +463,28 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    MetaData class</span>
 <span class="sd">    </span>
-<span class="sd">    metadata that is saved with the neural network for predictions</span>
+<span class="sd">    Metadata that is saved with the neural network for predictions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    z : np.ndarray</span>
+<span class="sd">        array of redshifts</span>
+<span class="sd">    parameters_name : list | np.ndarray</span>
+<span class="sd">        name of the parameters (input features)</span>
+<span class="sd">    parameters_min_val : np.ndarray</span>
+<span class="sd">        minimum value of the parameters (input features)</span>
+<span class="sd">    parameters_max_val : np.ndarray</span>
+<span class="sd">        maximum value of the parameters (input features)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">parameters_name</span><span class="p">,</span> <span class="n">parameters_min_val</span><span class="p">,</span> <span class="n">parameters_max_val</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">z</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">parameters_name</span><span class="p">:</span> <span class="nb">list</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">parameters_min_val</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">parameters_max_val</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
        
         <span class="bp">self</span><span class="o">.</span><span class="n">_z</span>                  <span class="o">=</span> <span class="n">z</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters_name</span>    <span class="o">=</span> <span class="n">parameters_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters_name</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">parameters_name</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameters_min_val</span> <span class="o">=</span> <span class="n">parameters_min_val</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parameters_max_val</span> <span class="o">=</span> <span class="n">parameters_max_val</span>
 
@@ -447,7 +545,15 @@
     
 <div class="viewcode-block" id="MetaData.save">
 <a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.MetaData.save">[docs]</a>
-    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the metadata.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            name of the metadata file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;.npz&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
             <span class="n">np</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span><span class="n">file</span> <span class="o">=</span> <span class="n">file</span><span class="p">,</span> 
@@ -464,7 +570,19 @@
 <div class="viewcode-block" id="MetaData.load">
 <a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.MetaData.load">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load a previously saved metadata file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path : str</span>
+<span class="sd">            path to the metadata saved file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        MetaData</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="s1">&#39;.npz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>    
@@ -571,8 +689,27 @@
 <span class="k">class</span> <span class="nc">DataSet</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    DataSet class</span>
-<span class="sd">    </span>
+
 <span class="sd">    Compile the data necessary for training.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file_path: str</span>
+<span class="sd">        path to the file that contains the raw data</span>
+<span class="sd">    z: np.ndarray</span>
+<span class="sd">        array of the redshits of interpolation of the nn</span>
+<span class="sd">    use_PCA: bool, optional</span>
+<span class="sd">        prepare the data to perform the regression in the principal component basis, default is True</span>
+<span class="sd">    precision_PCA: float, optional</span>
+<span class="sd">        if use_PCA is `True`, select the number of useful eigenvectors from this coefficient </span>
+<span class="sd">        -- only the eigenvectors with eigenvalues larger than precision_PCA * the largest eigenvalue</span>
+<span class="sd">        are considered as useful</span>
+<span class="sd">    frac_test: float, optional </span>
+<span class="sd">        fraction of test data out of the total sample, default is 0.1</span>
+<span class="sd">    frac_valid: float, optional</span>
+<span class="sd">        fraction of validation data out of the total sample, default is 0.1</span>
+<span class="sd">    seed_split: int, optional</span>
+<span class="sd">        random seed for data partitioning, default is 1994</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
@@ -582,27 +719,6 @@
                  <span class="n">frac_test</span><span class="p">:</span> <span class="nb">float</span>  <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> 
                  <span class="n">frac_valid</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
                  <span class="n">seed_split</span><span class="p">:</span> <span class="nb">int</span>   <span class="o">=</span> <span class="mi">1994</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Parameters:</span>
-<span class="sd">        -----------</span>
-<span class="sd">        file_path: str</span>
-<span class="sd">            path to the file that contains the raw data</span>
-<span class="sd">        z: np.ndarray</span>
-<span class="sd">            array of the redshits of interpolation of the nn</span>
-<span class="sd">        use_PCA: bool, optional</span>
-<span class="sd">            prepare the data to perform the regression in the principal component basis -- default is True</span>
-<span class="sd">        precision_PCA: float, optional</span>
-<span class="sd">            if use_PCA is `True`, select the number of useful eigenvectors from this coefficient </span>
-<span class="sd">            -- only the eigenvectors with eigenvalues larger than precision_PCA * the largest eigenvalue</span>
-<span class="sd">            are considered as useful</span>
-<span class="sd">        frac_test: float, optional </span>
-<span class="sd">            fraction of test data out of the total sample -- default is 0.1</span>
-<span class="sd">        frac_valid: float, optional</span>
-<span class="sd">            fraction of validation data out of the total sample -- default is 0.1</span>
-<span class="sd">        seed_split: int, optional</span>
-<span class="sd">            random seed for data partitioning -- default is 1994</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
 
         <span class="c1"># --------------------------------</span>
         <span class="c1"># initialisation from input values </span>
@@ -695,6 +811,16 @@
     <span class="k">def</span> <span class="nf">init_principal_components</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pca_precision</span><span class="p">:</span><span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialise the principal component analysis decomposition</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pca_precision : float, optional</span>
+<span class="sd">            precision for the principal analysis reconstruction, by default 1e-3</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            number of necessary eigenvectors to reach the desired precision</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># array on which we perform the principal component analysis</span>
@@ -771,15 +897,25 @@
 <div class="viewcode-block" id="TorchDataset">
 <a class="viewcode-back" href="../../source/nnero.data.html#nnero.data.TorchDataset">[docs]</a>
 <span class="k">class</span> <span class="nc">TorchDataset</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper of torch Dataset.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x_data : np.ndarray</span>
+<span class="sd">        input features</span>
+<span class="sd">    y_data : np.ndarray</span>
+<span class="sd">        output labels</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_data</span><span class="p">,</span> <span class="n">y_data</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x_data</span> <span class="o">=</span> <span class="n">x_data</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">y_data</span> <span class="o">=</span> <span class="n">y_data</span>
     
     <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
         <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_data</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span></div>

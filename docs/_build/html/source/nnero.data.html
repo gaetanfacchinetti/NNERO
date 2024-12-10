@@ -111,17 +111,46 @@
 <span id="data"></span><h1>Data<a class="headerlink" href="#module-nnero.data" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="nnero.data.DataPartition">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">DataPartition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">early_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">early_valid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">early_test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_valid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_test</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#DataPartition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.DataPartition" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">DataPartition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">early_train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">early_valid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">early_test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_valid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#DataPartition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.DataPartition" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>DataPartition class.</p>
+<p>Partitioning of the data into a training set, a testing set and a validation set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>early_train</strong> (<em>np.ndarray</em>) – indices of the data array with an early enough reionization used for training</p></li>
+<li><p><strong>early_valid</strong> (<em>np.ndarray</em>) – indices of the data array with an early enough reionization used for validation</p></li>
+<li><p><strong>early_test</strong> (<em>np.ndarray</em>) – indices of the data array with an early enough reionization used for testing</p></li>
+<li><p><strong>total_train</strong> (<em>np.ndarray</em>) – all indices of the data array used for training</p></li>
+<li><p><strong>total_valid</strong> (<em>np.ndarray</em>) – all indices of the data array used for validation</p></li>
+<li><p><strong>total_test</strong> (<em>np.ndarray</em>) – all indices of the data array used for testing</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="nnero.data.DataPartition.load">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#DataPartition.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.DataPartition.load" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="reference internal" href="../_modules/nnero/data.html#DataPartition.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.DataPartition.load" title="Link to this definition"></a></dt>
+<dd><p>Load a previously saved data partition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – path to the data partition saved file.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#nnero.data.DataPartition" title="nnero.data.DataPartition">DataPartition</a></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nnero.data.DataPartition.save">
-<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#DataPartition.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.DataPartition.save" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/nnero/data.html#DataPartition.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.DataPartition.save" title="Link to this definition"></a></dt>
+<dd><p>Save the data partition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – name of the data partition file</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
@@ -131,36 +160,96 @@
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>DataSet class</p>
 <p>Compile the data necessary for training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_path</strong> (<em>str</em>) – path to the file that contains the raw data</p></li>
+<li><p><strong>z</strong> (<em>np.ndarray</em>) – array of the redshits of interpolation of the nn</p></li>
+<li><p><strong>use_PCA</strong> (<em>bool</em><em>, </em><em>optional</em>) – prepare the data to perform the regression in the principal component basis, default is True</p></li>
+<li><p><strong>precision_PCA</strong> (<em>float</em><em>, </em><em>optional</em>) – if use_PCA is <cite>True</cite>, select the number of useful eigenvectors from this coefficient
+– only the eigenvectors with eigenvalues larger than precision_PCA * the largest eigenvalue
+are considered as useful</p></li>
+<li><p><strong>frac_test</strong> (<em>float</em><em>, </em><em>optional</em>) – fraction of test data out of the total sample, default is 0.1</p></li>
+<li><p><strong>frac_valid</strong> (<em>float</em><em>, </em><em>optional</em>) – fraction of validation data out of the total sample, default is 0.1</p></li>
+<li><p><strong>seed_split</strong> (<em>int</em><em>, </em><em>optional</em>) – random seed for data partitioning, default is 1994</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="nnero.data.DataSet.init_principal_components">
 <span class="sig-name descname"><span class="pre">init_principal_components</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pca_precision</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../_modules/nnero/data.html#DataSet.init_principal_components"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.DataSet.init_principal_components" title="Link to this definition"></a></dt>
 <dd><p>Initialise the principal component analysis decomposition</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pca_precision</strong> (<em>float</em><em>, </em><em>optional</em>) – precision for the principal analysis reconstruction, by default 1e-3</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>number of necessary eigenvectors to reach the desired precision</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="nnero.data.MetaData">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">MetaData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters_min_val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters_max_val</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#MetaData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.MetaData" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">MetaData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters_min_val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters_max_val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#MetaData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.MetaData" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>MetaData class</p>
-<p>metadata that is saved with the neural network for predictions</p>
+<p>Metadata that is saved with the neural network for predictions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>z</strong> (<em>np.ndarray</em>) – array of redshifts</p></li>
+<li><p><strong>parameters_name</strong> (<em>list</em><em> | </em><em>np.ndarray</em>) – name of the parameters (input features)</p></li>
+<li><p><strong>parameters_min_val</strong> (<em>np.ndarray</em>) – minimum value of the parameters (input features)</p></li>
+<li><p><strong>parameters_max_val</strong> (<em>np.ndarray</em>) – maximum value of the parameters (input features)</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="nnero.data.MetaData.load">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#MetaData.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.MetaData.load" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="reference internal" href="../_modules/nnero/data.html#MetaData.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.MetaData.load" title="Link to this definition"></a></dt>
+<dd><p>Load a previously saved metadata file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – path to the metadata saved file.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#nnero.data.MetaData" title="nnero.data.MetaData">MetaData</a></p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nnero.data.MetaData.save">
-<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#MetaData.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.MetaData.save" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/nnero/data.html#MetaData.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.MetaData.save" title="Link to this definition"></a></dt>
+<dd><p>Save the metadata.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – name of the metadata file</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="nnero.data.TorchDataset">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">TorchDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#TorchDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.TorchDataset" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">TorchDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#TorchDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.TorchDataset" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code></p>
+<p>Wrapper of torch Dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_data</strong> (<em>np.ndarray</em>) – input features</p></li>
+<li><p><strong>y_data</strong> (<em>np.ndarray</em>) – output labels</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -192,28 +281,45 @@ Creates another numpy archive that can be directly used to create a <a class="re
 <dl class="py function">
 <dt class="sig sig-object py" id="nnero.data.true_to_uniform">
 <span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">true_to_uniform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/data.html#true_to_uniform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.true_to_uniform" title="Link to this definition"></a></dt>
-<dd><p>Transforms features into uniform features.</p>
+<dd><p>Transforms features uniformely distributed along [a, b] into features
+uniformely distributed between [0, 1] as fed to the neural networks.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<em>float</em><em> | </em><em>np.ndarray</em>) – _description_</p></li>
-<li><p><strong>min</strong> (<em>float</em><em> | </em><em>np.ndarray</em>) – _description_</p></li>
-<li><p><strong>max</strong> (<em>float</em><em> | </em><em>np.ndarray</em>) – _description_</p></li>
+<li><p><strong>x</strong> (<em>float</em><em> | </em><em>np.ndarray</em>) – input featurs distributed uniformely on [a, b]</p></li>
+<li><p><strong>min</strong> (<em>float</em><em> | </em><em>np.ndarray</em>) – minimum value <cite>a</cite></p></li>
+<li><p><strong>max</strong> (<em>float</em><em> | </em><em>np.ndarray</em>) – maximum value <cite>b</cite></p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>_description_</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float | np.ndarray</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>float | np.ndarray</p>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – min should be less than max</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nnero.data.uniform_to_true">
-<span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">uniform_to_true</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/data.html#uniform_to_true"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.uniform_to_true" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">nnero.data.</span></span><span class="sig-name descname"><span class="pre">uniform_to_true</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/data.html#uniform_to_true"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.data.uniform_to_true" title="Link to this definition"></a></dt>
+<dd><p>Inverse transformation of <cite>true_to_uniform</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em><em> | </em><em>np.ndarray</em>) – input featurs distributed uniformely on [0, 1]</p></li>
+<li><p><strong>min</strong> (<em>float</em><em> | </em><em>np.ndarray</em>) – minimum value <cite>a</cite></p></li>
+<li><p><strong>max</strong> (<em>float</em><em> | </em><em>np.ndarray</em>) – maximum value <cite>b</cite></p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float | np.ndarray</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – min should be less than max</p>
+</dd>
+</dl>
+</dd></dl>
 
 </section>
 

@@ -177,25 +177,71 @@ class Classifier(NeuralNetwork):
     def loss_fn(self):
         return self._loss_fn
     
-    def test(self, dataset: DataSet) -> None:
+    def test(self, dataset: DataSet | None = None, x_test:np.ndarray | None = None, y_test: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Test the efficiency of the classifier.
 
         Parameters
         ----------
-        dataset: DataSet
+        dataset: DataSet | None
             DataSet containing the training partition and the test partition.
+        x_test: np.ndarray
+        y_test: np.ndarray
+
+        Returns
+        -------
+        tuple(np.ndarray, np.ndarray, np.ndarray)
+            y_pred, y_test, and array of true if rightly classifier, false otherwise 
+
+        Raises
+        ------
+        ValueError:
+            Either the dataset or both x_test and y_test must be provided.
         """
 
-        self.set_check_metadata_and_partition(dataset, check_only = True)
-        x_test = torch.tensor(dataset.x_array[dataset.partition.total_test],      dtype=torch.float32)
-        y_test = torch.tensor(dataset.y_classifier[dataset.partition.total_test], dtype=torch.float32)
+        if dataset is not None:
+            self.set_check_metadata_and_partition(dataset, check_only = True)
+            x_test = torch.tensor(dataset.x_array[dataset.partition.total_test],      dtype=torch.float32)
+            y_test = torch.tensor(dataset.y_classifier[dataset.partition.total_test], dtype=torch.float32)
+        elif (x_test is not None) and (y_test is not None):
+            x_test = torch.tensor(x_test, dtype=torch.float32)
+            y_test = torch.tensor(y_test, dtype=torch.float32)
+        else:
+            raise ValueError("Either the dataset or both x_test and y_test must be provided.")
         
         self.eval()
         
         with torch.no_grad():
             y_pred  = self.forward(x_test)
             print(f"The accuracy is {100*(y_pred.round() == y_test).float().mean():.4f}%")
+            return y_pred.numpy(), y_test.numpy(), (y_pred.round() == y_test).numpy()
+        
+
+    def validate(self, dataset: DataSet) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Validate the efficiency of the classifier.
+
+        Parameters
+        ----------
+        dataset: DataSet
+            DataSet containing the training partition and the test partition.
+
+        Returns
+        -------
+        tuple(np.ndarray, np.ndarray, np.ndarray)
+            y_pred, y_test, and array of true if rightly classifier, false otherwise 
+        """
+
+        self.set_check_metadata_and_partition(dataset, check_only = True)
+        x_valid = torch.tensor(dataset.x_array[dataset.partition.total_valid],      dtype=torch.float32)
+        y_valid = torch.tensor(dataset.y_classifier[dataset.partition.total_valid], dtype=torch.float32)
+        
+        self.eval()
+        
+        with torch.no_grad():
+            y_pred  = self.forward(x_valid)
+            print(f"The accuracy is {100*(y_pred.round() == y_valid).float().mean():.4f}%")
+            return y_pred.numpy(), y_valid.numpy(), (y_pred.round() == y_valid).numpy()
 
 
     
@@ -207,6 +253,10 @@ def train_classifier(model: Classifier,
                      learning_rate: float = 1e-3, 
                      verbose: bool = True, 
                      batch_size: int = 64, 
+                     x_train: np.ndarray | None = None,
+                     y_train: np.ndarray | None = None,
+                     x_valid: np.ndarray | None = None,
+                     y_valid: np.ndarray | None = None,
                      **kwargs)-> None:
     """
     Trains a given classifier.
@@ -231,11 +281,23 @@ def train_classifier(model: Classifier,
     # set the metadata and parition object of the model
     model.set_check_metadata_and_partition(dataset)
 
+    if x_train is None:
+        x_train = dataset.x_array[dataset.partition.total_train]
+    
+    if y_train is None:
+        y_train = dataset.y_classifier[dataset.partition.total_train]
+
+    if x_valid is None:
+        x_valid = dataset.x_array[dataset.partition.total_valid]
+
+    if y_valid is None:
+        y_valid = dataset.y_classifier[dataset.partition.total_valid]
+        
     # format the data for the classifier
-    train_dataset = TorchDataset(dataset.x_array[dataset.partition.total_train], dataset.y_classifier[dataset.partition.total_train])
-    valid_dataset = TorchDataset(dataset.x_array[dataset.partition.total_valid], dataset.y_classifier[dataset.partition.total_valid])
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, **kwargs)
-    valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size, **kwargs)
+    train_dataset = TorchDataset(x_train, y_train)
+    valid_dataset = TorchDataset(x_valid, y_valid)
+    train_loader  = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, **kwargs)
+    valid_loader  = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size, shuffle=True, **kwargs)
     
     # we have only one param_group here
     # we modify the learning rate of that group

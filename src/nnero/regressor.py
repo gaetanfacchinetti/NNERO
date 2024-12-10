@@ -236,8 +236,8 @@ def train_regressor(model: Regressor,
     # format the data for the regressor
     train_dataset = TorchDataset(dataset.x_array[dataset.partition.early_train], dataset.y_regressor[dataset.partition.early_train])
     valid_dataset = TorchDataset(dataset.x_array[dataset.partition.early_valid], dataset.y_regressor[dataset.partition.early_valid])
-    train_loader  = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, **kwargs)
-    valid_loader  = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size, **kwargs)
+    train_loader  = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, **kwargs)
+    valid_loader  = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size, shuffle=True, **kwargs)
 
     # we have only one param_group here
     # we modify the learning rate of that group

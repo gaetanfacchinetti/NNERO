@@ -37,6 +37,11 @@ class NeuralNetwork(torch.nn.Module):
     """
     A class wrapping py:class:`torch.nn.Module` for neural network models
 
+    Parameters
+    ----------
+    name: str
+        name of the neural network
+
     Attributes
     ----------
     name: str
@@ -57,12 +62,6 @@ class NeuralNetwork(torch.nn.Module):
 
 
     def __init__(self, name: str) -> None:
-        """
-        Parameters
-        ----------
-        name: str
-            name of the neural network
-        """
 
         self._name: str = name
 
@@ -81,7 +80,7 @@ class NeuralNetwork(torch.nn.Module):
 
     def save(self, path: str = ".", save_partition: bool = True) -> None:
         """
-        save the neural network model in a bunch of files
+        Save the neural network model in a bunch of files.
 
         Parameters
         ----------
