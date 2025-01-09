@@ -28,15 +28,18 @@ from .regressor  import Regressor
 
 
 DEFAULT_VALUES = {'F_STAR10' : -1.5, 'ALPHA_STAR' : 0.5, 't_STAR' : 0.5, 'F_ESC10' : -1.0, 'ALPHA_ESC' : 0.3, 'M_TURN' : 8.7,
-            'Omch2' : 0.11933, 'Ombh2' : 0.02242, 'hlittle' : 0.6736, 'Ln_1010_As' : 3.047, 'POWER_INDEX' : 0.9665, 
+            'Omdmh2' : 0.11933, 'Ombh2' : 0.02242,  'hlittle' : 0.6736, 'Ln_1010_As' : 3.047, 'POWER_INDEX' : 0.9665, 
             'INVERSE_M_WDM' : 0.05, 'NEUTRINO_MASS_1' : 0.02, 'FRAC_WDM' : 0.0, 'M_WDM' : '20.0', 'L_X' : 40.0, 'NU_X_THRESH' : 500,
             'LOG10_PMF_SB' : -5.0, 'PMF_NB' : -2.0}
 
 
 MP_KEY_CORRESPONDANCE = {'log10_f_star10' : 'F_STAR10', 'alpha_star' : 'ALPHA_STAR', 't_star' : 't_STAR', 'log10_f_esc10' : 'F_ESC10', 
-                         'alpha_esc' : 'ALPHA_ESC', 'omega_wcdm' : 'Omch2', 'omega_b' : 'Ombh2', 'h':'hlittle', 'ln10^{10}A_s' : 'Ln_1010_As',
+                         'alpha_esc' : 'ALPHA_ESC', 'Omch2' : 'Omdmh2', 'omega_dm' : 'Omdmh2', 'omega_b' : 'Ombh2', 'h': 'hlittle', 'ln10^{10}A_s' : 'Ln_1010_As',
                          'n_s' : 'POWER_INDEX', 'mnu1' : 'NEUTRINO_MASS_1', 'f_WDM' : 'FRAC_WDM', 'm_wdm' : 'M_WDM', 'nu_X_thresh' : 'NU_X_THRESH',
                          'log10_pmf_sb' : 'LOG10_PMF_SB', 'pmf_nb' : 'PMF_NB'}
+
+## Note that due to a strange naming convention in 21cmFAST, Omch2 actually corresponded to omega_dm
+## This notation is deprecated today, prefer to use Omdmh2
 
 # ---------------------------------------------------
 # CHECKS AND PREPARATION OF THE DATA TO FED TO THE NN
@@ -84,7 +87,7 @@ def input_values(metadata: MetaData, **kwargs):
     kw_vals = np.array(list(kwargs.values()))
 
     # translate the keys that could be comming with a different naming convention
-    kw_keys = np.array([MP_KEY_CORRESPONDANCE[x] if key in MP_KEY_CORRESPONDANCE.keys() else key for key in kw_keys])
+    kw_keys = np.array([MP_KEY_CORRESPONDANCE[key] if key in MP_KEY_CORRESPONDANCE.keys() else key for key in kw_keys])
 
     # error handling, check that inputs are in the trained parameters list
     # concatenate params_name and kw_keys and get unique input, if all goes well

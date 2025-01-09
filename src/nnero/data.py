@@ -391,10 +391,9 @@ class MetaData:
         self._parameters_min_val = parameters_min_val
         self._parameters_max_val = parameters_max_val
 
-        # derives quantities
-
+        # derived quantities
         self._pos_omega_b = np.where(self.parameters_name == 'Ombh2')[0][0]
-        self._pos_omega_c = np.where(self.parameters_name == 'Omch2')[0][0]
+        self._pos_omega_c = np.where(self.parameters_name == 'Omdmh2')[0][0]
         self._pos_hlittle = np.where(self.parameters_name == 'hlittle')[0][0]
 
         self._min_omega_b = self._parameters_min_val[self._pos_omega_b]
