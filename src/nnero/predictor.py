@@ -300,8 +300,7 @@ def predict_tau(classifier: Classifier | None = None,
 
 def predict_tau_numpy(theta: np.ndarray,
                 classifier: Classifier | None = None,
-                regressor: Regressor   | None = None,
-                default: dict = DEFAULT_VALUES):
+                regressor: Regressor   | None = None):
     
     if regressor is None:
         regressor = Regressor.load()
