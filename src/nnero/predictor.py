@@ -27,6 +27,7 @@ from .classifier import Classifier
 from .regressor  import Regressor
 
 
+
 DEFAULT_VALUES = {'F_STAR10' : -1.5, 'ALPHA_STAR' : 0.5, 't_STAR' : 0.5, 'F_ESC10' : -1.0, 'ALPHA_ESC' : 0.3, 'M_TURN' : 8.7,
             'Omdmh2' : 0.11933, 'Ombh2' : 0.02242,  'hlittle' : 0.6736, 'Ln_1010_As' : 3.047, 'POWER_INDEX' : 0.9665, 
             'INVERSE_M_WDM' : 0.05, 'NEUTRINO_MASS_1' : 0.02, 'FRAC_WDM' : 0.0, 'M_WDM' : '20.0', 'L_X' : 40.0, 'NU_X_THRESH' : 500,
@@ -35,8 +36,8 @@ DEFAULT_VALUES = {'F_STAR10' : -1.5, 'ALPHA_STAR' : 0.5, 't_STAR' : 0.5, 'F_ESC1
 
 MP_KEY_CORRESPONDANCE = {'log10_f_star10' : 'F_STAR10', 'alpha_star' : 'ALPHA_STAR', 't_star' : 't_STAR', 'log10_f_esc10' : 'F_ESC10', 
                          'alpha_esc' : 'ALPHA_ESC', 'Omch2' : 'Omdmh2', 'omega_dm' : 'Omdmh2', 'omega_b' : 'Ombh2', 'h': 'hlittle', 'ln10^{10}A_s' : 'Ln_1010_As',
-                         'n_s' : 'POWER_INDEX', 'mnu1' : 'NEUTRINO_MASS_1', 'f_WDM' : 'FRAC_WDM', 'm_wdm' : 'M_WDM', 'nu_X_thresh' : 'NU_X_THRESH',
-                         'log10_pmf_sb' : 'LOG10_PMF_SB', 'pmf_nb' : 'PMF_NB'}
+                         'n_s' : 'POWER_INDEX', 'm_nu1' : 'NEUTRINO_MASS_1', 'f_WDM' : 'FRAC_WDM', 'm_wdm' : 'M_WDM', 'nu_X_thresh' : 'NU_X_THRESH',
+                         'log10_pmf_sb' : 'LOG10_PMF_SB', 'pmf_nb' : 'PMF_NB', 'log10_m_turn' : 'M_TURN', 'log10_lum_X' : 'L_X', '1/m_wdm' : 'INVERSE_M_WDM'}
 
 ## Note that due to a strange naming convention in 21cmFAST, Omch2 actually corresponded to omega_dm
 ## This notation is deprecated today, prefer to use Omdmh2
@@ -72,7 +73,7 @@ def check_values(vals, metadata : MetaData):
 
 
     
-def input_values(metadata: MetaData, **kwargs):
+def input_values(metadata: MetaData, default: str = DEFAULT_VALUES, **kwargs):
 
     params_name = metadata.parameters_name
 
@@ -80,7 +81,7 @@ def input_values(metadata: MetaData, **kwargs):
     iparams = {value: index for index, value in enumerate(params_name)}
 
     # predefined default values for most common parameters
-    vals = np.array([DEFAULT_VALUES[p] for p in params_name])
+    vals = np.array([default[p] for p in params_name])
         
     # check that the arguments passed in kwargs were trained on
     kw_keys = np.array(list(kwargs.keys()))
@@ -118,8 +119,8 @@ def input_values(metadata: MetaData, **kwargs):
     return vals
 
 
-def uniform_input_values(metadata: MetaData, **kwargs):
-    vals = input_values(metadata, **kwargs)
+def uniform_input_values(metadata: MetaData, default:dict = DEFAULT_VALUES, **kwargs):
+    vals = input_values(metadata, default, **kwargs)
     return true_to_uniform(vals, metadata.parameters_min_val, metadata.parameters_max_val)
 
 def uniform_input_array(theta : np.ndarray, metadata: MetaData):
@@ -132,7 +133,9 @@ def uniform_input_array(theta : np.ndarray, metadata: MetaData):
 # PREDICTION FUNCTIONS
 
 
-def predict_classifier(classifier:Classifier | None = None, **kwargs):
+def predict_classifier(classifier: Classifier | None = None, 
+                       default : dict = DEFAULT_VALUES, 
+                       **kwargs):
     """
     Prediction of the classifier
 
@@ -155,7 +158,7 @@ def predict_classifier(classifier:Classifier | None = None, **kwargs):
     if classifier is None:
         classifier = Classifier.load()
 
-    u_vals = uniform_input_values(classifier.metadata, **kwargs)
+    u_vals = uniform_input_values(classifier.metadata, default, **kwargs)
     u_vals = torch.tensor(u_vals, dtype=torch.float32)
     
     with torch.no_grad():
@@ -183,7 +186,9 @@ def predict_classifier_numpy(theta: np.ndarray, classifier: Classifier | None = 
 
 
 
-def predict_regressor(regressor: Regressor | None = None, **kwargs):
+def predict_regressor(regressor: Regressor | None = None, 
+                      default: dict = DEFAULT_VALUES, 
+                      **kwargs):
     """
         prediction of the regressor
 
@@ -206,7 +211,7 @@ def predict_regressor(regressor: Regressor | None = None, **kwargs):
     if regressor is None:
         regressor = Regressor.load()
      
-    u_vals = uniform_input_values(regressor.metadata, **kwargs)
+    u_vals = uniform_input_values(regressor.metadata, default, **kwargs)
     u_vals = torch.tensor(u_vals, dtype=torch.float32)
     
     with torch.no_grad():
@@ -234,14 +239,15 @@ def predict_regressor_numpy(theta: np.ndarray, regressor: Regressor | None = Non
 
 def predict_xHII(classifier: Classifier | None = None, 
             regressor:  Regressor  | None = None, 
+            default: dict = DEFAULT_VALUES,
             **kwargs):
     
-    early = predict_classifier(classifier, **kwargs)
+    early = predict_classifier(classifier, default, **kwargs)
 
     if not early:
         return False
     
-    xHII = predict_regressor(regressor, **kwargs)
+    xHII = predict_regressor(regressor, default, **kwargs)
     return xHII
 
 
@@ -280,14 +286,15 @@ def predict_tau_from_xHII_numpy(xHII, theta : np.ndarray, metadata : MetaData):
 
 def predict_tau(classifier: Classifier | None = None,
                 regressor: Regressor   | None = None,
+                default: dict = DEFAULT_VALUES,
                 **kwargs):
     
-    xHII = predict_xHII(classifier, regressor, **kwargs)
+    xHII = predict_xHII(classifier, regressor, default, **kwargs)
     
     if xHII is False:
         return -1
     
-    return predict_tau_from_xHII(xHII, regressor.metadata, **kwargs)
+    return predict_tau_from_xHII(xHII, regressor.metadata, default, **kwargs)
 
 
 

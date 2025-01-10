@@ -156,12 +156,12 @@ def phi_uv(z:          float | np.ndarray,
     """
     UV flux in Mpc^{-3}
 
-    Parameters:
+    Parameters
     ----------
     m_uv: float, np.ndarry (s,)
     omega_b: float, np.ndaray (q,)
 
-    Returns:
+    Returns
     -------
     result of shape (q, r, s)
     """
