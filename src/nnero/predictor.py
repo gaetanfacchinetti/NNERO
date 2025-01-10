@@ -306,11 +306,11 @@ def predict_tau_numpy(theta: np.ndarray,
     if regressor is None:
         regressor = Regressor.load()
     
-    xHII = predict_xHII_numpy(theta, classifier, regressor, default)
+    xHII = predict_xHII_numpy(theta, classifier, regressor)
     
     res  = - np.ones(len(xHII))
     mask = (xHII[:, -1] != -1)
     
-    res[mask]  = predict_tau_from_xHII_numpy(xHII[mask, :], theta[mask, :], regressor.metadata, default)
+    res[mask]  = predict_tau_from_xHII_numpy(xHII[mask, :], theta[mask, :], regressor.metadata)
 
     return res

@@ -500,17 +500,21 @@ class AxesGrid:
         self._titles[axis].append(new_titles)
         self._titles_text[axis].append(None)
 
-    def update_titles(self, title_spacing = 1.9):
+    def update_titles(self, height = 1.05, spacing = 1.9, fontsize = None):
+
+        if fontsize is None:
+            fontsize = self._fontsize
 
         for j in range(self.size):
             k = self.index_1D(j, j)
             for it, title in enumerate(self._titles[j]):
-                height = 1.05 if it == 0 else 1.05+it*title_spacing*1e-2*self._fontsize
+                total_height = height if it == 0 else height+it*spacing*1e-2*fontsize
                 if self._titles_text[j][it] is None: 
-                    self._titles_text[j][it] = self._axs[k].text(0.5, height, title, fontsize=self._fontsize, color = self._titles_color[j][it], ha='center', transform=self._axs[k].transAxes)
+                    self._titles_text[j][it] = self._axs[k].text(0.5, total_height, title, fontsize=fontsize, color = self._titles_color[j][it], ha='center', transform=self._axs[k].transAxes)
                 else:
-                    self._titles_text[j][it].set_position((0.5, height))
+                    self._titles_text[j][it].set_position((0.5, total_height))
                     self._titles_text[j][it].set_text(title)
+                    self._titles_text[j][it].set_fontsize(fontsize)
 
     def index_from_name(self, name: str | list[str]):
         
@@ -862,14 +866,20 @@ def get_xHII_stats(samples: Samples, data_to_plot, q = [0.68, 0.95], bins = 30, 
 
     labels_correspondance = {value : key for key, value in MP_KEY_CORRESPONDANCE.items()}
     
+
+    # get the data sample 
     data_sample = prepare_data_plot(samples, data_for_xHII, discard=discard, thin=thin)
     data = np.empty((len(parameters), data_sample.shape[-1])) 
 
+    # find the ordering in which data_sample is set in prepare_data_plot
+    indices_to_plot = [np.where(samples.param_names == param)[0][0] for param in data_for_xHII if param in samples.param_names]
+
+    
     for ip, param in enumerate(parameters): 
         
         # if we ran the MCMC over that parameter
-        if labels_correspondance[param] in samples.param_names:
-            index = list(samples.param_names).index(labels_correspondance[param])
+        if labels_correspondance[param] in samples.param_names[indices_to_plot]:
+            index = list(samples.param_names[indices_to_plot]).index(labels_correspondance[param])
             data[ip] = data_sample[index, :]
         else:
             data[ip, :] = DEFAULT_VALUES[param]
