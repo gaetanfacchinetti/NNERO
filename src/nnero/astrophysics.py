@@ -91,7 +91,7 @@ def m_halo(hz:         float | np.ndarray,
     mask = ((f_star10 * (mh_below/1e+10)**alpha_star * hz / hz) <= 1)
 
     # vals below are those for which f_star10 (m/1e+10) < 1  (and f_star = f_b)
-    mh_above = 1e+10 * gamma_UV / hz * t_star / fb *  10**(-0.4*m_uv) 
+    mh_above = gamma_UV / hz * t_star / fb *  10**(-0.4*m_uv) 
 
     # fill the return array with the correct values according to the mask
     res[mask]  = mh_below[mask]
