@@ -311,8 +311,6 @@ class Samples:
         samples_flat = self.flat(discard=discard, thin=1)
         med  = np.median(samples_flat, axis=1)
         mean = np.mean(samples_flat, axis=1)
-        #quant = np.quantile(samples_flat, q=[0.68, 0.95], axis=1)
-        #print(quant)
 
         nc = np.zeros(len(self.param_names), dtype=int)
         for ip, param in enumerate(self.param_names):
@@ -367,7 +365,7 @@ LATEX_LABELS = {'omega_b' :  r'$\omega_{\rm b}$', 'omega_dm' : r'$\omega_{\rm dm
                 'n_s' : r'$n_{\rm s}$', 'm_nu1' : r'$m_{\nu 1}~{\rm [eV]}$', 'sum_mnu' : r'$\sum {m_\nu}~{\rm [eV]}$', 'log10_f_star10' : r'$\log_{10}f_{\star, 10}$',
                   'alpha_star' : r'$\alpha_\star$', 'log10_f_esc10' : r'$\log_{10} f_{\rm esc, 10}$', 'alpha_esc' : r'$\alpha_{\rm esc}$',
                   't_star' : r'$t_\star$', 'log10_m_turn' : r'$\log_{10} M_{\rm turn}$', 'log10_lum_X' : r'$\log_{10} L_X$', 'nu_X_thresh' : r'$E_0$',
-                  '1/m_wdm' : r'$\mu_{\rm WDM}$', 'f_wdm' : r'$f_{\rm WDM}$', 'tau_reio' : r'$\tau$'}
+                  '1/m_wdm' : r'$\mu_{\rm WDM}$', 'mu_wdm' : r'$\mu_{\rm WDM}$', 'f_wdm' : r'$f_{\rm WDM}$', 'tau_reio' : r'$\tau$'}
 
 class AxesGrid:
 
@@ -820,7 +818,9 @@ def prepare_data_plot(samples, data_to_plot, discard = 0, thin = 1):
 
     # rescaling the data according to the scaling factor
     for iname, name in enumerate(samples.param_names):
-        if samples.scaling_factor[name] != 1:
+        if (samples.scaling_factor[name] != 1) and (name != '1/m_wdm' and name != 'm_wdm'): 
+            # note that we keep the warm dark matter transformed
+            # just means that we need to be carefull with the units
             data[iname] = samples.scaling_factor[name] * data[iname]
 
 
@@ -885,6 +885,13 @@ def get_xHII_stats(samples: Samples, data_to_plot, q = [0.68, 0.95], bins = 30, 
             data[ip, :] = DEFAULT_VALUES[param]
 
     xHII = predict_xHII_numpy(theta=data.T, classifier=classifier, regressor=regressor)
+    
+    # here remove some outliers that should not have 
+    # passed the likelihood condition
+    if np.count_nonzero(xHII[:, -1]==-1)/len(xHII) > 0.01:
+        warnings.warn("More than 1 percent of outliers with late reionization")
+
+    xHII = xHII[xHII[:, -1] > 0]
 
     mean = np.mean(xHII, axis=0)
     med  = np.median(xHII, axis=0)

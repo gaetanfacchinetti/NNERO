@@ -36,7 +36,7 @@ DEFAULT_VALUES = {'F_STAR10' : -1.5, 'ALPHA_STAR' : 0.5, 't_STAR' : 0.5, 'F_ESC1
 
 MP_KEY_CORRESPONDANCE = {'log10_f_star10' : 'F_STAR10', 'alpha_star' : 'ALPHA_STAR', 't_star' : 't_STAR', 'log10_f_esc10' : 'F_ESC10', 
                          'alpha_esc' : 'ALPHA_ESC', 'Omch2' : 'Omdmh2', 'omega_dm' : 'Omdmh2', 'omega_b' : 'Ombh2', 'h': 'hlittle', 'ln10^{10}A_s' : 'Ln_1010_As',
-                         'n_s' : 'POWER_INDEX', 'm_nu1' : 'NEUTRINO_MASS_1', 'f_WDM' : 'FRAC_WDM', 'm_wdm' : 'M_WDM', 'nu_X_thresh' : 'NU_X_THRESH',
+                         'n_s' : 'POWER_INDEX', 'm_nu1' : 'NEUTRINO_MASS_1', 'f_wdm' : 'FRAC_WDM', 'm_wdm' : 'M_WDM', 'nu_X_thresh' : 'NU_X_THRESH',
                          'log10_pmf_sb' : 'LOG10_PMF_SB', 'pmf_nb' : 'PMF_NB', 'log10_m_turn' : 'M_TURN', 'log10_lum_X' : 'L_X', '1/m_wdm' : 'INVERSE_M_WDM'}
 
 ## Note that due to a strange naming convention in 21cmFAST, Omch2 actually corresponded to omega_dm
@@ -264,9 +264,9 @@ def predict_xHII_numpy(theta: np.ndarray,
 
 
 
-def predict_tau_from_xHII(xHII, metadata : MetaData, **kwargs):
+def predict_tau_from_xHII(xHII, metadata : MetaData, default: dict = DEFAULT_VALUES, **kwargs):
 
-    vals = input_values(metadata, **kwargs)
+    vals = input_values(metadata, default, **kwargs)
     
     omega_b = np.array([vals[metadata.pos_omega_b]])[None, :]
     omega_c = np.array([vals[metadata.pos_omega_c]])[None, :]
