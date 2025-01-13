@@ -72,6 +72,14 @@ def neutrino_masses(mnu_1, mnu_2 = 0.0, mnu_3 = 0.0, hierarchy = 'NORMAL'):
 
 
 class MPChain:
+    """
+    Class MPChain reading chains from MontePython output files
+
+    Parameters
+    ----------
+    filename : str
+        Path to the the file where the chain is stored.
+    """
 
     def __init__(self, filename: str):
         
@@ -80,7 +88,10 @@ class MPChain:
 
     
     def load(self) -> None:
-        
+        """
+        Load the chain and automatically remove the non-markovian points.
+        """
+
         # read the file to get the chain
         with open(self._filename, 'r') as f:
             data = np.loadtxt(f) 
@@ -108,10 +119,20 @@ class MPChain:
 
         self._n_params = self._values.shape[0]
         self._mean_value: np.ndarray = np.zeros(self._n_params)
-        self._std_value:  np.ndarray = np.zeros(self._n_params)
+        self._var_value:  np.ndarray = np.zeros(self._n_params)
 
 
     def remove_burnin(self, global_max_lnlkl: float) -> None:
+        """
+        Remove the burnin points according to the value of the maximum
+        log likelihood over all chains. Only points of the chain that are 
+        after its overcrossing of global_max_lnlkl - 3 are kept.
+
+        Parameters
+        ----------
+        global_max_lnlkl : float
+            Global maximum log likelihood over all chains
+        """
 
         if np.all(self.lnlkl < (global_max_lnlkl - 3)):
             self._burnin_index = len(self.lnlkl)
@@ -128,8 +149,21 @@ class MPChain:
         self.lnlkl    = self.lnlkl[self._burnin_index:]
 
         
-
     def values(self, discard: int = 0, thin: int = 1) -> np.ndarray:
+        """
+        Get the values of the chain.
+
+        Parameters
+        ----------
+        discard : int, optional
+            Number of initial points to discard, by default 0.
+        thin : int, optional
+            Thining factor (taking only one value every value of thin), by default 1.
+
+        Returns
+        -------
+        np.ndarray with dimension (number of parameters, length of chain)
+        """
         
         if discard > self._values.shape[-1]:
             discard = self._values.shape[-1]
@@ -138,8 +172,15 @@ class MPChain:
         return self._values[:, discard::thin]
     
     def compute_stats(self) -> None:
-        self._mean_value = np.mean(self._values, axis = 1)
-        self._std_value  = np.std(self._values, axis = 1)
+        """
+        Compute the mean and standard deviation within the chain.
+        Should be called after `remove_burnin()`. 
+        """
+
+        n = np.sum(self.weights)
+
+        self._mean_value = np.sum(self._values * self.weights[None, :], axis=-1) / n 
+        self._var_value  = (np.sum((self._values**2) * self.weights[None, :], axis=-1) - n * (self._mean_value)**2) / (n-1)
 
 
     @property
@@ -163,12 +204,16 @@ class MPChain:
         return self._mean_value
     
     @property
-    def std_value(self):
-        return self._std_value
+    def var_value(self):
+        return self._var_value
     
     @property
     def length(self):
         return self._values.shape[1]
+    
+    @property
+    def n_steps(self):
+        return np.sum(self.weights)
     
     @property
     def n_params(self):
@@ -178,6 +223,17 @@ class MPChain:
 
 
 class Samples:
+    """
+    Class containing all chains of a MCMC analysis
+    
+    Parameters
+    ----------
+    path : str
+        Path to the chains.
+    ids : list | np.ndarray | None, optional
+        List of chains to take into accoung. If none all possible found chains are added. By default None.
+
+    """
 
     def __init__(self, 
                  path: str, 
@@ -202,10 +258,17 @@ class Samples:
             if chain.length > 0:
                 chain.compute_stats()
 
+        # define some global quantities (total number of steps and overall mean of the parameters)
+        self._total_steps = np.sum(np.array([chain.n_steps for chain in self._chains]), dtype=int)
+
+        self._total_mean = np.zeros(self.n_params)
+        for chain in self._chains:
+            self._total_mean  = self._total_mean + chain.n_steps * chain.mean_value
+        self._total_mean = self._total_mean / self._total_steps
+
         self.load_scaling_factor()
+
            
-
-
 
 
     def load_chains(self) -> None:
@@ -285,24 +348,29 @@ class Samples:
         return res
     
     
-    def convergence_test(self):
+    def convergence(self) -> np.ndarray:
+        """
+        Gelman-Rubin criterion weighted by the length of the chain as implemented
+        in MontePython.
 
-        chains_length = np.array([chain.length for chain in self.chains])
-        n = np.min(chains_length[chains_length > 0])
+        Returns
+        -------
+        np.ndarray
+            R-1 for all parameters
+        """
 
-        print(n)
+        within  = np.zeros(self.n_params)
+        between = np.zeros(self.n_params)
+        
+        for chain in self.chains :
+            within  = within  + chain.n_steps * chain.var_value 
+            between = between + chain.n_steps * (chain.mean_value - self.total_mean)**2
 
-        chains_mean = np.array([np.mean(chain._values[:, -n:], axis = 1) if chain.length > n else np.zeros(chain.n_params) for chain in self.chains])
-        chains_std  = np.array([np.std(chain._values[:, -n:],  axis = 1) if chain.length > n else np.zeros(chain.n_params) for chain in self.chains])
+        within  = within / self.total_steps
+        between = between / (self.total_steps-1)
 
-        b = n * np.std(chains_mean, axis=0)
-        w = np.mean(chains_std, axis=0)
+        return between/within
 
-        print(b.shape)
-
-        r = np.sqrt( ((n-1)/n * w + b / n) / w )
-
-        return r-1.0
 
 
 
@@ -348,6 +416,14 @@ class Samples:
     @property
     def scaling_factor(self):
         return self._scaling_factor
+    
+    @property
+    def total_steps(self):
+        return self._total_steps
+    
+    @property
+    def total_mean(self):
+        return self._total_mean
     
 
 

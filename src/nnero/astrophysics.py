@@ -37,7 +37,7 @@ def m_halo(hz:         float | np.ndarray,
            t_star:     float | np.ndarray, 
            f_star10:   float | np.ndarray,
            omega_b:    float | np.ndarray,
-           omega_m:    float | np.ndarray) -> np.ndarray:
+           omega_m:    float | np.ndarray) -> tuple[np.ndarray,  np.ndarray]:
     """
     Halo mass in term of the UV magnitude for a given astrophysical model
 
@@ -87,10 +87,10 @@ def m_halo(hz:         float | np.ndarray,
     # mh below are those for which f_star10 (m/1e+10) <= 1 (and f_star = f_b f_star10 (m/1e+10))
     mh_below = 1e+10 * ( gamma_UV/(hz*1e+10) * t_star / f_star10 / fb *  10**(-0.4*m_uv) )**(1.0/(alpha_star+1.0))
 
-    # make a difference if f_star10 (m/1e+10) >= 1 or not
+    # make a difference if f_star10 (m/1e+10) <= 1 or not
     mask = ((f_star10 * (mh_below/1e+10)**alpha_star * hz / hz) <= 1)
 
-    # vals below are those for which f_star10 (m/1e+10) < 1  (and f_star = f_b)
+    # vals below are those for which f_star10 (m/1e+10) > 1  (and f_star = f_b)
     mh_above = gamma_UV / hz * t_star / fb *  10**(-0.4*m_uv) 
 
     # fill the return array with the correct values according to the mask
@@ -100,7 +100,8 @@ def m_halo(hz:         float | np.ndarray,
     # check that all mh below statisfy the criterion (as it should)
     assert np.all( (f_star10 * (res[~mask]/1e+10)**alpha_star)  > 1), "Halo mass value (index below) should satisfy f_star10 * (mh_below/1e+10)**alpha_star < 1"
 
-    return res
+    # the mask is True when we are below i.e. f_star10 (m/1e+10)^alpha_star < 1, and False when we are above
+    return res, mask
 
 
 
@@ -112,14 +113,19 @@ def dmhalo_dmuv(hz: float | np.ndarray,
              omega_b: float | np.ndarray,
              omega_m: float | np.ndarray,
              *,
-             mh: np.ndarray | None = None):
+             mh: np.ndarray | None = None,
+             mask: np.ndarray | None = None):
     
 
-    if mh is None:
-        mh = m_halo(hz, m_uv, alpha_star, t_star, f_star10, omega_b, omega_m) # shape (q, r, s)
+    if (mh is None) or (mask is None):
+        mh, mask = m_halo(hz, m_uv, alpha_star, t_star, f_star10, omega_b, omega_m) # shape (q, r, s)
 
     alpha_star = convert_array(alpha_star)
-    return - mh * np.log(10.0) * 0.4/(alpha_star[:, None, None]+1)
+    
+    res        = - mh * np.log(10.0) * 0.4/(alpha_star[:, None, None]+1) # if f_star10 (m/1e+10)^alpha_star <= 1
+    res[~mask] = - mh[~mask] * np.log(10.0) * 0.4 # if f_star10 (m/1e+10)^alpha_star > 1
+    
+    return res 
     
 
 
@@ -151,7 +157,8 @@ def phi_uv(z:          float | np.ndarray,
            *, 
            window: str = 'sharpk', 
            c: float = 2.5,
-           mh: np.ndarray | None = None):
+           mh: np.ndarray | None = None,
+           mask: np.ndarray | None = None):
     
     """
     UV flux in Mpc^{-3}
@@ -169,10 +176,10 @@ def phi_uv(z:          float | np.ndarray,
     
     # result of shape (n, r, q) in Mpc^(-3)
 
-    if mh is None:
-        mh = m_halo(hz, m_uv, alpha_star, t_star, f_star10, omega_b, omega_m)               # shape (q, r, s)
+    if (mh is None) or (mask is None):
+        mh, mask = m_halo(hz, m_uv, alpha_star, t_star, f_star10, omega_b, omega_m)               # shape (q, r, s)
     
-    dmh_dmuv = dmhalo_dmuv(hz, m_uv, alpha_star, t_star, f_star10, omega_b, omega_m, mh = mh) # shape (q, r, s)
+    dmh_dmuv = dmhalo_dmuv(hz, m_uv, alpha_star, t_star, f_star10, omega_b, omega_m, mh = mh, mask=mask) # shape (q, r, s)
     dndmh    = dn_dm(z, mh, k, pk, omega_m, h, sheth_a=sheth_a, sheth_q=sheth_q, sheth_p=sheth_p, window=window, c = c) # shape (q, r, s)
 
     return f_duty(mh, m_turn) * dndmh * np.abs(dmh_dmuv)

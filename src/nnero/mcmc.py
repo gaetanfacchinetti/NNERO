@@ -20,11 +20,287 @@
 import numpy as np
 import warnings
 
+import os, pickle
+import pkg_resources
+
+from abc import ABC, abstractmethod
+
 from scipy       import special
 from .data       import uniform_to_true
 from .predictor  import predict_tau_from_xHII_numpy, predict_xHII_numpy
 from .classifier import Classifier
 from .regressor  import Regressor
+
+from .astrophysics import m_halo, phi_uv
+from .cosmology import h_factor_no_rad, ShortPowerSpectrumRange
+from .constants import CONVERSIONS, CST_MSOL_MPC
+
+CLASSY_IMPORTED = False
+
+try:
+    import classy
+    CLASSY_IMPORTED = True
+except:
+    pass
+
+
+LIKELIHOOD_DATA_PATH = pkg_resources.resource_filename('nnero', 'lkl_data/')
+
+
+######################
+## Define likelihood at fixed cosmology
+
+class Likelihood(ABC):
+
+    def __init__(self, parameters: list[str]) -> None:
+
+        self._parameters = parameters
+        self._index = {key: i for i, key in enumerate(parameters)} 
+
+
+   
+    def loglkl(self, theta: np.ndarray, xi: np.ndarray, **kwargs):
+
+        if len(theta.shape) == 1:
+            theta = theta[None, :]
+
+        if len(xi.shape) == 1:
+            xi = xi[None, :]
+
+        x: np.ndarray = np.hstack((theta, xi))
+
+        if x.shape[-1] != len(self.parameters):
+            raise ValueError('theta and xi should make an array that is the size of the parameter vector' )
+        
+        return self._loglkl(x, **kwargs)
+
+
+    @abstractmethod
+    def _loglkl(self, x, **kwargs):
+        pass
+
+    @property
+    def parameters(self):
+        return self._parameters
+    
+    @property
+    def index(self):
+        return self._index
+    
+    @property
+    def vectorizable(self):
+        return self._vectorizable
+
+
+class UVLFLikelihood(Likelihood):
+    """
+    Likelihood for the UV luminosity functions
+
+    Parameters
+    ----------
+    k : np.ndarray
+        Array of modes on which the matter power spectrum is given (in 1/Mpc).
+    pk : np.ndarray
+        Matter power spectrum.
+    """
+
+    def __init__(self, 
+                 parameters: list[str],  
+                 *,
+                 k: np.ndarray | None = None, 
+                 pk: np.ndarray | None = None) -> None:
+    
+        if (k is not None) and (pk is not None):
+
+            self._k  = k
+            self._pk = pk
+
+        elif CLASSY_IMPORTED:
+
+            h = 0.7
+            omega_m = 0.3*(h**2)
+            cosmo = classy.Class()
+            cosmo.set({'output' : 'mPk', 'P_k_max_h/Mpc' : 100.0, 'h' : 0.7, 'omega_m' : omega_m})
+            cosmo.compute()
+
+            self._k     = np.logspace(-5, np.log10(cosmo.pars['P_k_max_h/Mpc'] * h), 50000)
+            self._pk    = np.array([cosmo.pk_lin(_k, 0) for _k in self._k]) 
+
+        else:
+            raise ValueError('If CLASS not installed, need to provide k and pk as arguments')
+
+        self.sheth_a = 0.322
+        self.sheth_q = 1.0
+        self.sheth_p = 0.3 
+        self.c       = 2.5
+        self.window  = 'sharpk'
+
+        elements_to_check = ['ALPHA_STAR', 't_STAR', 'F_STAR10', 'M_TURN']
+        if not np.all([element in parameters for element in elements_to_check]):
+            raise ValueError('In order to use UVLFLikelihood, need to pass alpha_star, t_star, log10_f_star10 and log10_m_turn as inpur parameters')
+
+        with open(os.path.join(LIKELIHOOD_DATA_PATH, "UVData.pkl"), 'rb') as file:
+        
+            data_uv = pickle.load(file)
+
+            self.z_uv_exp = data_uv['z_uv']
+            self.m_uv_exp = data_uv['m_uv']
+
+            self.phi_uv_exp = data_uv['p_uv']
+
+            self.sigma_phi_uv_down = data_uv['sigma_p_uv_down']
+            self.sigma_phi_uv_up   = data_uv['sigma_p_uv_up']
+
+        super().__init__(parameters)
+
+
+
+    @property
+    def k(self):
+        return self._k
+    
+    @property
+    def pk(self):
+        return self._pk
+
+
+
+    def _loglkl(self, x, **kwargs):
+        
+        #### ATTENTION GIVES STRANGE BEHAVIOUR, NOT SELF CONSISTENT OVER SEVERAL CALLS
+
+
+        h       = 0.7
+        omega_m = 0.3 * (h**2)
+        omega_b = x[:, self.index['Ombh2']]
+
+        rhom0  = omega_m * CST_MSOL_MPC.rho_c_over_h2 
+
+        alpha_star = x[:, self.index['ALPHA_STAR']]
+        t_star     = x[:, self.index['t_STAR']]
+        f_star10   = 10**x[:, self.index['F_STAR10']]
+        m_turn     = 10**x[:, self.index['M_TURN']]
+     
+        log_lkl = np.zeros(x.shape[0])
+
+        # allow k and pk to be passed as extra arguments of the function
+        # in the case they depend on some parameters in theta
+        k  = kwargs.get('k', self.k)
+        pk = kwargs.get('pk', self.pk)
+
+        print(alpha_star, t_star, np.log10(f_star10), np.log10(m_turn), omega_b)
+
+
+        # by hand vectorization in order to be able to compute the likelihood like that
+        for ix in range(x.shape[0]) : 
+
+            # loop on the datasets
+            # we do not include Bouwens et al 2015 (10.1088/0004-637X/803/1/34)
+            # stored at index 0, therefore we start the loop at 1
+            for j in [1, 2, 3]:
+
+                # loop on the redshift bins
+                for iz, z, in enumerate(self.z_uv_exp[j]):
+
+                    hz = 100 * h_factor_no_rad(z, omega_b, omega_m - omega_b, h)[0, 0] * CONVERSIONS.km_to_mpc
+                    mh, mask = m_halo(hz, self.m_uv_exp[j][iz], alpha_star[ix], t_star[ix], f_star10[ix], omega_b[ix], omega_m)
+
+                    k_max = np.max(self.c * (3*mh/(4*np.pi)/rhom0)**(-1/3))
+
+                    if k_max > k[-1]:
+                        raise ValueError('Power spectrum not evaluated on a large enough range')
+                    
+                    try:
+                        # predict the UV luminosity function on the range of magnitude m_uv at that redshift bin
+                        # in the future, could add sheth_a, sheth_q, sheth_p and c as nuisance parameters
+                        phi_uv_pred_z = phi_uv(z, hz, self.m_uv_exp[j][iz], k, pk, alpha_star[ix], t_star[ix], f_star10[ix], m_turn[ix], omega_b[ix], omega_m, h, 
+                                                    self.sheth_a, self.sheth_q, self.sheth_p, window = self.window, c = self.c, mh = mh, mask = mask)[0,0]
+                       
+                    except ShortPowerSpectrumRange:
+                        # kill the log likelihood in that case by setting it to -infinity
+                        return ValueError('Power spectrum not evaluated on a large enough range')
+
+                    # get a sigma that is either the down or the up one depending 
+                    # if prediction is lower / higher than the observed value
+                    mask = (phi_uv_pred_z > self.phi_uv_exp[j][iz])
+                    sigma = self.sigma_phi_uv_down[j][iz]
+                    sigma[mask] = self.sigma_phi_uv_up[j][iz][mask]
+
+                    # update the log likelihood
+                    log_lkl[ix] = log_lkl[ix] + np.sum(np.log(np.sqrt(2.0/np.pi)/(self.sigma_phi_uv_up[j][iz] + self.sigma_phi_uv_down[j][iz])) - (phi_uv_pred_z - self.phi_uv_exp[j][iz])**2/(2*(sigma**2)))
+
+        return log_lkl
+
+
+
+
+class OpticalDepthLikelihood(Likelihood):
+
+    def __init__(self, 
+                 parameters: list[str],  
+                 *,
+                 classifier: Classifier,
+                 regressor:  Regressor,
+                 mean_tau:   float  = 0.0561,
+                 sigma_tau:  float = 0.0071) -> None:
+        
+        self._classifier = classifier
+        self._regressor  = regressor 
+        self._mean_tau   = mean_tau
+        self._sigma_tau  = sigma_tau     
+
+    
+        super().__init__(parameters)
+
+        # define an 'order list' to reorganise the parameters
+        # in the order they are passed to the classifier and regressor
+        ordered_params = regressor.metadata.parameters_name
+        self._order    = [self.parameters.index(param) for param in ordered_params]
+        
+
+
+    @property
+    def classifier(self):
+        return self._classifier
+    
+    @property
+    def regressor(self):
+        return self._regressor
+    
+    @property
+    def mean_tau(self):
+        return self._mean_tau
+    
+    @property
+    def sigma_tau(self):
+        return self._sigma_tau
+
+
+    def _loglkl(self, x, **kwargs):
+
+
+        # predict the ionization fraction from the NN
+        xHII = predict_xHII_numpy(x[:, self._order], self.classifier, self.regressor)
+
+        # setting the result to -inf when the classifier returns it as a wrong value
+        loglkl = np.zeros(x.shape[0])
+        loglkl[xHII[:, 0] == -1] = -np.inf
+
+        # get the values in input (if given) or initialise to Planck 2018 results
+        tau     = self.mean_tau
+        var_tau = self.sigma_tau**2
+
+        # compute the optical depth to reionization
+        tau_pred = predict_tau_from_xHII_numpy(xHII, x[:, self._order], self.regressor.metadata)
+        loglkl = loglkl - 0.5 * ((tau- tau_pred)**2/var_tau + np.log( 2*np.pi * var_tau))
+    
+        return loglkl 
+    
+
+    
+
+##############
+# MCMC related functions
 
 def log_prior(theta: np.ndarray, 
               theta_min: np.ndarray, 
@@ -32,7 +308,7 @@ def log_prior(theta: np.ndarray,
               **kwargs) -> np.ndarray:
     
     """
-        natural logarithm of the prior
+    Natural logarithm of the prior
 
     assume flat prior except for the parameters for which
     a covariance matrix and average value are given
@@ -97,56 +373,37 @@ def log_prior(theta: np.ndarray,
     return res  
 
 
+def log_likelihood(theta: np.ndarray, 
+                   xi: np.ndarray,
+                   likelihoods: list[Likelihood],
+                   **kwargs) -> np.ndarray:
+    """_summary_
 
-def log_likelihood(theta: np.ndarray, **kwargs) -> np.ndarray:
+    Parameters
+    ----------
+    theta : np.ndarray
+        Varying parameters.
+    xi : np.ndarray
+        Extra fixed parameters
+    likelihoods : list[Likelihood]
+        The likelihoods to evaluate for the fit
+
+    Returns
+    -------
+    np.ndarray
+        _description_
+    """
     
-    if len(theta.shape) == 1:
-        theta = theta[None, :]
-
-    classifier: Classifier = kwargs.get('classifier', None)
-    regressor:  Regressor  = kwargs.get('regressor',  None)
-    use_tau:    bool       = kwargs.get('use_tau', True)
-    use_reio:   bool       = kwargs.get('use_reio', True)
-
-    # predict the ionization fraction from the NN
-    xHII = predict_xHII_numpy(theta, classifier, regressor)
-
-    # setting the result to -inf when the classifier returns it as a wrong value
-    res = np.zeros(theta.shape[0])
-    res[xHII[:, 0] == -1] = -np.inf
-
-    # get the value of the ionization fraction at redshift 5.9
-    iz = np.argmin(np.abs(regressor.metadata.z - 5.9))
-    xHII_59 = xHII[:, iz] 
-
-    if use_tau:
-
-        # get the values in input (if given) or initialise to Planck 2018 results
-        tau = kwargs.get('tau', 0.0561)
-        var_tau  = kwargs.get('var_tau', 0.0071**2)
-
-        # compute the optical depth to reionization
-        tau_pred = predict_tau_from_xHII_numpy(xHII, theta, regressor.metadata)
-        res = res - 0.5 * ((tau- tau_pred)**2/var_tau + np.log( 2*np.pi * var_tau))
-    
-    if use_reio:
-
-        # get the values in input (if given) or initialise to McGreer results
-        x_reio      = 0.94
-        var_x_reio  = 0.05**2
-
-        # compute the truncated gaussian for the reionization data
-        norm_reio = -np.log(1.0 - x_reio + np.sqrt(np.pi/2)*special.erf(x_reio/(np.sqrt(2*var_x_reio))))
-        res = res + norm_reio
-        mask = xHII_59 < x_reio
-        res[mask] = res[mask] - 0.5 * (xHII_59[mask] - x_reio)**2/var_x_reio
-
-    return res 
+    res = np.zeros(theta.shape)
+    for likelihood in likelihoods:
+        res = res  + likelihood.loglkl(theta, xi, **kwargs)
 
 
-def log_probability(theta: np.ndarray, 
+def log_probability(theta:     np.ndarray, 
+                    xi:        np.ndarray,
                     theta_min: np.ndarray, 
                     theta_max: np.ndarray,
+                    likelihoods: list[Likelihood],
                     **kwargs) -> np.ndarray:
     
     # compute the log prior
@@ -157,13 +414,14 @@ def log_probability(theta: np.ndarray,
     res[~mask] = -np.inf
 
     # makes the sum of the log prior and log likelihood 
-    res[mask] = res[mask] + log_likelihood(theta[mask, :], **kwargs)
+    res[mask] = log_likelihood(theta[mask, :], xi[mask, :], likelihoods, **kwargs)
 
     return res 
 
 
 def initialise_walkers(theta_min: np.ndarray, 
-                       theta_max:np.ndarray, 
+                       theta_max: np.ndarray, 
+                       xi       : np.ndarray,
                        n_walkers: int = 64, 
                        **kwargs):
     
@@ -177,7 +435,7 @@ def initialise_walkers(theta_min: np.ndarray,
         prop = uniform_to_true(np.random.rand(1, n_params), theta_min, theta_max)
 
         # check that the likelihood is finite at that position
-        if np.all(np.isfinite(log_likelihood(prop, **kwargs))):
+        if np.all(np.isfinite(log_likelihood(prop, xi, **kwargs))):
 
             # if finite add it to the list of positions
             pos = np.vstack((pos, prop))
@@ -189,3 +447,6 @@ def initialise_walkers(theta_min: np.ndarray,
                       Consider reducing the parameter range to one where the likelihood is proportionnaly more defined")
         
     return pos
+
+
+
