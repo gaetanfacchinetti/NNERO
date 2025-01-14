@@ -27,7 +27,7 @@ from abc import ABC, abstractmethod
 
 from scipy       import special
 from .data       import uniform_to_true
-from .predictor  import predict_tau_from_xHII_numpy, predict_xHII_numpy
+from .predictor  import predict_tau_from_xHII_numpy, predict_xHII_numpy, DEFAULT_VALUES
 from .classifier import Classifier
 from .regressor  import Regressor
 
@@ -59,7 +59,7 @@ class Likelihood(ABC):
 
 
    
-    def loglkl(self, theta: np.ndarray, xi: np.ndarray, **kwargs):
+    def loglkl(self, theta: np.ndarray, xi: np.ndarray, **kwargs) -> np.ndarray:
 
         if len(theta.shape) == 1:
             theta = theta[None, :]
@@ -166,15 +166,12 @@ class UVLFLikelihood(Likelihood):
 
 
     def _loglkl(self, x, **kwargs):
-        
-        #### ATTENTION GIVES STRANGE BEHAVIOUR, NOT SELF CONSISTENT OVER SEVERAL CALLS
-
-
-        h       = 0.7
-        omega_m = 0.3 * (h**2)
+     
         omega_b = x[:, self.index['Ombh2']]
 
-        rhom0  = omega_m * CST_MSOL_MPC.rho_c_over_h2 
+        h       = np.full_like(omega_b, fill_value=0.7)
+        omega_m = np.full_like(omega_b, fill_value=0.3 * (0.7**2))
+
 
         alpha_star = x[:, self.index['ALPHA_STAR']]
         t_star     = x[:, self.index['t_STAR']]
@@ -188,46 +185,41 @@ class UVLFLikelihood(Likelihood):
         k  = kwargs.get('k', self.k)
         pk = kwargs.get('pk', self.pk)
 
-        print(alpha_star, t_star, np.log10(f_star10), np.log10(m_turn), omega_b)
+        if len(k.shape) == 1:  k  = np.tile(k, (omega_b.shape[0], 1))
+        if len(pk.shape) == 1: pk = np.tile(pk, (omega_b.shape[0], 1))
 
+        # loop on the datasets
+        # we do not include Bouwens et al 2015 (10.1088/0004-637X/803/1/34)
+        # stored at index 0, therefore we start the loop at 1
+        for j in [1, 2, 3]:
 
-        # by hand vectorization in order to be able to compute the likelihood like that
-        for ix in range(x.shape[0]) : 
+            # loop on the redshift bins
+            for iz, z, in enumerate(self.z_uv_exp[j]):
 
-            # loop on the datasets
-            # we do not include Bouwens et al 2015 (10.1088/0004-637X/803/1/34)
-            # stored at index 0, therefore we start the loop at 1
-            for j in [1, 2, 3]:
+                hz = 100 * h_factor_no_rad(z, omega_b, omega_m - omega_b, h) * CONVERSIONS.km_to_mpc
+                mh, mask = m_halo(hz, self.m_uv_exp[j][iz], alpha_star, t_star, f_star10, omega_b, omega_m)
 
-                # loop on the redshift bins
-                for iz, z, in enumerate(self.z_uv_exp[j]):
-
-                    hz = 100 * h_factor_no_rad(z, omega_b, omega_m - omega_b, h)[0, 0] * CONVERSIONS.km_to_mpc
-                    mh, mask = m_halo(hz, self.m_uv_exp[j][iz], alpha_star[ix], t_star[ix], f_star10[ix], omega_b[ix], omega_m)
-
-                    k_max = np.max(self.c * (3*mh/(4*np.pi)/rhom0)**(-1/3))
-
-                    if k_max > k[-1]:
-                        raise ValueError('Power spectrum not evaluated on a large enough range')
+                try:
+                    # predict the UV luminosity function on the range of magnitude m_uv at that redshift bin
+                    # in the future, could add sheth_a, sheth_q, sheth_p and c as nuisance parameters
+                    phi_uv_pred_z = phi_uv(z, hz, self.m_uv_exp[j][iz], k, pk, alpha_star, t_star, f_star10, m_turn, omega_b, omega_m, h, 
+                                                self.sheth_a, self.sheth_q, self.sheth_p, window = self.window, c = self.c, mh = mh, mask = mask)
                     
-                    try:
-                        # predict the UV luminosity function on the range of magnitude m_uv at that redshift bin
-                        # in the future, could add sheth_a, sheth_q, sheth_p and c as nuisance parameters
-                        phi_uv_pred_z = phi_uv(z, hz, self.m_uv_exp[j][iz], k, pk, alpha_star[ix], t_star[ix], f_star10[ix], m_turn[ix], omega_b[ix], omega_m, h, 
-                                                    self.sheth_a, self.sheth_q, self.sheth_p, window = self.window, c = self.c, mh = mh, mask = mask)[0,0]
-                       
-                    except ShortPowerSpectrumRange:
-                        # kill the log likelihood in that case by setting it to -infinity
-                        return ValueError('Power spectrum not evaluated on a large enough range')
+                    phi_uv_pred_z = np.squeeze(phi_uv_pred_z, axis=1)
 
-                    # get a sigma that is either the down or the up one depending 
-                    # if prediction is lower / higher than the observed value
-                    mask = (phi_uv_pred_z > self.phi_uv_exp[j][iz])
-                    sigma = self.sigma_phi_uv_down[j][iz]
-                    sigma[mask] = self.sigma_phi_uv_up[j][iz][mask]
+                except ShortPowerSpectrumRange:
+                    # kill the log likelihood in that case by setting it to -infinity
+                    return ValueError('Power spectrum not evaluated on a large enough range')               
 
-                    # update the log likelihood
-                    log_lkl[ix] = log_lkl[ix] + np.sum(np.log(np.sqrt(2.0/np.pi)/(self.sigma_phi_uv_up[j][iz] + self.sigma_phi_uv_down[j][iz])) - (phi_uv_pred_z - self.phi_uv_exp[j][iz])**2/(2*(sigma**2)))
+                # get a sigma that is either the down or the up one depending 
+                # if prediction is lower / higher than the observed value        
+                mask         = (phi_uv_pred_z > self.phi_uv_exp[j][iz][None, :])
+                sigma        = np.tile(self.sigma_phi_uv_down[j][iz], (x.shape[0], 1))
+                sigma[mask]  = np.tile(self.sigma_phi_uv_up[j][iz],  (x.shape[0], 1))[mask]
+        
+                # update the log likelihood
+                contrib = np.sum(np.log(np.sqrt(2.0/np.pi)/(self.sigma_phi_uv_up[j][iz] + self.sigma_phi_uv_down[j][iz])) - (phi_uv_pred_z - self.phi_uv_exp[j][iz])**2/(2*(sigma**2)), axis=-1)
+                log_lkl = log_lkl + contrib
 
         return log_lkl
 
@@ -255,7 +247,8 @@ class OpticalDepthLikelihood(Likelihood):
         # define an 'order list' to reorganise the parameters
         # in the order they are passed to the classifier and regressor
         ordered_params = regressor.metadata.parameters_name
-        self._order    = [self.parameters.index(param) for param in ordered_params]
+        
+        self._order    = [self.parameters.index(param) for param in ordered_params if param in self.parameters]
         
 
 
@@ -278,12 +271,26 @@ class OpticalDepthLikelihood(Likelihood):
 
     def _loglkl(self, x, **kwargs):
 
+        # get the number of parallel evaluations
+        n = x.shape[0]
+
+        xx = np.array([DEFAULT_VALUES[param] for param in self.regressor.metadata.parameters_name])
+        xx = np.tile(xx, (n, 1))
+
+        indices = np.array([list(self.regressor.metadata.parameters_name).index(param) for param in self.parameters])
+        
+        xx[:, indices] = x[:, self._order]
+
+        print(self.parameters)
+        print(x[:, self._order])
+        print(xx)
+
 
         # predict the ionization fraction from the NN
-        xHII = predict_xHII_numpy(x[:, self._order], self.classifier, self.regressor)
+        xHII = predict_xHII_numpy(xx, self.classifier, self.regressor)
 
         # setting the result to -inf when the classifier returns it as a wrong value
-        loglkl = np.zeros(x.shape[0])
+        loglkl = np.zeros(n)
         loglkl[xHII[:, 0] == -1] = -np.inf
 
         # get the values in input (if given) or initialise to Planck 2018 results
@@ -291,7 +298,7 @@ class OpticalDepthLikelihood(Likelihood):
         var_tau = self.sigma_tau**2
 
         # compute the optical depth to reionization
-        tau_pred = predict_tau_from_xHII_numpy(xHII, x[:, self._order], self.regressor.metadata)
+        tau_pred = predict_tau_from_xHII_numpy(xHII, xx, self.regressor.metadata)
         loglkl = loglkl - 0.5 * ((tau- tau_pred)**2/var_tau + np.log( 2*np.pi * var_tau))
     
         return loglkl 
