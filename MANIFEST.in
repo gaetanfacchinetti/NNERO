@@ -1,1 +1,2 @@
 include src/nnero/nn_data/*
+include src/nnero/lkl_data/*
