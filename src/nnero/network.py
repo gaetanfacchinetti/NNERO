@@ -75,7 +75,7 @@ class NeuralNetwork(torch.nn.Module):
 
         self._struct         = np.empty(0)
 
-        print('Ininitated model ' + str(self.name))
+        
 
 
     def save(self, path: str = ".", save_partition: bool = True) -> None:

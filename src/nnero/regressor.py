@@ -113,13 +113,13 @@ class Regressor(NeuralNetwork):
         if dataset is not None:
             self.set_check_metadata_and_partition(dataset)
 
-        # print the number of parameters
-        self.print_parameters()
     
 
 
     @classmethod
     def load(cls, path = os.path.join(DATA_PATH, "DefaultRegressor")):
+
+        name = path.split('/')[-1]
         
         if os.path.isfile(path  + '_struct.npy'):
 
@@ -134,9 +134,12 @@ class Regressor(NeuralNetwork):
                                           n_hidden_layers=int(struct[3]),
                                           alpha_tau=struct[4],
                                           use_pca=bool(struct[5]),
-                                          pca_precision=struct[6])
+                                          pca_precision=struct[6],
+                                          name=name)
                     regressor.load_weights_and_extras(path)
                     regressor.eval()
+
+                    print('Model ' + str(name) + ' sucessfully loaded')
 
                     return regressor
         
@@ -146,6 +149,9 @@ class Regressor(NeuralNetwork):
         if os.path.isfile(path  + '.pth') :
             regressor = torch.load(path + ".pth")
             regressor.eval()
+
+            print('Model ' + str(name) + ' sucessfully loaded from a .pth archive')
+            
             return regressor
         
         raise ValueError("Could not find a fully saved regressor model at: " + path)

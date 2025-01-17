@@ -507,16 +507,17 @@ def check_ik_R(ik_radius: int, p: int, radius: np.ndarray) -> None:
 
     # as no way to control the precision of the integral, 
     # require that at least it is computed on enough points
-    
+
+
     if not np.all(ik_radius > 0.1*p):
-        vals_problem = radius[..., 0][ik_radius < 0.1*p]
+        vals_problem = radius[..., 0][ik_radius <= 0.1*p]
         if np.any(vals_problem == vals_problem): # ignore the nan
-            raise ShortPowerSpectrumRange(vals_problem[vals_problem == vals_problem], "The result may be laking precision, consider running CLASS up to lower values of k (p = " + str(p) + ")" ) 
+            raise ShortPowerSpectrumRange(vals_problem[vals_problem == vals_problem], "The result may be laking precision, consider running CLASS up to lower values of k (p = {})".format(p) ) 
     
-    if not np.all(ik_radius < p):
-        vals_problem = radius[..., 0][ik_radius > p]
+    if not np.all(ik_radius < p-1):
+        vals_problem = radius[..., 0][ik_radius >= p-1]
         if np.any(vals_problem == vals_problem):
-            raise ShortPowerSpectrumRange(vals_problem[vals_problem == vals_problem], "The result may be laking precision, consider running CLASS up to larger values of k (p = " + str(p) + ")") 
+            raise ShortPowerSpectrumRange(vals_problem[vals_problem == vals_problem], "The result may be laking precision, consider running CLASS up to larger values of k (p = {})".format(p)) 
 
 
 def sigma_r(radius: float | np.ndarray, 

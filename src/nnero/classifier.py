@@ -115,8 +115,6 @@ class Classifier(NeuralNetwork):
         if dataset is not None:
             self.set_check_metadata_and_partition(dataset)
 
-        # print the number of parameters
-        self.print_parameters()
 
 
     @classmethod
@@ -137,6 +135,8 @@ class Classifier(NeuralNetwork):
 
         if path is None: 
             path = os.path.join(DATA_PATH, "DefaultClassifier")
+
+        name = path.split('/')[-1]
         
         if os.path.isfile(path  + '_struct.npy'):
 
@@ -149,6 +149,8 @@ class Classifier(NeuralNetwork):
                     classifier.load_weights_and_extras(path)
                     classifier.eval()
 
+                    print('Model ' + str(name) + ' sucessfully loaded')
+
                     return classifier
         
         # if the struct read is not of the right size
@@ -157,6 +159,9 @@ class Classifier(NeuralNetwork):
         if os.path.isfile(path  + '.pth') :
             classifier = torch.load(path + ".pth")
             classifier.eval()
+
+            print('Model ' + str(name) + ' sucessfully loaded from a .pth archive')
+
             return classifier
         
         raise ValueError("Could not find a fully saved classifier model at: " + path)

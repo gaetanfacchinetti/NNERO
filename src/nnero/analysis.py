@@ -253,7 +253,7 @@ class Samples:
         for ic, chain in enumerate(self._chains):
             chain.remove_burnin(self._max_lnlkl)
             print('Chain ' + str(ic+1) + ' : Removed ' + str(chain._markov_index) + ' non-markovian points, ' \
-                  + str(chain.burnin_index) + ' points of burn-in, keep ' + str(chain._values.shape[1]) + ' steps')
+                  + str(chain.burnin_index) + ' points of burn-in, keep ' + str(chain._values.shape[1]) + ' steps | (max_lnlkl = ' + str(chain.max_lnlkl) + ')')
             
             if chain.length > 0:
                 chain.compute_stats()

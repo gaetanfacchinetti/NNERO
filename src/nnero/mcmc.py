@@ -31,7 +31,7 @@ from .predictor  import predict_tau_from_xHII_numpy, predict_xHII_numpy, DEFAULT
 from .classifier import Classifier
 from .regressor  import Regressor
 
-from .astrophysics import m_halo, phi_uv
+from .astrophysics import m_halo, phi_uv, dn_dm
 from .cosmology import h_factor_no_rad, ShortPowerSpectrumRange
 from .constants import CONVERSIONS, CST_MSOL_MPC
 
@@ -128,7 +128,8 @@ class UVLFLikelihood(Likelihood):
 
         else:
             raise ValueError('If CLASS not installed, need to provide k and pk as arguments')
-
+        
+    
         self.sheth_a = 0.322
         self.sheth_q = 1.0
         self.sheth_p = 0.3 
@@ -151,8 +152,38 @@ class UVLFLikelihood(Likelihood):
             self.sigma_phi_uv_down = data_uv['sigma_p_uv_down']
             self.sigma_phi_uv_up   = data_uv['sigma_p_uv_up']
 
-        super().__init__(parameters)
 
+        self._z_array = []
+        self._z_index_from_table = [[] for j in [1, 2, 3]]
+
+        ii = 0
+
+        for j in [1, 2, 3]:
+
+            # loop on the redshift bins
+            for z in self.z_uv_exp[j]:
+
+                if z not in self._z_array:
+                    self._z_array.append(z)
+                
+                self._z_index_from_table[ii].append(self._z_array.index(z))
+
+        ii = ii + 1
+
+        self._z_array = np.array(self._z_array)
+
+        rhom0  = (0.3*(0.7**2)) * CST_MSOL_MPC.rho_c_over_h2        
+        m_min  = 1.1 * 4.0*np.pi/3.0 * rhom0 / (self.k[-1] / self.c)**3
+        m_max  = 4.0*np.pi/3.0 * rhom0 / (self.k[0]/ self.c)**3  / 1e+3
+
+
+        self._masses = np.logspace(np.log10(m_min), np.log10(m_max), 100)
+
+        #precompute the halo mass function
+        self._dndm = dn_dm(self._z_array, self._masses, self.k, self.pk, omega_m = (0.3*(0.7**2)), h=0.7, sheth_a=self.sheth_a, sheth_q=self.sheth_q, sheth_p=self.sheth_p, window=self.window, c=self.c)
+
+
+        super().__init__(parameters)
 
 
     @property
@@ -241,17 +272,15 @@ class OpticalDepthLikelihood(Likelihood):
         self._mean_tau   = mean_tau
         self._sigma_tau  = sigma_tau     
 
-    
         super().__init__(parameters)
 
         # define an 'order list' to reorganise the parameters
         # in the order they are passed to the classifier and regressor
         ordered_params = regressor.metadata.parameters_name
-        
+    
         self._order    = [self.parameters.index(param) for param in ordered_params if param in self.parameters]
+
         
-
-
     @property
     def classifier(self):
         return self._classifier
@@ -277,14 +306,9 @@ class OpticalDepthLikelihood(Likelihood):
         xx = np.array([DEFAULT_VALUES[param] for param in self.regressor.metadata.parameters_name])
         xx = np.tile(xx, (n, 1))
 
-        indices = np.array([list(self.regressor.metadata.parameters_name).index(param) for param in self.parameters])
+        indices = np.array([list(self.regressor.metadata.parameters_name).index(param) for param in self.regressor.metadata.parameters_name if param in self.parameters])
         
         xx[:, indices] = x[:, self._order]
-
-        print(self.parameters)
-        print(x[:, self._order])
-        print(xx)
-
 
         # predict the ionization fraction from the NN
         xHII = predict_xHII_numpy(xx, self.classifier, self.regressor)
@@ -401,7 +425,8 @@ def log_likelihood(theta: np.ndarray,
         _description_
     """
     
-    res = np.zeros(theta.shape)
+    res = np.zeros(theta.shape + res.shape)
+
     for likelihood in likelihoods:
         res = res  + likelihood.loglkl(theta, xi, **kwargs)
 
