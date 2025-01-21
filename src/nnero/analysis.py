@@ -976,10 +976,11 @@ def get_xHII_stats(samples: Samples, data_to_plot, q = [0.68, 0.95], bins = 30, 
     quantiles = np.empty((len(q), len(z), 2))
 
     # make an histogram for each value of z
-    for iz, x in enumerate(xHII.T):
+    for iz, x in enumerate(np.log10(xHII.T)):
         hist, edges = np.histogram(x, bins = bins)
         for iq, q_val in enumerate(q):
             quantiles[iq, iz, 0], quantiles[iq, iz, 1] = compute_quantiles(hist, edges, q=q_val)
+            quantiles[iq, iz, :] = 10**(quantiles[iq, iz, :])
     
     return z, mean, med, quantiles
 
@@ -994,7 +995,7 @@ def get_xHII_tanh_stats(samples: Samples, q: list[float] = [0.68, 0.95], bins: i
     index = list(samples.param_names).index('z_reio')
     z_reio = samples.flat(discard=discard, thin=thin)[index, :]
 
-    z = np.linspace(0, 35, 50)
+    z = np.linspace(0, 35, 200)
     xHII = xHII_class(z, z_reio[:, None]) + x_inf
 
     mean = np.mean(xHII, axis=0)
@@ -1003,7 +1004,7 @@ def get_xHII_tanh_stats(samples: Samples, q: list[float] = [0.68, 0.95], bins: i
     quantiles = np.empty((len(q), len(z), 2))
 
     # make an histogram for each value of z
-    for iz, x in enumerate(xHII.T):
+    for iz, x in enumerate(np.log10(xHII.T)):
         hist, edges = np.histogram(x, bins = bins)
         
         if np.all(np.diff(x) ==  0):
@@ -1012,5 +1013,8 @@ def get_xHII_tanh_stats(samples: Samples, q: list[float] = [0.68, 0.95], bins: i
         else:
             for iq, q_val in enumerate(q):
                 quantiles[iq, iz, 0], quantiles[iq, iz, 1] = compute_quantiles(hist, edges, q=q_val)
+        
+        for iq, q_val in enumerate(q):
+            quantiles[iq, iz, :] = 10**(quantiles[iq, iz, :])
         
     return z, mean, med, quantiles
