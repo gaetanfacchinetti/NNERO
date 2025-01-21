@@ -32,7 +32,8 @@ import os
 import numpy as np
 from copy import copy
 
-from .predictor  import DEFAULT_VALUES, MP_KEY_CORRESPONDANCE
+from .data       import MP_KEY_CORRESPONDANCE
+from .predictor  import DEFAULT_VALUES
 from .regressor  import Regressor
 from .classifier import Classifier
 from .predictor  import predict_xHII_numpy

@@ -36,6 +36,12 @@ _LABELS_TO_PLOT_ = {'hlittle' : r'$h$', 'Ln_1010_As' : r'$\ln(10^{10}A_{\rm s})$
                   'INVERSE_M_WDM' : r'$1/m_{\rm WDM} ~[{\rm keV}^{-1}]$', 'FRAC_WDM' : r'$f_{\rm WDM}$', 'NEUTRINO_MASS_1' : r'$m_{\nu_1}$',
                   'LOG10_PMF_SB' : r'$\log_{10}(s_{\rm B})$', 'PMF_NB' : r'$n_{\rm B}$'}
 
+
+MP_KEY_CORRESPONDANCE = {'log10_f_star10' : 'F_STAR10', 'alpha_star' : 'ALPHA_STAR', 't_star' : 't_STAR', 'log10_f_esc10' : 'F_ESC10', 
+                         'alpha_esc' : 'ALPHA_ESC', 'Omch2' : 'Omdmh2', 'omega_dm' : 'Omdmh2', 'omega_b' : 'Ombh2', 'h': 'hlittle', 'ln10^{10}A_s' : 'Ln_1010_As',
+                         'n_s' : 'POWER_INDEX', 'm_nu1' : 'NEUTRINO_MASS_1', 'f_wdm' : 'FRAC_WDM', 'm_wdm' : 'M_WDM', 'nu_X_thresh' : 'NU_X_THRESH',
+                         'log10_pmf_sb' : 'LOG10_PMF_SB', 'pmf_nb' : 'PMF_NB', 'log10_m_turn' : 'M_TURN', 'log10_lum_X' : 'L_X', '1/m_wdm' : 'INVERSE_M_WDM'}
+
 def label_to_plot(label) -> None:
     if label in _LABELS_TO_PLOT_.keys(): 
         return _LABELS_TO_PLOT_[label]

@@ -30,7 +30,7 @@ import os
 from copy import deepcopy
 from os.path import join
 
-from .data import DataSet, MetaData, DataPartition
+from .data import DataSet, MetaData, DataPartition, MP_KEY_CORRESPONDANCE
 
 
 class NeuralNetwork(torch.nn.Module):
@@ -211,7 +211,7 @@ class NeuralNetwork(torch.nn.Module):
                 raise ValueError("The partition is incompatible with the previous round of training.")
             
 
-    def print_parameters(self):
+    def print_structure(self):
         """
         prints the list of parameters in the model
         """
@@ -229,6 +229,30 @@ class NeuralNetwork(torch.nn.Module):
         print(f"| Total Trainable Params: {total_params}")
         print("  ----------------------")
             
+
+    def info(self):
+        
+        print("#####################")
+        print("Structure of the network")
+        self.print_structure()
+        print("#####################")
+        print("Parameters:")
+        inv_corres  = {value:key for key, value in MP_KEY_CORRESPONDANCE.items()}
+        param_range = self.parameters_range
+        other_name  = [inv_corres[param] for param in self.parameters_name]
+        param_info = []
+        max_param_len = 0
+        for ip, param in enumerate(self.parameters_name):
+            param_info.append(f"{param} ({str(other_name[ip])})")
+            if len(param_info[-1]) > max_param_len:
+                max_param_len = len(param_info[-1])
+
+        for ip, param in enumerate(self.parameters_name):   
+            print(f"-> {param_info[ip]:<{max_param_len}} in [{param_range[ip, 0]}, {param_range[ip, 1]}]")
+        print("#####################")
+
+
+
 
     @property
     def name(self):
@@ -261,3 +285,11 @@ class NeuralNetwork(torch.nn.Module):
     @property
     def struct(self):
         return self._struct
+    
+    @property
+    def parameters_name(self):
+        return self._metadata.parameters_name
+    
+    @property
+    def parameters_range(self):
+        return np.vstack((self._metadata.parameters_min_val, self._metadata.parameters_max_val)).T

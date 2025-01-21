@@ -25,7 +25,7 @@ from .data       import MetaData, true_to_uniform
 from .cosmology  import optical_depth_no_rad
 from .classifier import Classifier
 from .regressor  import Regressor
-
+from .data       import MP_KEY_CORRESPONDANCE
 
 
 DEFAULT_VALUES = {'F_STAR10' : -1.5, 'ALPHA_STAR' : 0.5, 't_STAR' : 0.5, 'F_ESC10' : -1.0, 'ALPHA_ESC' : 0.3, 'M_TURN' : 8.7,
@@ -34,10 +34,6 @@ DEFAULT_VALUES = {'F_STAR10' : -1.5, 'ALPHA_STAR' : 0.5, 't_STAR' : 0.5, 'F_ESC1
             'LOG10_PMF_SB' : -5.0, 'PMF_NB' : -2.0}
 
 
-MP_KEY_CORRESPONDANCE = {'log10_f_star10' : 'F_STAR10', 'alpha_star' : 'ALPHA_STAR', 't_star' : 't_STAR', 'log10_f_esc10' : 'F_ESC10', 
-                         'alpha_esc' : 'ALPHA_ESC', 'Omch2' : 'Omdmh2', 'omega_dm' : 'Omdmh2', 'omega_b' : 'Ombh2', 'h': 'hlittle', 'ln10^{10}A_s' : 'Ln_1010_As',
-                         'n_s' : 'POWER_INDEX', 'm_nu1' : 'NEUTRINO_MASS_1', 'f_wdm' : 'FRAC_WDM', 'm_wdm' : 'M_WDM', 'nu_X_thresh' : 'NU_X_THRESH',
-                         'log10_pmf_sb' : 'LOG10_PMF_SB', 'pmf_nb' : 'PMF_NB', 'log10_m_turn' : 'M_TURN', 'log10_lum_X' : 'L_X', '1/m_wdm' : 'INVERSE_M_WDM'}
 
 ## Note that due to a strange naming convention in 21cmFAST, Omch2 actually corresponded to omega_dm
 ## This notation is deprecated today, prefer to use Omdmh2
@@ -313,3 +309,24 @@ def predict_tau_numpy(theta: np.ndarray,
     res[mask]  = predict_tau_from_xHII_numpy(xHII[mask, :], theta[mask, :], regressor.metadata)
 
     return res
+
+
+# Defining equivalent names for functions that are more in
+# agreement with the notations in the paper
+
+def predict_Xe(classifier: Classifier | None = None, 
+               regressor:  Regressor  | None = None, 
+               default: dict = DEFAULT_VALUES,
+               **kwargs):
+    return predict_xHII(classifier, regressor, default, **kwargs)
+
+def predict_Xe_numpy(theta: np.ndarray,
+                     classifier: Classifier | None = None, 
+                     regressor:  Regressor  | None = None):
+    return predict_xHII_numpy(theta, classifier, regressor)
+
+def predict_tau_from_Xe(Xe, metadata : MetaData, default: dict = DEFAULT_VALUES, **kwargs):
+    return predict_tau_from_xHII(Xe, metadata, default, **kwargs)
+
+def predict_tau_from_Xe_numpy(Xe, theta : np.ndarray, metadata : MetaData):
+    return predict_tau_from_xHII_numpy(Xe, theta, metadata)
