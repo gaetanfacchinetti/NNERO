@@ -158,7 +158,8 @@ def phi_uv(z:          float | np.ndarray,
            window: str = 'sharpk', 
            c: float = 2.5,
            mh: np.ndarray | None = None,
-           mask: np.ndarray | None = None):
+           mask: np.ndarray | None = None,
+           dndmh: np.ndarray | None = None):
     
     """
     UV flux in Mpc^{-3}
@@ -180,7 +181,9 @@ def phi_uv(z:          float | np.ndarray,
         mh, mask = m_halo(hz, m_uv, alpha_star, t_star, f_star10, omega_b, omega_m)               # shape (q, r, s)
     
     dmh_dmuv = dmhalo_dmuv(hz, m_uv, alpha_star, t_star, f_star10, omega_b, omega_m, mh = mh, mask=mask) # shape (q, r, s)
-    dndmh    = dn_dm(z, mh, k, pk, omega_m, h, sheth_a=sheth_a, sheth_q=sheth_q, sheth_p=sheth_p, window=window, c=c) # shape (q, r, s)
+
+    if dndmh is None:
+        dndmh = dn_dm(z, mh, k, pk, omega_m, h, sheth_a=sheth_a, sheth_q=sheth_q, sheth_p=sheth_p, window=window, c=c) # shape (q, r, s)
 
     return f_duty(mh, m_turn) * dndmh * np.abs(dmh_dmuv)
 

@@ -25,7 +25,7 @@ import pkg_resources
 
 from abc import ABC, abstractmethod
 
-from scipy       import special
+from scipy       import interpolate
 from .data       import uniform_to_true
 from .predictor  import predict_tau_from_xHII_numpy, predict_xHII_numpy, DEFAULT_VALUES
 from .classifier import Classifier
@@ -108,7 +108,8 @@ class UVLFLikelihood(Likelihood):
                  parameters: list[str],  
                  *,
                  k: np.ndarray | None = None, 
-                 pk: np.ndarray | None = None) -> None:
+                 pk: np.ndarray | None = None,
+                 precompute: bool = False) -> None:
     
         if (k is not None) and (pk is not None):
 
@@ -153,35 +154,44 @@ class UVLFLikelihood(Likelihood):
             self.sigma_phi_uv_up   = data_uv['sigma_p_uv_up']
 
 
+
+        
         self._z_array = []
-        self._z_index_from_table = [[] for j in [1, 2, 3]]
-
-        ii = 0
-
-        for j in [1, 2, 3]:
-
-            # loop on the redshift bins
-            for z in self.z_uv_exp[j]:
-
-                if z not in self._z_array:
-                    self._z_array.append(z)
-                
-                self._z_index_from_table[ii].append(self._z_array.index(z))
-
-        ii = ii + 1
-
-        self._z_array = np.array(self._z_array)
-
-        rhom0  = (0.3*(0.7**2)) * CST_MSOL_MPC.rho_c_over_h2        
-        m_min  = 1.1 * 4.0*np.pi/3.0 * rhom0 / (self.k[-1] / self.c)**3
-        m_max  = 4.0*np.pi/3.0 * rhom0 / (self.k[0]/ self.c)**3  / 1e+3
+        self._z_index_from_table = [[] for j in [0, 1, 2, 3]]
 
 
-        self._masses = np.logspace(np.log10(m_min), np.log10(m_max), 100)
 
-        #precompute the halo mass function
-        self._dndm = dn_dm(self._z_array, self._masses, self.k, self.pk, omega_m = (0.3*(0.7**2)), h=0.7, sheth_a=self.sheth_a, sheth_q=self.sheth_q, sheth_p=self.sheth_p, window=self.window, c=self.c)
+        self._precompute = precompute
+        self._masses = np.empty(0)
+        self._dndmh  = np.empty(0)
 
+        # if we can precompute the halo mass function 
+        # because the matter power spectrum does not vary
+        # then we do it here
+        if self._precompute:
+
+
+            for j in [0, 1, 2, 3]:
+
+                # loop on the redshift bins
+                for z in self.z_uv_exp[j]:
+
+                    if z not in self._z_array:
+                        self._z_array.append(z)
+                    
+                    self._z_index_from_table[j].append(self._z_array.index(z))
+
+
+            self._z_array = np.array(self._z_array)
+
+            rhom0  = (0.3*(0.7**2)) * CST_MSOL_MPC.rho_c_over_h2        
+            m_min  = 1.1 * 4.0*np.pi/3.0 * rhom0 / (self.k[-1] / self.c)**3
+            m_max  = 4.0*np.pi/3.0 * rhom0 / (self.k[0]/ self.c)**3  / 1e+3
+
+            self._masses = np.logspace(np.log10(m_min), np.log10(m_max), 5000)
+
+            #precompute the halo mass function
+            self._dndmh = dn_dm(self._z_array, self._masses, self.k, self.pk, omega_m = (0.3*(0.7**2)), h=0.7, sheth_a=self.sheth_a, sheth_q=self.sheth_q, sheth_p=self.sheth_p, window=self.window, c=self.c)
 
         super().__init__(parameters)
 
@@ -231,10 +241,20 @@ class UVLFLikelihood(Likelihood):
                 mh, mask = m_halo(hz, self.m_uv_exp[j][iz], alpha_star, t_star, f_star10, omega_b, omega_m)
 
                 try:
-                    # predict the UV luminosity function on the range of magnitude m_uv at that redshift bin
-                    # in the future, could add sheth_a, sheth_q, sheth_p and c as nuisance parameters
-                    phi_uv_pred_z = phi_uv(z, hz, self.m_uv_exp[j][iz], k, pk, alpha_star, t_star, f_star10, m_turn, omega_b, omega_m, h, 
-                                                self.sheth_a, self.sheth_q, self.sheth_p, window = self.window, c = self.c, mh = mh, mask = mask)
+
+                    if self._precompute is False:
+                        # predict the UV luminosity function on the range of magnitude m_uv at that redshift bin
+                        # in the future, could add sheth_a, sheth_q, sheth_p and c as nuisance parameters
+                        phi_uv_pred_z = phi_uv(z, hz, self.m_uv_exp[j][iz], k, pk, alpha_star, t_star, f_star10, m_turn, omega_b, omega_m, h, 
+                                                    self.sheth_a, self.sheth_q, self.sheth_p, window = self.window, c = self.c, mh = mh, mask = mask)
+                        
+
+                    else:
+
+                        dndmh = interpolate.interp1d(self._masses, self._dndmh[0, self._z_index_from_table[j][iz], :])(mh)
+                        phi_uv_pred_z = phi_uv(z, hz, self.m_uv_exp[j][iz], k, pk, alpha_star, t_star, f_star10, m_turn, omega_b, omega_m, h, 
+                                                    self.sheth_a, self.sheth_q, self.sheth_p, window = self.window, c = self.c, mh = mh, 
+                                                    mask = mask, dndmh = dndmh)    
                     
                     phi_uv_pred_z = np.squeeze(phi_uv_pred_z, axis=1)
 
