@@ -101,6 +101,10 @@ class MPChain:
             self.lnlkl   = - data[:, 1]
             self._values = data[:, 2:].T
 
+            self._total_n_steps = np.sum(self.weights, dtype=int)
+            self._total_length  = self._values.shape[1]
+
+
         # reread the file to find the non markovian part of the chain
         with open(self._filename, 'r') as f:
 
@@ -113,6 +117,7 @@ class MPChain:
             self._values = self._values[:, self._markov_index:]
             self.weights = self.weights[self._markov_index:]
             self.lnlkl = self.lnlkl[self._markov_index:]
+
 
         self._max_lnlkl = np.max(self.lnlkl)
         index_max_lnlkl = np.argmax(self.lnlkl)
@@ -209,16 +214,57 @@ class MPChain:
         return self._var_value
     
     @property
-    def length(self):
+    def length(self) -> int:
+        """
+        Number of accepted steps not counting burnin and non markovian points.
+
+        Returns
+        -------
+        int
+        """
         return self._values.shape[1]
     
     @property
-    def n_steps(self):
-        return np.sum(self.weights)
+    def total_length(self) -> int:
+        """
+        Total number of accepted steps
+
+        Returns
+        -------
+        int
+        """
+        return self._total_length
+
+
+    @property
+    def total_n_steps(self) -> int:
+        """
+        Total number of steps.
+
+        Returns
+        -------
+        int
+        """
+        return self._total_n_steps
+    
+    @property
+    def n_steps(self) -> int:
+        """
+        Number of steps not counting burnin and non markovian points.
+
+        Returns
+        -------
+        int
+        """
+        return np.sum(self.weights, dtype=int)
     
     @property
     def n_params(self):
         return self._n_params
+    
+    @property
+    def acceptance_rate(self):
+        return self.total_length/self.total_n_steps
 
 
 
@@ -251,19 +297,32 @@ class Samples:
         chain_max_lnlkl  = np.argmax([chain.max_lnlkl for chain in self._chains])
         self._best_fit = self._chains[chain_max_lnlkl].best_fit
 
-        for ic, chain in enumerate(self._chains):
+        for chain in self._chains:
             chain.remove_burnin(self._max_lnlkl)
-            print('Chain ' + str(ic+1) + ' : Removed ' + str(chain._markov_index) + ' non-markovian points, ' \
-                  + str(chain.burnin_index) + ' points of burn-in, keep ' + str(chain._values.shape[1]) + ' steps | (max_lnlkl = ' + str(chain.max_lnlkl) + ')')
+        
+        #######################
+        # print some results
+
+        max_markov_index = len(str(int(np.max([chain.markov_index for chain in self._chains]))))
+        max_burnin_index = len(str(int(np.max([chain.burnin_index for chain in self._chains]))))
+    
+        for ic, chain in enumerate(self._chains):
+            print(f'Chain {ic+1:<3} : Removed {chain.markov_index:<{max_markov_index}} non-markovian points, ' \
+                  + f'{chain.burnin_index:<{max_burnin_index}} points of burn-in, keep ' + str(chain._values.shape[1]) \
+                  + f' steps | (max_lnlkl = {chain.max_lnlkl:.2f}, acceptance_rate = {chain.acceptance_rate:.2f})' )
             
-            if chain.length > 0:
-                chain.compute_stats()
+           
+        #######################
+        # compute some stats
 
         # define some global quantities (total number of steps and overall mean of the parameters)
         self._total_steps = np.sum(np.array([chain.n_steps for chain in self._chains]), dtype=int)
 
         self._total_mean = np.zeros(self.n_params)
         for chain in self._chains:
+            if chain.length > 0:
+                chain.compute_stats()
+
             self._total_mean  = self._total_mean + chain.n_steps * chain.mean_value
         self._total_mean = self._total_mean / self._total_steps
 
@@ -333,12 +392,12 @@ class Samples:
             discard = np.zeros(self.n_chains, dtype=int)
 
         if thin is None:
-            total_length = 0
+            m_total_length = 0
             for ichain, chain in enumerate(self.chains):
-                total_length = total_length + chain.values(discard = discard[ichain], thin=1).shape[1]
+                m_total_length = m_total_length + chain.values(discard = discard[ichain], thin=1).shape[1]
 
-            if total_length > 1e+4:
-                thin = int(total_length/10000)
+            if m_total_length > 1e+4:
+                thin = int(m_total_length/10000)
             else:
                 thin = 1
 
@@ -643,11 +702,12 @@ class ProcessedData:
     edges     : np.ndarray | None = None
     centers   : np.ndarray | None = None
     levels    : np.ndarray | None = None
-    q_values  : np.ndarray | None = None
+    q         : np.ndarray | None = None
     mean      : np.ndarray | None = None
     median    : np.ndarray | None = None
     bestfit   : np.ndarray | None = None
     quantiles : np.ndarray | None = None
+    samples   : np.ndarray | None = None
     size      : int | None = None
 
 
@@ -743,6 +803,7 @@ def generate_contours(samples, bins: int = 20, q = [0.68, 0.95]) -> ProcessedDat
 
     data.hists_2D  = hists_2D
     data.hists_1D  = hists_1D
+    data.samples   = samples
     data.edges     = edges
     data.centers   = centers
     data.levels    = levels
@@ -764,6 +825,7 @@ def plot_data(grid: AxesGrid,
               show_quantiles: list[bool] = [False, False],
               show_mean: bool = False,
               show_title: bool = True,
+              show_points: bool = False,
               q_in_title: int = 0.68,
               colors: list[str]  = 'orange',
               axes : list[int] | np.ndarray | None = None,
@@ -794,9 +856,18 @@ def plot_data(grid: AxesGrid,
         # add custom pastel colors to the stack of colors
         contour_colors = np.vstack(((1.0 - pastelness) * np.array(contour_colors) + pastelness, contour_colors))
         
-                
+    # plot the contours and points
     for i in range(1, data.size):
         for j in range(i):
+
+            if show_points is True:
+
+                # first thin the samples so that we plot only 5000 points
+                n = data.samples.shape[-1]
+                r = np.max([1, int(n/5000)])
+
+                grid.get(axes[i], axes[j]).scatter(data.samples[j, ::r], data.samples[i, ::r], marker='o', edgecolors='none', color = contour_colors[-1], s=2, alpha=0.5)
+
 
             if show_hist is True:
                 extent = [data.edges[j, 0], data.edges[j, -1], data.edges[i, 0], data.edges[i, -1]]
@@ -812,6 +883,9 @@ def plot_data(grid: AxesGrid,
 
             if show_contour is True:
                 grid.get(axes[i], axes[j]).contour(*np.meshgrid(data.centers[j], data.centers[i]), data.hists_2D[i, j].T, levels=data.levels[i, j], colors=contour_colors)
+
+
+         
 
     
     # fill in the 1D histograms
@@ -869,7 +943,9 @@ def plot_data(grid: AxesGrid,
 
         for i in range(j, data.size):
             grid.get(axes[i], axes[j]).set_xlim([grid.edges[j, 0], grid.edges[j, -1]])
-
+            
+            if i > j:
+                grid.get(axes[i], axes[j]).set_ylim([grid.edges[i, 0], grid.edges[i, -1]])
 
         
 def prepare_data_plot(samples, data_to_plot, discard = 0, thin = 1):

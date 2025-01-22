@@ -77,7 +77,7 @@ def n_baryons(omega_b : float | np.ndarray | torch.Tensor) -> (float | np.ndarra
         float or np.ndarray or torch.tensor
     """
 
-    return rho_baryons(omega_b) / CST_EV_M_S_K.mass_proton / (1.0 + CST_NO_DIM.YHe / 4.0 * (CST_EV_M_S_K.mass_helium/CST_EV_M_S_K.mass_hydrogen -1)) # in 1/m^3
+    return rho_baryons(omega_b) * ( (1.0- CST_NO_DIM.YHe) / CST_EV_M_S_K.mass_hydrogen +  CST_NO_DIM.YHe / CST_EV_M_S_K.mass_helium  ) # in 1/m^3
 
 
 def n_hydrogen(omega_b : float | np.ndarray | torch.Tensor) -> (float | np.ndarray | torch.Tensor):
@@ -94,7 +94,7 @@ def n_hydrogen(omega_b : float | np.ndarray | torch.Tensor) -> (float | np.ndarr
         float or np.ndarray or torch.tensor
     """
 
-    return n_baryons(omega_b) * (1.0-CST_NO_DIM.YHe/4.0)
+    return rho_baryons(omega_b) * (1.0 - CST_NO_DIM.YHe) / CST_EV_M_S_K.mass_hydrogen
 
 
 def n_ur(m_nus: np.ndarray | torch.Tensor) -> (np.ndarray | torch.Tensor):
