@@ -28,7 +28,7 @@ from .predictor    import (input_values, predict_classifier, predict_xHII, predi
                          predict_classifier_numpy, predict_xHII_numpy, predict_tau_numpy, predict_tau_from_xHII_numpy,
                          predict_Xe, predict_Xe_numpy, predict_tau_from_Xe, predict_tau_from_Xe_numpy)
 from .mcmc         import (log_prior, log_likelihood, log_probability, initialise_walkers, Likelihood, UVLFLikelihood)
-from .analysis     import (MPChain, Samples, AxesGrid, plot_data, generate_contours, ProcessedData, 
+from .analysis     import (MPChain, Samples, MPSamples, EMCEESamples, AxesGrid, plot_data, generate_contours, ProcessedData, 
                            compute_quantiles, neutrino_masses, prepare_data_plot, LATEX_LABELS,
                            get_xHII_stats, get_xHII_tanh_stats)
 

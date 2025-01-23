@@ -301,8 +301,8 @@ class OpticalDepthLikelihood(Likelihood):
                  *,
                  classifier: Classifier,
                  regressor:  Regressor,
-                 mean_tau:   float  = 0.0561,
-                 sigma_tau:  float = 0.0071) -> None:
+                 mean_tau:   float  = 0.0544,
+                 sigma_tau:  float = 0.0073) -> None:
         
         self._classifier = classifier
         self._regressor  = regressor 

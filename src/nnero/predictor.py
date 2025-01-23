@@ -30,7 +30,7 @@ from .data       import MP_KEY_CORRESPONDANCE
 
 DEFAULT_VALUES = {'F_STAR10' : -1.5, 'ALPHA_STAR' : 0.5, 't_STAR' : 0.5, 'F_ESC10' : -1.0, 'ALPHA_ESC' : 0.3, 'M_TURN' : 8.7,
             'Omdmh2' : 0.11933, 'Ombh2' : 0.02242,  'hlittle' : 0.6736, 'Ln_1010_As' : 3.047, 'POWER_INDEX' : 0.9665, 
-            'INVERSE_M_WDM' : 0.05, 'NEUTRINO_MASS_1' : 0.02, 'FRAC_WDM' : 0.0, 'M_WDM' : '20.0', 'L_X' : 40.0, 'NU_X_THRESH' : 500,
+            'INVERSE_M_WDM' : 0.0, 'NEUTRINO_MASS_1' : 0.0, 'FRAC_WDM' : 0.0, 'M_WDM' : '20.0', 'L_X' : 40.0, 'NU_X_THRESH' : 500,
             'LOG10_PMF_SB' : -5.0, 'PMF_NB' : -2.0}
 
 

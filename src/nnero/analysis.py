@@ -32,12 +32,21 @@ import os
 import numpy as np
 from copy import copy
 
+from abc import ABC, abstractmethod
+
 from .data       import MP_KEY_CORRESPONDANCE
 from .predictor  import DEFAULT_VALUES
 from .regressor  import Regressor
 from .classifier import Classifier
-from .predictor  import predict_xHII_numpy
+from .predictor  import predict_xHII_numpy, predict_tau_numpy
 
+EMCEE_IMPORTED = False
+
+try:
+    import emcee
+    EMCEE_IMPORTED = True
+except:
+    pass
 
 
 def neutrino_masses(mnu_1, mnu_2 = 0.0, mnu_3 = 0.0, hierarchy = 'NORMAL'):
@@ -67,6 +76,29 @@ def neutrino_masses(mnu_1, mnu_2 = 0.0, mnu_3 = 0.0, hierarchy = 'NORMAL'):
     m_neutrinos = np.array([mnu_1, mnu_2, mnu_3])
     return m_neutrinos
 
+
+def to_CLASS_names(array: list[str] | np.ndarray):
+
+    is_array = isinstance(array, np.ndarray)
+
+    labels_correspondance = {value : key for key, value in MP_KEY_CORRESPONDANCE.items()}    
+    array = [labels_correspondance[value] if value in labels_correspondance else value for value in array]
+
+    if is_array is True:
+        array = np.array(array)
+
+    return array
+    
+
+def to_21cmFAST_names(array: list[str] | np.ndarray):
+
+    is_array = isinstance(array, np.ndarray)
+    array = [MP_KEY_CORRESPONDANCE[value] if value in MP_KEY_CORRESPONDANCE else value for value in array]
+
+    if is_array is True:
+        array = np.array(array)
+
+    return array
 
 #################################################
 ## CHAIN ANALYSIS TOOLS
@@ -269,7 +301,201 @@ class MPChain:
 
 
 
-class Samples:
+class Samples(ABC):
+
+    def __init__(self, path : str, ids: list[int] | np.ndarray | None = None) -> None:
+        
+        self._path = path
+        self._ids  = np.array(ids) if ids is not None else None
+
+    @abstractmethod
+    def flat(self, discard: np.ndarray | None = None, thin: None | int = None, **kwargs) -> np.ndarray:
+        pass
+
+    @property
+    def path(self):
+        return self._path
+    
+    @property
+    def ids(self):
+        return self._ids
+    
+    @property
+    @abstractmethod
+    def param_names(self) -> np.ndarray:
+        pass
+
+    @property
+    @abstractmethod
+    def scaling_factor(self) -> dict:
+        pass
+
+
+
+class EMCEESamples(Samples):
+
+    def __init__(self, path : str, ids: list[int] | np.ndarray | None = None, add_tau: bool = False) -> None:
+        
+        if EMCEE_IMPORTED is False:
+            print("Cannot import emcee, therefore cannot work with emcee chains")
+            return None
+        
+        super().__init__(path, ids)
+
+
+        self._add_tau = add_tau
+        self.load_chains()
+
+        # Check for convergence criterion
+        self._has_converged = False
+        self._autocorr      = None
+        
+        try:
+            self._autocorr = self._reader.get_autocorr_time()
+            self._has_converged = True
+        except emcee.autocorr.AutocorrError:
+            self._autocorr = self._reader.get_autocorr_time(quiet = True)
+            pass
+        
+        
+
+    def load_chains(self):
+        
+        self._reader = emcee.backends.HDFBackend(self.path)
+        
+        with open(self.path.split('.')[0] + '.npz', 'rb') as file:
+
+            data = np.load(file)
+            self._parameters_theta = data.get('parameters_theta', None)
+            self._parameters_xi    = data.get('parameters_xi', None)
+            self._xi               = data.get('xi', None)
+
+        if self._add_tau is False:
+            self._param_names = np.array(list(self._parameters_theta) + list(self._parameters_xi))
+        else:
+            self._param_names = np.array(['tau_reio'] + list(self._parameters_theta) + list(self._parameters_xi))
+        
+
+
+    def flat(self, discard: np.ndarray | None = None, thin: None | int = None, **kwargs) -> np.ndarray:
+        
+        burnin_discard = int(np.max(2*self._autocorr)) if self._autocorr is not None else 0
+
+        if discard is None:
+            discard = 0
+
+        if thin is None:
+            thin = 1
+
+
+        flat_chain = self._reader.get_chain(discard=burnin_discard + discard, thin=thin, flat = True)
+        flat_chain = np.hstack((flat_chain, np.tile(self._xi, (flat_chain.shape[0], 1)))).T
+
+        if self._add_tau is True:
+
+            classifier = kwargs.get('classifier', None)
+            regressor  = kwargs.get('regressor', None)
+            tau = self.compute_tau(flat_chain, classifier, regressor)
+
+            flat_chain = np.vstack((tau[None, :], flat_chain))
+            
+
+        return flat_chain
+
+
+
+    def compute_tau(self, 
+                    flat_chain: np.ndarray, 
+                    classifier: Classifier | None = None,
+                    regressor: Regressor | None = None) -> np.ndarray:
+
+        data_for_tau = []
+
+        # get the ordered list of parameters
+        if regressor is None:
+            regressor  = Regressor.load()
+        if classifier is None:
+            classifier = Classifier.load()
+
+        r_parameters = regressor.metadata.parameters_name
+        parameters = copy(self.param_names)
+
+        if 'tau_reio' in parameters:
+            parameters = parameters[parameters != 'tau_reio']
+
+        for param in parameters:
+            
+            if param == 'sum_mnu':
+                param = 'm_nu1'
+
+            if ((param in MP_KEY_CORRESPONDANCE) and (MP_KEY_CORRESPONDANCE[param] in r_parameters)) or param in r_parameters:
+                data_for_tau.append(param)
+        
+        labels_correspondance = {value : key for key, value in MP_KEY_CORRESPONDANCE.items()}
+        
+        # get the data sample 
+        data = np.empty((len(r_parameters), flat_chain.shape[-1])) 
+
+        # find the ordering in which data_sample is set in prepare_data_plot
+        indices_to_plot = [list(parameters).index(param) for param in data_for_tau if param in parameters]
+
+        for ip, param in enumerate(r_parameters): 
+            
+            # if we ran the MCMC over that parameter
+            if labels_correspondance[param] in parameters[indices_to_plot]:
+                index = list(parameters[indices_to_plot]).index(labels_correspondance[param])
+                data[ip] = flat_chain[index, :]
+            elif param in parameters[indices_to_plot]:
+                index = list(parameters[indices_to_plot]).index(param)
+                data[ip] = flat_chain[index, :]
+            else:
+                data[ip, :] = DEFAULT_VALUES[param]
+
+
+        #return data 
+        tau = predict_tau_numpy(data.T, classifier, regressor)
+
+        return tau
+    
+
+    def convergence(self):
+
+        if self._has_converged is False:
+            print("Not converged yet")
+            print(self._autocorr)
+
+        
+    @property
+    def reader(self):
+        return self._reader
+    
+    @property
+    def autocorr(self) -> np.ndarray:
+        return self._autocorr
+
+    @property
+    def param_names(self) -> np.ndarray:
+        return self._param_names
+    
+    @property
+    def scaling_factor(self) -> dict:
+        return {name: 1.0 for name in self.param_names}
+
+
+def save_sampling_parameters(filename: str, 
+                             parameters_theta : list[str], 
+                             parameters_xi: list[str], 
+                             xi: np.ndarray):
+    with open(filename.split('.')[0] + '.npz', 'wb') as file:
+
+        np.savez(file, 
+                 parameters_theta=to_CLASS_names(parameters_theta), 
+                 parameters_xi=to_CLASS_names(parameters_xi), 
+                 xi=xi)
+
+
+
+class MPSamples(Samples):
     """
     Class containing all chains of a MCMC analysis
     
@@ -284,10 +510,9 @@ class Samples:
 
     def __init__(self, 
                  path: str, 
-                 ids: list | np.ndarray | None = None):
+                 ids: list[int] | np.ndarray | None = None):
         
-        self._path   = path
-        self._ids    = np.array(ids) if ids is not None else None
+        super().__init__(path, ids)
         self._chains : list[MPChain] = []
         
         self.load_chains()
@@ -334,7 +559,7 @@ class Samples:
     def load_chains(self) -> None:
         
         # look for chains in the folder
-        chains_path = self._path +  '_*.txt'
+        chains_path = self.path +  '_*.txt'
         self._chains_name = np.array(glob.glob(chains_path))
         ids = np.array([int(name.split('.')[-2].split('_')[-1]) for name in self._chains_name], dtype=int)
         self._chains_name = self._chains_name[np.argsort(ids)]
@@ -344,8 +569,8 @@ class Samples:
             raise ValueError("No chain found at " + chains_path)
 
         # redefine the chain name list from the given ids
-        if self._ids is not None:
-            self._chains_name = self._chains_name[self._ids]
+        if self.ids is not None:
+            self._chains_name = self._chains_name[self.ids]
 
         # define the number of chains
         self.n_chains = len(self._chains_name)
@@ -364,7 +589,7 @@ class Samples:
         self._names = np.empty(0)
         self._latex_names = np.empty(0)
        
-        with open(self._path + '.paramnames', 'r') as f:
+        with open(self.path + '.paramnames', 'r') as f:
             for line in f:
                 ls = line.split('\t')
                 self._names = np.append(self._names, ls[0][:-1])
@@ -383,7 +608,7 @@ class Samples:
                     self._scaling_factor[name] = value  
 
 
-    def flat(self, discard: np.ndarray | None = None, thin: None | int = None):
+    def flat(self, discard: np.ndarray | None = None, thin: None | int = None, **kwargs):
         
         if isinstance(discard, int):
             discard = np.full(self.n_chains, discard)
@@ -746,7 +971,7 @@ def compute_quantiles(hist, edges, q):
     return e_arr[iq, 0], e_arr[iq, 1]
 
 
-def generate_contours(samples, bins: int = 20, q = [0.68, 0.95]) -> ProcessedData:
+def generate_contours(samples: np.ndarray, bins: int = 20, q = [0.68, 0.95]) -> ProcessedData:
 
     data = ProcessedData()
 
@@ -947,8 +1172,15 @@ def plot_data(grid: AxesGrid,
             if i > j:
                 grid.get(axes[i], axes[j]).set_ylim([grid.edges[i, 0], grid.edges[i, -1]])
 
-        
-def prepare_data_plot(samples, data_to_plot, discard = 0, thin = 1):
+
+
+
+    
+
+
+def prepare_data_plot(samples: Samples, data_to_plot, discard = 0, thin = 1):
+
+    data_to_plot = to_CLASS_names(data_to_plot)
 
     # give the transformation rules between the parameter if there is to be one
     def transform_data(data, name, param_names):
@@ -988,21 +1220,42 @@ def prepare_data_plot(samples, data_to_plot, discard = 0, thin = 1):
 
     # remove outliers for tau_reio
     if 'tau_reio' in data_to_plot:
-        warnings.warn('Removing outlier points for tau_reio')
         index_tau_reio = data_to_plot.index('tau_reio')
-        data = data[:, data[index_tau_reio] < 0.8]
+
+        mask = data[index_tau_reio] < 0.1
+        n_outliers = np.count_nonzero(~mask)
+        
+        if n_outliers > 0 : 
+            warnings.warn(f'Removing {n_outliers} outlier points for tau_reio: ' + str(data[index_tau_reio, ~mask]))
+
+        data = data[:, mask]
+        
 
     return data
 
+    
 
 
-def get_xHII_stats(samples: Samples, data_to_plot, q = [0.68, 0.95], bins = 30, discard=0, thin =1000):
+def get_xHII_stats(samples: Samples, 
+                   data_to_plot: list[str] | np.ndarray, 
+                   q: list[float] = [0.68, 0.95], 
+                   bins: int = 30, 
+                   discard: int = 0, 
+                   thin: int = 1000,
+                   *,
+                   classifier: Classifier | None = None,
+                   regressor: Regressor | None = None):
 
     data_for_xHII = []
 
+    data_to_plot = to_CLASS_names(data_to_plot)
+
     # get the ordered list of parameters
-    regressor  = Regressor.load()
-    classifier = Classifier.load()
+    if regressor is None:
+        regressor  = Regressor.load()
+
+    if classifier is None:
+        classifier = Classifier.load()
 
     parameters = regressor.metadata.parameters_name
 
@@ -1015,11 +1268,8 @@ def get_xHII_stats(samples: Samples, data_to_plot, q = [0.68, 0.95], bins = 30, 
             data_for_xHII.append(param)
 
     
-    # get the default values of the parameters
-
     labels_correspondance = {value : key for key, value in MP_KEY_CORRESPONDANCE.items()}
     
-
     # get the data sample 
     data_sample = prepare_data_plot(samples, data_for_xHII, discard=discard, thin=thin)
     data = np.empty((len(parameters), data_sample.shape[-1])) 
@@ -1027,7 +1277,6 @@ def get_xHII_stats(samples: Samples, data_to_plot, q = [0.68, 0.95], bins = 30, 
     # find the ordering in which data_sample is set in prepare_data_plot
     indices_to_plot = [np.where(samples.param_names == param)[0][0] for param in data_for_xHII if param in samples.param_names]
 
-    
     for ip, param in enumerate(parameters): 
         
         # if we ran the MCMC over that parameter
@@ -1061,6 +1310,9 @@ def get_xHII_stats(samples: Samples, data_to_plot, q = [0.68, 0.95], bins = 30, 
     
     return z, mean, med, quantiles
 
+
+
+#def add_tau_reio_to_sample(sample, pa)
 
 
 def get_xHII_tanh_stats(samples: Samples, q: list[float] = [0.68, 0.95], bins: int = 30, 
