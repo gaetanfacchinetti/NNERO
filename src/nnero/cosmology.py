@@ -35,7 +35,12 @@ from .constants import CST_EV_M_S_K, CST_NO_DIM, CST_MSOL_MPC, CONVERSIONS
 
 def convert_array(arr: float, to_torch: bool = False) -> (np.ndarray | torch.Tensor):
     if isinstance(arr, np.ndarray | torch.Tensor):
-        return arr
+        if (isinstance(arr, np.ndarray) and to_torch is False) or (isinstance(arr, torch.Tensor) and to_torch is True):
+            return arr
+        if isinstance(arr, np.ndarray) and to_torch is True:
+            return torch.tensor(arr)
+        if isinstance(arr, torch.Tensor) and to_torch is False:
+            return arr.numpy()
     return np.array([arr]) if not to_torch else torch.tensor([arr])
 
  
@@ -344,6 +349,7 @@ def optical_depth_numpy(z, xHII, omega_b, omega_c, h, m_nus : np.ndarray, low_va
     h       = convert_array(h, to_torch)
     omega_b = convert_array(omega_b, to_torch)
     omega_c = convert_array(omega_c, to_torch)
+
     
     # prepare data for redshifts < min(z)
     # we assume that at small z value xHII = 1
@@ -426,28 +432,39 @@ def optical_depth_no_rad(z:       float | np.ndarray | torch.Tensor,
     omega_b = convert_array(omega_b, to_torch)
     omega_c = convert_array(omega_c, to_torch)
 
+    if len(z.shape) == 1:
+        if isinstance(z, np.ndarray):
+            z = z[None, :]
+        if isinstance(z, torch.Tensor):
+            z = z.unsqueeze(0)
+
+    if len(xHII.shape) == 1:
+        if isinstance(xHII, np.ndarray):
+            xHII = xHII[None, :]
+        if isinstance(xHII, torch.Tensor):
+            xHII = xHII.unsqueeze(0)
+
     # prepare data for redshifts < min(z)
     # we assume that at small z value xHII = 1
     z_small    = xp.linspace(0,  z.min(), 20)[None, :]    
-    xHII_small = xp.full((1, z_small.shape[-1]), fill_value=low_value)
+    xHII_small = xp.full((xHII.shape[0], z_small.shape[-1]), fill_value=low_value)
 
     # concatenate the two parts (small and large z)
-    _z = np.concatenate((z_small, z), axis=-1)
-    Xe = np.concatenate((xHII_small, xHII), axis=-1)
-
+    rs = xp.concatenate((z_small, z), axis=-1)
+    Xe = xp.concatenate((xHII_small, xHII), axis=-1)
 
     # add the Helium contribution
     if with_helium is True:
         fHe = CST_NO_DIM.YHe / (1.0 -  CST_NO_DIM.YHe) * CST_EV_M_S_K.mass_hydrogen / CST_EV_M_S_K.mass_helium  
-        Xe[_z <= 3] = Xe[_z <= 3] + fHe/(1+fHe)
-
+        Xe[:, rs[0, :] <= 3] = Xe[:, rs[0, :] <= 3] + fHe/(1+fHe)
+        
     # fast trapezoid integration scheme
     # h_factor_numpy is of shape (n, p), z of shape (1, p) and xHII of shape (n, p)
     # integrand is of shape (n, p), trapz of shape (n, p-1)
     # res is of shape (n,)
-    integrand = Xe * (1+_z)**2 / h_factor_no_rad(_z, omega_b, omega_c, h)
+    integrand = Xe * (1+rs)**2 / h_factor_no_rad(rs, omega_b, omega_c, h)
     trapz     = (integrand[..., 1:] + integrand[..., :-1])/2.0
-    dz        = xp.diff(_z, axis=-1)
+    dz        = xp.diff(rs, axis=-1)
     res       = xp.sum(trapz * dz, axis=-1)
 
     """
