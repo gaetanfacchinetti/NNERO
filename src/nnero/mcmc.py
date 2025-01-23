@@ -25,7 +25,7 @@ import pkg_resources
 
 from abc import ABC, abstractmethod
 
-from scipy       import interpolate
+from scipy       import special, interpolate
 from .data       import uniform_to_true
 from .predictor  import predict_tau_from_xHII_numpy, predict_xHII_numpy, DEFAULT_VALUES
 from .classifier import Classifier
@@ -65,7 +65,7 @@ class Likelihood(ABC):
             theta = theta[None, :]
 
         if len(xi.shape) == 1:
-            xi = xi[None, :]
+            xi = np.tile(xi, (theta.shape[0], 1))
 
         x: np.ndarray = np.hstack((theta, xi))
 
@@ -107,6 +107,8 @@ class UVLFLikelihood(Likelihood):
     def __init__(self, 
                  parameters: list[str],  
                  *,
+                 parameters_xi: np.ndarray | None = None,
+                 xi: np.ndarray | None = None,
                  k: np.ndarray | None = None, 
                  pk: np.ndarray | None = None,
                  precompute: bool = False) -> None:
@@ -121,7 +123,22 @@ class UVLFLikelihood(Likelihood):
             h = 0.7
             omega_m = 0.3*(h**2)
             cosmo = classy.Class()
-            cosmo.set({'output' : 'mPk', 'P_k_max_h/Mpc' : 100.0, 'h' : 0.7, 'omega_m' : omega_m})
+            
+            params_cosmo = {'output' : 'mPk', 'P_k_max_h/Mpc' : 500.0, 'h' : 0.7, 'omega_m' : omega_m}
+
+            if parameters_xi is not None and 'Ln1010As' in parameters_xi:
+                params_cosmo['ln10^{10}A_s'] = xi[parameters_xi.index('Ln1010As')]
+            
+            if parameters_xi is not None and 'Ombh2' in parameters_xi:
+                params_cosmo['omega_b'] = xi[parameters_xi.index('Ombh2')]
+
+            if parameters_xi is not None and 'POWER_INDEX' in parameters_xi:
+                params_cosmo['n_s'] = xi[parameters_xi.index('POWER_INDEX')]
+
+            if parameters_xi is None:
+                print("Attention: matter power spectrum evaluated for a default cosmology.")
+
+            cosmo.set(params_cosmo)
             cosmo.compute()
 
             self._k     = np.logspace(-5, np.log10(cosmo.pars['P_k_max_h/Mpc'] * h), 50000)
@@ -297,7 +314,6 @@ class OpticalDepthLikelihood(Likelihood):
         # define an 'order list' to reorganise the parameters
         # in the order they are passed to the classifier and regressor
         ordered_params = regressor.metadata.parameters_name
-    
         self._order    = [self.parameters.index(param) for param in ordered_params if param in self.parameters]
 
         
@@ -346,6 +362,81 @@ class OpticalDepthLikelihood(Likelihood):
         loglkl = loglkl - 0.5 * ((tau- tau_pred)**2/var_tau + np.log( 2*np.pi * var_tau))
     
         return loglkl 
+    
+
+
+class ReionizationLikelihood(Likelihood):
+
+    def __init__(self, 
+                 parameters: list[str],
+                 *,
+                classifier: Classifier,
+                regressor:  Regressor):
+        
+                
+        self._classifier = classifier
+        self._regressor  = regressor 
+
+        # defining McGreer data
+        # https://doi.org/10.1093/mnras/stu2449
+        self.z_reio     = np.array([5.6, 5.9])
+        self.x_reio     = np.array([0.96, 0.94])
+        self.std_x_reio = np.array([0.05, 0.05])
+
+        super().__init__(parameters)
+
+        # define an 'order list' to reorganise the parameters
+        # in the order they are passed to the classifier and regressor
+        ordered_params = regressor.metadata.parameters_name
+        self._order    = [self.parameters.index(param) for param in ordered_params if param in self.parameters]
+        
+       
+
+    @property
+    def classifier(self):
+        return self._classifier
+    
+    @property
+    def regressor(self):
+        return self._regressor
+    
+
+
+
+    def _loglkl(self, x, **kwargs):
+
+        # get the number of parallel evaluations
+        n = x.shape[0]
+
+        xx = np.array([DEFAULT_VALUES[param] for param in self.regressor.metadata.parameters_name])
+        xx = np.tile(xx, (n, 1))
+
+        indices = np.array([list(self.regressor.metadata.parameters_name).index(param) for param in self.regressor.metadata.parameters_name if param in self.parameters])
+        
+        xx[:, indices] = x[:, self._order]
+
+        # predict the ionization fraction from the NN
+        xHII_full = predict_xHII_numpy(xx, self.classifier, self.regressor)
+        xHII = interpolate.interp1d(self.regressor.z, xHII_full)(self.z_reio)
+
+        # setting the result to -inf when the classifier returns it as a wrong value
+        # initialise the result
+        res = np.zeros((n, *self.z_reio.shape))
+        res[xHII[:, 0] == -1] = -np.inf
+        
+        std = np.tile(self.std_x_reio, (n, 1))
+        x_reio = np.tile(self.x_reio, (n, 1))
+
+        # compute the truncated gaussian for the reionization data
+        norm_reio = -np.log(1.0 - x_reio + np.sqrt(np.pi/2.0)*std*special.erf(x_reio/(np.sqrt(2))/std))
+        res = res + norm_reio
+
+        mask = xHII < self.x_reio
+        
+
+        res[mask] = res[mask] - 0.5 * (xHII[mask] - x_reio[mask])**2/(std[mask]**2)
+
+        return np.sum(res, axis=-1)
     
 
     
@@ -445,10 +536,12 @@ def log_likelihood(theta: np.ndarray,
         _description_
     """
     
-    res = np.zeros(theta.shape + res.shape)
+    res = np.zeros(theta.shape[0])
 
     for likelihood in likelihoods:
         res = res  + likelihood.loglkl(theta, xi, **kwargs)
+
+    return res
 
 
 def log_probability(theta:     np.ndarray, 
@@ -466,7 +559,7 @@ def log_probability(theta:     np.ndarray,
     res[~mask] = -np.inf
 
     # makes the sum of the log prior and log likelihood 
-    res[mask] = log_likelihood(theta[mask, :], xi[mask, :], likelihoods, **kwargs)
+    res[mask] = log_likelihood(theta[mask, :], xi, likelihoods, **kwargs)
 
     return res 
 
@@ -474,6 +567,7 @@ def log_probability(theta:     np.ndarray,
 def initialise_walkers(theta_min: np.ndarray, 
                        theta_max: np.ndarray, 
                        xi       : np.ndarray,
+                       likelihoods: list[Likelihood],
                        n_walkers: int = 64, 
                        **kwargs):
     
@@ -486,11 +580,19 @@ def initialise_walkers(theta_min: np.ndarray,
         # draw a value for the initial position
         prop = uniform_to_true(np.random.rand(1, n_params), theta_min, theta_max)
 
-        # check that the likelihood is finite at that position
-        if np.all(np.isfinite(log_likelihood(prop, xi, **kwargs))):
+        try:
+            
+            log_lkl = log_likelihood(prop, xi, likelihoods, **kwargs)
+        
+            # check that the likelihood is finite at that position
+            if np.all(np.isfinite(log_lkl)):
 
-            # if finite add it to the list of positions
-            pos = np.vstack((pos, prop))
+                # if finite add it to the list of positions
+                pos = np.vstack((pos, prop))
+
+        except:
+            pass
+
         
         i = i+1
 

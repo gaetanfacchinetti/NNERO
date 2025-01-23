@@ -219,6 +219,10 @@ class Regressor(NeuralNetwork):
     def pca_precision(self):
         return self._pca_precision
     
+    @property
+    def z(self):
+        return self._metadata.z
+    
     
     
 def train_regressor(model: Regressor, 

@@ -381,7 +381,8 @@ def optical_depth_no_rad(z:       float | np.ndarray | torch.Tensor,
                          omega_c: float | np.ndarray | torch.Tensor, 
                          h:       float | np.ndarray | torch.Tensor,
                          *, 
-                         low_value: float = 1.0):
+                         low_value: float = 1.0,
+                         with_helium: bool = True):
     """
     Optical depth to reionization without radiation.
 
@@ -420,7 +421,7 @@ def optical_depth_no_rad(z:       float | np.ndarray | torch.Tensor,
         to_torch = True
 
     # convert the floats to arrays or tensors
-    z       = convert_array(z, to_torch)[None, :]
+    z       = convert_array(z, to_torch)
     h       = convert_array(h, to_torch)
     omega_b = convert_array(omega_b, to_torch)
     omega_c = convert_array(omega_c, to_torch)
@@ -428,8 +429,28 @@ def optical_depth_no_rad(z:       float | np.ndarray | torch.Tensor,
     # prepare data for redshifts < min(z)
     # we assume that at small z value xHII = 1
     z_small    = xp.linspace(0,  z.min(), 20)[None, :]    
-    xHII_small = xp.full((1, len(z_small)), fill_value=low_value)[None, :] 
+    xHII_small = xp.full((1, z_small.shape[-1]), fill_value=low_value)
 
+    # concatenate the two parts (small and large z)
+    _z = np.concatenate((z_small, z), axis=-1)
+    Xe = np.concatenate((xHII_small, xHII), axis=-1)
+
+
+    # add the Helium contribution
+    if with_helium is True:
+        fHe = CST_NO_DIM.YHe / (1.0 -  CST_NO_DIM.YHe) * CST_EV_M_S_K.mass_hydrogen / CST_EV_M_S_K.mass_helium  
+        Xe[_z <= 3] = Xe[_z <= 3] + fHe/(1+fHe)
+
+    # fast trapezoid integration scheme
+    # h_factor_numpy is of shape (n, p), z of shape (1, p) and xHII of shape (n, p)
+    # integrand is of shape (n, p), trapz of shape (n, p-1)
+    # res is of shape (n,)
+    integrand = Xe * (1+_z)**2 / h_factor_no_rad(_z, omega_b, omega_c, h)
+    trapz     = (integrand[..., 1:] + integrand[..., :-1])/2.0
+    dz        = xp.diff(_z, axis=-1)
+    res       = xp.sum(trapz * dz, axis=-1)
+
+    """
     # fast trapezoid integration scheme (on small z values)
     # h_factor_numpy is of shape (p, n), z_small of shape (1, p) and xHII_small of shape (1, p)
     # integrand_small is of shape (n, p), trapz_small of shape (n, p-1)
@@ -447,6 +468,7 @@ def optical_depth_no_rad(z:       float | np.ndarray | torch.Tensor,
     trapz     = (integrand[..., 1:] + integrand[..., :-1])/2.0
     dz        = xp.diff(z, axis=-1)
     res       = res + xp.sum(trapz * dz, axis=-1)
+    """
 
     # adding the correct prefactor in front
     # pref is of shape (n,)

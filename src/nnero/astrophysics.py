@@ -74,6 +74,11 @@ def m_halo(hz:         float | np.ndarray,
     if len(m_uv.shape) == 2:
         m_uv = m_uv[None, :, :]
 
+
+    q: int = f_star10.shape[0]
+    r: int = hz.shape[1]
+    s: int = m_uv.shape[2]
+
     
     # conversion constant between star formation rate and magnitude
     gamma_UV = 1.15e-28 * 10**(0.4*51.63) / CONVERSIONS.yr_to_s
@@ -82,15 +87,18 @@ def m_halo(hz:         float | np.ndarray,
     fb = (omega_b/omega_m)[:, None, None]
 
     # define the return array and fill it with zeros
-    res = np.zeros((hz.shape[0], hz.shape[1], m_uv.shape[2])) # shape (q, r, s)
+    res = np.zeros((q, r, s)) # shape (q, r, s)
 
-    # mh below are those for which f_star10 (m/1e+10) <= 1 (and f_star = f_b f_star10 (m/1e+10))
+    # mh_below are those for which f_star10 (m/1e+10) <= 1 (and f_star = f_b f_star10 (m/1e+10))
+    # mh_below is of shape (q, r, s)
     mh_below = 1e+10 * ( gamma_UV/(hz*1e+10) * t_star / f_star10 / fb *  10**(-0.4*m_uv) )**(1.0/(alpha_star+1.0))
 
     # make a difference if f_star10 (m/1e+10) <= 1 or not
-    mask = ((f_star10 * (mh_below/1e+10)**alpha_star * hz / hz) <= 1)
+    # mask is of shape (q, r, s)
+    mask = ((f_star10 * (mh_below/1e+10)**alpha_star) <= 1)
 
     # vals below are those for which f_star10 (m/1e+10) > 1  (and f_star = f_b)
+    # mh_above is of shape (q, r, s)
     mh_above = gamma_UV / hz * t_star / fb *  10**(-0.4*m_uv) 
 
     # fill the return array with the correct values according to the mask
@@ -98,7 +106,8 @@ def m_halo(hz:         float | np.ndarray,
     res[~mask] = mh_above[~mask]
 
     # check that all mh below statisfy the criterion (as it should)
-    assert np.all( (f_star10 * (res[~mask]/1e+10)**alpha_star)  > 1), "Halo mass value (index below) should satisfy f_star10 * (mh_below/1e+10)**alpha_star < 1"
+    if np.any( ( np.tile(f_star10, (1, r, s))[~mask] * (res[~mask]/1e+10)**( np.tile(alpha_star, (1, r, s))[~mask])   ) <= 1):
+        raise ValueError("Halo mass value (index below) should satisfy f_star10 * (mh_below/1e+10)**alpha_star < 1")
 
     # the mask is True when we are below i.e. f_star10 (m/1e+10)^alpha_star < 1, and False when we are above
     return res, mask
