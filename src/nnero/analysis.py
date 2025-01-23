@@ -1146,7 +1146,7 @@ def plot_data(grid: AxesGrid,
             raise ValueError('quantile in title should be a q value given in generate_contour')
         
         if (show_title is True) and (i not in exclude_title):
-            grid.add_title(axes[i], r'${:.3g}$'.format(data.mean[i], color=colors[0]) + '$^{{ +{:.2g} }}_{{ -{:.2g} }}$'.format(data.quantiles[jq, i, 1] - data.mean[i], data.mean[i] - data.quantiles[jq, i, 0] ), color=title_color)  
+            grid.add_title(axes[i], r'${:.3g}$'.format(data.median[i], color=colors[0]) + '$^{{ +{:.2g} }}_{{ -{:.2g} }}$'.format(data.quantiles[jq, i, 1] - data.median[i], data.median[i] - data.quantiles[jq, i, 0] ), color=title_color)  
     
     grid.update_titles()
 
