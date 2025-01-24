@@ -33,6 +33,7 @@ import numpy as np
 from copy import copy
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
 from .data       import MP_KEY_CORRESPONDANCE
 from .predictor  import DEFAULT_VALUES
@@ -302,6 +303,17 @@ class MPChain:
 
 
 class Samples(ABC):
+    """
+    Class containing all chains of a MCMC analysis
+    
+    Parameters
+    ----------
+    path : str
+        Path to the chains.
+    ids : list | np.ndarray | None, optional
+        List of chains to take into accoung. If none all possible found chains are added. By default None.
+
+    """
 
     def __init__(self, path : str, ids: list[int] | np.ndarray | None = None) -> None:
         
@@ -331,16 +343,125 @@ class Samples(ABC):
         pass
 
 
+@dataclass
+class GaussianInfo:
+
+    mean: np.ndarray | None = None
+    cov:  np.ndarray | None = None
+    params: np.ndarray | list[str] | None = None
+
+    def compatible(self, other):
+        
+        all_params = set(list(to_CLASS_names(self.params)) + list(to_CLASS_names(other.params)) )
+       
+        for param in all_params:
+            if param in to_CLASS_names(self.params) and param in to_CLASS_names(other.params):
+                index_1 = list(to_CLASS_names(self.params)).index(param)
+                index_2 = list(to_CLASS_names(other.params)).index(param)
+
+                if self.mean[index_1] != other.mean[index_2]:
+                    return False 
+                
+        return True
+
+
+
+class GaussianSamples(Samples):
+    """
+    Daughter class of Samples for gaussian generated chains.
+    """
+
+    def __init__(self, 
+                 gaussians: list[GaussianInfo | str] | GaussianInfo | str ,
+                 add_tau: bool = False,
+                 params: list[str] | None = None,
+                 *, 
+                 n: int = 200_000) -> None:
+
+        super().__init__("", None)
+
+        self.load_data()
+
+        # define a list of extra gaussian to add on top
+        self._gaussians = gaussians
+        if (not isinstance(self._gaussians, list)):
+            self._gaussians = [self._gaussians]
+
+        for ig in range(len(self._gaussians)):
+            if isinstance(self._gaussians[ig], str):
+                self._gaussians[ig] = self.load_data(self._gaussians[ig])
+            
+            if not self._gaussians[0].compatible(self._gaussians[ig]):
+                raise ValueError('fiducial parameters should agree')
+
+        self._params = params
+
+        if params is None and self._gaussians is not None:
+            self._params = self._gaussians[0].params
+
+        self._params = to_CLASS_names(self._params)
+
+        self._gaussian = GaussianInfo()
+        self.load_data(self)
+
+        # prepare the main Gaussian, the one that is read in the file
+        indices = [self._gaussian.params.index(param) for param in self._params if param in self._gaussian.params.index(param)]
+        self._gaussian.cov  = self._gaussian.cov[np.ix_(indices, indices)]
+        self._gaussian.mean = self._gaussian.mean[indices]
+
+        self._total_inv_cov = np.linalg.inv(self._gaussian.cov)
+
+        for gaussian in self._extra_gaussians:
+            extra_params = list(to_CLASS_names(self._extra_gaussians.params))
+            indices   = [extra_params.index(param) for param in self._params if param in extra_params]
+            extra_cov = self._extra_gaussians.cov[np.ix_(indices, indices)]
+            #self._total_inv_cov[] = self._total_inv_cov[np.ix_(indices, indices)] + np.linalg.inv(extra_cov)
+
+        self._total_cov = np.linalg.inv(self._total_cov)
+
+        self._generated_data = np.random.multivariate_normal(gaussian.mean, gaussian.cov, 200_000).T
+
+
+    def load_data(self, filename):
+
+        gaussian = GaussianInfo()
+
+        with open(filename, 'rb') as file:
+            data = np.load(file)
+            gaussian.cov     = data.get('cov', None)
+            gaussian.params  = list(to_CLASS_names(data['params'])) if 'params' in data else None
+            gaussian.mean    = data.get('fiducial')
+
+        return gaussian
+
+        
+
+    def flat(self, discard: np.ndarray | None = None, thin: None | int = None, **kwargs) -> np.ndarray:
+
+        return self._generated_data
+
+
+
+
+    @property
+    def scaling_factor(self) -> dict:
+        return {name: 1.0 for name in self.param_names}
+
+
+
 
 class EMCEESamples(Samples):
+    """
+    Daughter class of Samples for emcee chains.
+    """
 
-    def __init__(self, path : str, ids: list[int] | np.ndarray | None = None, add_tau: bool = False) -> None:
+    def __init__(self, path : str, add_tau: bool = False) -> None:
         
         if EMCEE_IMPORTED is False:
             print("Cannot import emcee, therefore cannot work with emcee chains")
             return None
         
-        super().__init__(path, ids)
+        super().__init__(path, None)
 
 
         self._add_tau = add_tau
@@ -395,67 +516,12 @@ class EMCEESamples(Samples):
 
             classifier = kwargs.get('classifier', None)
             regressor  = kwargs.get('regressor', None)
-            tau = self.compute_tau(flat_chain, classifier, regressor)
+            tau = compute_tau(flat_chain, self.param_names, classifier, regressor)
 
             flat_chain = np.vstack((tau[None, :], flat_chain))
             
-
         return flat_chain
 
-
-
-    def compute_tau(self, 
-                    flat_chain: np.ndarray, 
-                    classifier: Classifier | None = None,
-                    regressor: Regressor | None = None) -> np.ndarray:
-
-        data_for_tau = []
-
-        # get the ordered list of parameters
-        if regressor is None:
-            regressor  = Regressor.load()
-        if classifier is None:
-            classifier = Classifier.load()
-
-        r_parameters = regressor.metadata.parameters_name
-        parameters = copy(self.param_names)
-
-        if 'tau_reio' in parameters:
-            parameters = parameters[parameters != 'tau_reio']
-
-        for param in parameters:
-            
-            if param == 'sum_mnu':
-                param = 'm_nu1'
-
-            if ((param in MP_KEY_CORRESPONDANCE) and (MP_KEY_CORRESPONDANCE[param] in r_parameters)) or param in r_parameters:
-                data_for_tau.append(param)
-        
-        labels_correspondance = {value : key for key, value in MP_KEY_CORRESPONDANCE.items()}
-        
-        # get the data sample 
-        data = np.empty((len(r_parameters), flat_chain.shape[-1])) 
-
-        # find the ordering in which data_sample is set in prepare_data_plot
-        indices_to_plot = [list(parameters).index(param) for param in data_for_tau if param in parameters]
-
-        for ip, param in enumerate(r_parameters): 
-            
-            # if we ran the MCMC over that parameter
-            if labels_correspondance[param] in parameters[indices_to_plot]:
-                index = list(parameters[indices_to_plot]).index(labels_correspondance[param])
-                data[ip] = flat_chain[index, :]
-            elif param in parameters[indices_to_plot]:
-                index = list(parameters[indices_to_plot]).index(param)
-                data[ip] = flat_chain[index, :]
-            else:
-                data[ip, :] = DEFAULT_VALUES[param]
-
-
-        #return data 
-        tau = predict_tau_numpy(data.T, classifier, regressor)
-
-        return tau
     
 
     def convergence(self):
@@ -494,19 +560,70 @@ def save_sampling_parameters(filename: str,
                  xi=xi)
 
 
+def compute_tau(flat_chain: np.ndarray, 
+                param_names: list[str] | np.ndarray,
+                classifier: Classifier | None = None,
+                regressor: Regressor | None = None) -> np.ndarray:
+
+        data_for_tau = []
+
+      
+
+        # get the ordered list of parameters
+        if regressor is None:
+            regressor  = Regressor.load()
+        if classifier is None:
+            classifier = Classifier.load()
+
+        r_parameters = regressor.metadata.parameters_name
+        parameters = copy(param_names)
+
+        if isinstance(parameters, list):
+            parameters = np.array(parameters)
+
+        if 'tau_reio' in parameters:
+            parameters = parameters[parameters != 'tau_reio']
+
+        for param in parameters:
+            
+            if param == 'sum_mnu':
+                param = 'm_nu1'
+
+            if ((param in MP_KEY_CORRESPONDANCE) and (MP_KEY_CORRESPONDANCE[param] in r_parameters)) or param in r_parameters:
+                data_for_tau.append(param)
+        
+        labels_correspondance = {value : key for key, value in MP_KEY_CORRESPONDANCE.items()}
+        
+        # get the data sample 
+        data = np.empty((len(r_parameters), flat_chain.shape[-1])) 
+
+        # find the ordering in which data_sample is set in prepare_data_plot
+        indices_to_plot = [list(parameters).index(param) for param in data_for_tau if param in parameters]
+
+        for ip, param in enumerate(r_parameters): 
+            
+            # if we ran the MCMC over that parameter
+            if labels_correspondance[param] in parameters[indices_to_plot]:
+                index = list(parameters[indices_to_plot]).index(labels_correspondance[param])
+                data[ip] = flat_chain[index, :]
+            elif param in parameters[indices_to_plot]:
+                index = list(parameters[indices_to_plot]).index(param)
+                data[ip] = flat_chain[index, :]
+            else:
+                data[ip, :] = DEFAULT_VALUES[param]
+
+
+        #return data 
+        tau = predict_tau_numpy(data.T, classifier, regressor)
+
+        return tau
+
 
 class MPSamples(Samples):
     """
-    Class containing all chains of a MCMC analysis
-    
-    Parameters
-    ----------
-    path : str
-        Path to the chains.
-    ids : list | np.ndarray | None, optional
-        List of chains to take into accoung. If none all possible found chains are added. By default None.
-
+    Daughter class of Samples for MontePython chains.
     """
+ 
 
     def __init__(self, 
                  path: str, 
@@ -608,7 +725,23 @@ class MPSamples(Samples):
                     self._scaling_factor[name] = value  
 
 
-    def flat(self, discard: np.ndarray | None = None, thin: None | int = None, **kwargs):
+    def flat(self, discard: np.ndarray | None = None, thin: None | int = None, **kwargs) -> np.ndarray:
+        """
+        Flatten samples of all chains.
+
+        Parameters
+        ----------
+        discard : np.ndarray | None, optional
+            Number of points to discard at begining of the chain, by default None (0).
+        thin : None | int, optional
+            Reduce the size of the sample by taking one point every `thin`, by default None.
+            If Nont compute the reduced size such that the total length of the sample is 10000.
+
+        Returns
+        -------
+        np.ndarray
+            Sample in a 2 dimensional array of shape (# of parameters, # of points)
+        """
         
         if isinstance(discard, int):
             discard = np.full(self.n_chains, discard)
@@ -655,6 +788,31 @@ class MPSamples(Samples):
         between = between / (self.total_steps-1)
 
         return between/within
+    
+
+
+    def covmat(self, 
+               discard: np.ndarray | None = None, 
+               params_in_cov : list[str] | None = None) -> np.ndarray:
+        """
+        Covariance matrix.
+
+        Parameters
+        ----------
+        discard : np.ndarray | None, optional
+            Number of points to discard at begining of the chain, by default None (0).
+        data_to_cov : list[str] | None, optional
+            List of parameters to put in the covariance matrix (in the order of that list).
+            If None consider all parameters available.
+
+        Returns
+        -------
+        np.ndarray
+            Covariance matric (n, n) array
+        """
+        
+        points = prepare_data_plot(self, params_in_cov, discard, thin=1)        
+        return np.cov(points)
 
 
 
@@ -710,6 +868,65 @@ class MPSamples(Samples):
     def total_mean(self):
         return self._total_mean
     
+
+
+
+
+def prepare_data_plot(samples: Samples, data_to_plot, discard = 0, thin = 1):
+
+    data_to_plot = to_CLASS_names(data_to_plot)
+
+    # give the transformation rules between the parameter if there is to be one
+    def transform_data(data, name, param_names):
+
+        if name == 'sum_mnu':
+            if 'm_nu1' in param_names:
+                index_mnu = data_to_plot.index('sum_mnu')
+                data[index_mnu] = np.sum(neutrino_masses(data[index_mnu], hierarchy='NORMAL'), axis = 0)
+
+                # change also the param_names
+                param_names[index_mnu] = name
+            else:
+                raise ValueError('Impossible to obtain ' + name + ' from the input data sample')
+            
+        return param_names
+
+
+    data = samples.flat(discard=discard, thin=thin)
+    param_names = copy(samples.param_names)
+
+    # rescaling the data according to the scaling factor
+    for iname, name in enumerate(samples.param_names):
+        if (samples.scaling_factor[name] != 1) and (name != '1/m_wdm' and name != 'm_wdm'): 
+            # note that we keep the warm dark matter transformed
+            # just means that we need to be carefull with the units
+            data[iname] = samples.scaling_factor[name] * data[iname]
+
+
+    # first transform the data if necessary
+    if 'sum_mnu' in data_to_plot:
+        param_names = transform_data(data, 'sum_mnu', param_names)
+
+
+    # reduce the data to the indices to plot
+    indices_to_plot = [np.where(param_names == param)[0][0] for param in data_to_plot if param in param_names]
+    data = data[indices_to_plot]
+
+    # remove outliers for tau_reio
+    if 'tau_reio' in data_to_plot:
+        index_tau_reio = data_to_plot.index('tau_reio')
+
+        mask = data[index_tau_reio] < 0.1
+        n_outliers = np.count_nonzero(~mask)
+        
+        if n_outliers > 0 : 
+            warnings.warn(f'Removing {n_outliers} outlier points for tau_reio: ' + str(data[index_tau_reio, ~mask]))
+
+        data = data[:, mask]
+        
+
+    return data
+
 
 
 
@@ -1051,6 +1268,7 @@ def plot_data(grid: AxesGrid,
               show_mean: bool = False,
               show_title: bool = True,
               show_points: bool = False,
+              redefine_edges: bool = True,
               q_in_title: int = 0.68,
               colors: list[str]  = 'orange',
               axes : list[int] | np.ndarray | None = None,
@@ -1150,88 +1368,34 @@ def plot_data(grid: AxesGrid,
     
     grid.update_titles()
 
-    
+
     # (re)define the grid edges
-    for j in range(0, data.size):
-    
+    if redefine_edges is True:
+        
         new_boundaries = data.edges[:, [0, -1]]
 
         old_boundaries = grid.edges[axes]
         old_boundaries[old_boundaries[:, 0] == None] = data.edges[old_boundaries[:, 0] == None, :][:, [0, -1]]
-    
+
         new_min = np.minimum(new_boundaries[:, 0], old_boundaries[:, 0]) 
         new_max = np.maximum(new_boundaries[:, 1], old_boundaries[:, 1])
 
         new_edges = np.vstack((new_min, new_max)).T
 
         grid.edges[axes, :] = new_edges 
-
-        for i in range(j, data.size):
-            grid.get(axes[i], axes[j]).set_xlim([grid.edges[j, 0], grid.edges[j, -1]])
-            
-            if i > j:
-                grid.get(axes[i], axes[j]).set_ylim([grid.edges[i, 0], grid.edges[i, -1]])
+        
+        for j in range(0, data.size):
+        
+            for i in range(j, data.size):
+                grid.get(axes[i], axes[j]).set_xlim([grid.edges[j, 0], grid.edges[j, -1]])
+                
+                if i > j:
+                    grid.get(axes[i], axes[j]).set_ylim([grid.edges[i, 0], grid.edges[i, -1]])
 
 
 
 
     
-
-
-def prepare_data_plot(samples: Samples, data_to_plot, discard = 0, thin = 1):
-
-    data_to_plot = to_CLASS_names(data_to_plot)
-
-    # give the transformation rules between the parameter if there is to be one
-    def transform_data(data, name, param_names):
-
-        if name == 'sum_mnu':
-            if 'm_nu1' in param_names:
-                index_mnu = data_to_plot.index('sum_mnu')
-                data[index_mnu] = np.sum(neutrino_masses(data[index_mnu], hierarchy='NORMAL'), axis = 0)
-
-                # change also the param_names
-                param_names[index_mnu] = name
-            else:
-                raise ValueError('Impossible to obtain ' + name + ' from the input data sample')
-            
-        return param_names
-
-
-    data = samples.flat(discard=discard, thin=thin)
-    param_names = copy(samples.param_names)
-
-    # rescaling the data according to the scaling factor
-    for iname, name in enumerate(samples.param_names):
-        if (samples.scaling_factor[name] != 1) and (name != '1/m_wdm' and name != 'm_wdm'): 
-            # note that we keep the warm dark matter transformed
-            # just means that we need to be carefull with the units
-            data[iname] = samples.scaling_factor[name] * data[iname]
-
-
-    # first transform the data if necessary
-    if 'sum_mnu' in data_to_plot:
-        param_names = transform_data(data, 'sum_mnu', param_names)
-
-
-    # reduce the data to the indices to plot
-    indices_to_plot = [np.where(param_names == param)[0][0] for param in data_to_plot if param in param_names]
-    data = data[indices_to_plot]
-
-    # remove outliers for tau_reio
-    if 'tau_reio' in data_to_plot:
-        index_tau_reio = data_to_plot.index('tau_reio')
-
-        mask = data[index_tau_reio] < 0.1
-        n_outliers = np.count_nonzero(~mask)
-        
-        if n_outliers > 0 : 
-            warnings.warn(f'Removing {n_outliers} outlier points for tau_reio: ' + str(data[index_tau_reio, ~mask]))
-
-        data = data[:, mask]
-        
-
-    return data
 
     
 
