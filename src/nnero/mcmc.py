@@ -301,13 +301,16 @@ class OpticalDepthLikelihood(Likelihood):
                  *,
                  classifier: Classifier,
                  regressor:  Regressor,
-                 mean_tau:   float  = 0.0544,
+                 median_tau:   float  = 0.0544,
                  sigma_tau:  float = 0.0073) -> None:
         
         self._classifier = classifier
         self._regressor  = regressor 
-        self._mean_tau   = mean_tau
-        self._sigma_tau  = sigma_tau     
+        self._median_tau   = median_tau
+        self._sigma_tau  = sigma_tau   
+
+        if not isinstance(self._sigma_tau, np.ndarray):
+            self._sigma_tau = np.array([self._sigma_tau])
 
         super().__init__(parameters)
 
@@ -326,8 +329,8 @@ class OpticalDepthLikelihood(Likelihood):
         return self._regressor
     
     @property
-    def mean_tau(self):
-        return self._mean_tau
+    def median_tau(self):
+        return self._median_tau
     
     @property
     def sigma_tau(self):
@@ -350,18 +353,35 @@ class OpticalDepthLikelihood(Likelihood):
         xHII = predict_xHII_numpy(xx, self.classifier, self.regressor)
 
         # setting the result to -inf when the classifier returns it as a wrong value
-        loglkl = np.zeros(n)
-        loglkl[xHII[:, 0] == -1] = -np.inf
-
+        #loglkl = np.zeros(n)
+        #loglkl[xHII[:, 0] == -1] = -np.inf
         # get the values in input (if given) or initialise to Planck 2018 results
-        tau     = self.mean_tau
-        var_tau = self.sigma_tau**2
+        #tau     = self.mean_tau
+        #var_tau = self.sigma_tau**2
+        #loglkl = loglkl - 0.5 * ((tau- tau_pred)**2/var_tau + np.log( 2*np.pi * var_tau))
+
+        # setting the result to -inf when the classifier returns it as a wrong value
+        # initialise the result
+        res = np.zeros(n)
+        res[xHII[:, 0] == -1] = -np.inf
 
         # compute the optical depth to reionization
         tau_pred = predict_tau_from_xHII_numpy(xHII, xx, self.regressor.metadata)
-        loglkl = loglkl - 0.5 * ((tau- tau_pred)**2/var_tau + np.log( 2*np.pi * var_tau))
+        
+        s_tau_m = np.full(n, fill_value=self.sigma_tau[0])
+        s_tau_p = np.full(n, fill_value=self.sigma_tau[1])
+        m_tau   = np.full(n, fill_value=self.median_tau) - s_tau_p * np.sqrt(2.0) * special.erfcinv(0.5*(1+s_tau_m/s_tau_p))
+
+        # compute the truncated gaussian for the reionization data
+        mask  = tau_pred > m_tau
+        s_tau = s_tau_m
+        s_tau[mask] = s_tau_p[mask]
+
+        res = res + np.log(np.sqrt(2.0/np.pi)/(s_tau_m + s_tau_p)) - (tau_pred - m_tau)**2/(2*s_tau**2)
+
+        return res
     
-        return loglkl 
+        #return loglkl 
     
 
 
@@ -431,7 +451,7 @@ class ReionizationLikelihood(Likelihood):
         norm_reio = -np.log(1.0 - x_reio + np.sqrt(np.pi/2.0)*std*special.erf(x_reio/(np.sqrt(2))/std))
         res = res + norm_reio
 
-        mask = xHII < self.x_reio
+        mask = xHII < x_reio
         
 
         res[mask] = res[mask] - 0.5 * (xHII[mask] - x_reio[mask])**2/(std[mask]**2)

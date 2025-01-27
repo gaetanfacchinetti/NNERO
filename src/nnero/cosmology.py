@@ -388,7 +388,8 @@ def optical_depth_no_rad(z:       float | np.ndarray | torch.Tensor,
                          h:       float | np.ndarray | torch.Tensor,
                          *, 
                          low_value: float = 1.0,
-                         with_helium: bool = True):
+                         with_helium: bool = True,
+                         cut_integral_min: bool = True):
     """
     Optical depth to reionization without radiation.
 
@@ -458,6 +459,12 @@ def optical_depth_no_rad(z:       float | np.ndarray | torch.Tensor,
         fHe = CST_NO_DIM.YHe / (1.0 -  CST_NO_DIM.YHe) * CST_EV_M_S_K.mass_hydrogen / CST_EV_M_S_K.mass_helium  
         Xe[:, rs[0, :] <= 3] = Xe[:, rs[0, :] <= 3] + fHe/(1+fHe)
         
+    if cut_integral_min is True:
+        # find the minimum and cut the integral as it is done in CLASS
+        index = np.argmin(Xe, axis=-1)
+        mask = np.arange(Xe.shape[-1]) >= index[:, None]
+        Xe[mask] = 0.0
+    
     # fast trapezoid integration scheme
     # h_factor_numpy is of shape (n, p), z of shape (1, p) and xHII of shape (n, p)
     # integrand is of shape (n, p), trapz of shape (n, p-1)
