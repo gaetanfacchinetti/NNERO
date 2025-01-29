@@ -17,7 +17,7 @@
 #
 ##################################################################################
 
-from .cosmology    import (ShortPowerSpectrumRange, optical_depth_numpy, optical_depth_no_rad, h_factor_no_rad, n_baryons, n_hydrogen)
+from .cosmology    import (ShortPowerSpectrumRange, optical_depth_no_rad, h_factor_no_rad, n_baryons, n_hydrogen)
 from .constants    import (CST_MSOL_MPC, CST_EV_M_S_K, CST_NO_DIM, CONVERSIONS)
 from .astrophysics import (phi_uv)
 from .data         import (DataSet, MetaData, DataPartition, label_to_plot, uniform_to_true, true_to_uniform)
@@ -28,8 +28,8 @@ from .predictor    import (input_values, predict_classifier, predict_xHII, predi
                          predict_classifier_numpy, predict_xHII_numpy, predict_tau_numpy, predict_tau_from_xHII_numpy,
                          predict_Xe, predict_Xe_numpy, predict_tau_from_Xe, predict_tau_from_Xe_numpy)
 from .mcmc         import (log_prior, log_likelihood, log_probability, initialise_walkers, Likelihood, UVLFLikelihood)
-from .analysis     import (MPChain, Samples, MPSamples, EMCEESamples, AxesGrid, plot_data, generate_contours, ProcessedData, 
-                           compute_quantiles, neutrino_masses, prepare_data_plot, LATEX_LABELS,
+from .analysis     import (MPChain, Samples, MPSamples, EMCEESamples, GaussianInfo, GaussianSamples, AxesGrid, plot_data, 
+                           generate_contours, ProcessedData, compute_quantiles, neutrino_masses, prepare_data_plot, LATEX_LABELS,
                            get_xHII_stats, get_xHII_tanh_stats)
 
 
