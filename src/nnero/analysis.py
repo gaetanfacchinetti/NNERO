@@ -34,12 +34,14 @@ from copy import copy
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import Self
 
 from .data       import MP_KEY_CORRESPONDANCE
 from .predictor  import DEFAULT_VALUES
 from .regressor  import Regressor
 from .classifier import Classifier
 from .predictor  import predict_xHII_numpy, predict_tau_numpy
+
 
 EMCEE_IMPORTED = False
 
@@ -348,22 +350,22 @@ class GaussianInfo:
 
     mean: np.ndarray | None = None
     cov:  np.ndarray | None = None
-    params: np.ndarray | list[str] | None = None
+    param_names: np.ndarray | list[str] | None = None
 
-    def compatible(self, other):
+    def compatible_with(self, other: Self) -> bool:
         
-        all_params = set(list(to_CLASS_names(self.params)) + list(to_CLASS_names(other.params)) )
+        all_params = set(list(to_CLASS_names(self.param_names)) + list(to_CLASS_names(other.param_names)) )
        
         for param in all_params:
-            if param in to_CLASS_names(self.params) and param in to_CLASS_names(other.params):
-                index_1 = list(to_CLASS_names(self.params)).index(param)
-                index_2 = list(to_CLASS_names(other.params)).index(param)
+            if param in to_CLASS_names(self.param_names) and param in to_CLASS_names(other.param_names):
+                index_1 = list(to_CLASS_names(self.param_names)).index(param)
+                index_2 = list(to_CLASS_names(other.param_names)).index(param)
 
-                if self.mean[index_1] != other.mean[index_2]:
-                    return False 
+                if self.mean is not None and other.mean is not None:
+                    if self.mean[index_1] != other.mean[index_2]:
+                        return False 
                 
         return True
-
 
 
 class GaussianSamples(Samples):
@@ -372,7 +374,7 @@ class GaussianSamples(Samples):
     """
 
     def __init__(self, 
-                 gaussians: list[GaussianInfo | str] | GaussianInfo | str ,
+                 gaussians: list[GaussianInfo | str] | GaussianInfo | str,
                  add_tau: bool = False,
                  params: list[str] | None = None,
                  *, 
@@ -380,74 +382,132 @@ class GaussianSamples(Samples):
 
         super().__init__("", None)
 
-        self.load_data()
+        self._add_tau = add_tau
 
         # define a list of extra gaussian to add on top
         self._gaussians = gaussians
         if (not isinstance(self._gaussians, list)):
             self._gaussians = [self._gaussians]
 
+        # if given string input read the data
+        # and check for compatibility between mean values
         for ig in range(len(self._gaussians)):
             if isinstance(self._gaussians[ig], str):
                 self._gaussians[ig] = self.load_data(self._gaussians[ig])
             
-            if not self._gaussians[0].compatible(self._gaussians[ig]):
+            if not self._gaussians[0].compatible_with(self._gaussians[ig]):
                 raise ValueError('fiducial parameters should agree')
 
+        # parameters on that we will be contained 
+        # in the total covariance matrix
         self._params = params
 
-        if params is None and self._gaussians is not None:
+        if self._params is None and self._gaussians is not None:
             self._params = self._gaussians[0].params
 
         self._params = to_CLASS_names(self._params)
 
-        self._gaussian = GaussianInfo()
-        self.load_data(self)
+        # get all the parameters in total
+        all_params = []
+        for g in self._gaussians:
+            for p in g.param_names:
+                if p not in all_params:
+                    all_params.append(p)
 
-        # prepare the main Gaussian, the one that is read in the file
-        indices = [self._gaussian.params.index(param) for param in self._params if param in self._gaussian.params.index(param)]
-        self._gaussian.cov  = self._gaussian.cov[np.ix_(indices, indices)]
-        self._gaussian.mean = self._gaussian.mean[indices]
+        # build a big inverse covariance matrix
+        # that contains all parameters in the input
+        # covariance matrices
+        all_n = len(all_params)
+        all_inv_cov = np.zeros((all_n, all_n))
+        all_mean    = np.zeros(all_n)
 
-        self._total_inv_cov = np.linalg.inv(self._gaussian.cov)
+        for g in self._gaussians:
+            this_params = list(to_CLASS_names(g.param_names))
+            indices     = [all_params.index(param) for param in this_params]
+            all_inv_cov[np.ix_(indices, indices)] += np.linalg.inv(g.cov)
+            
+            if g.mean is not None:
+                all_mean[indices] = g.mean
 
-        for gaussian in self._extra_gaussians:
-            extra_params = list(to_CLASS_names(self._extra_gaussians.params))
-            indices   = [extra_params.index(param) for param in self._params if param in extra_params]
-            extra_cov = self._extra_gaussians.cov[np.ix_(indices, indices)]
-            #self._total_inv_cov[] = self._total_inv_cov[np.ix_(indices, indices)] + np.linalg.inv(extra_cov)
+        # select the part of the covariance matrix for the desired parameters
+        all_cov        = np.linalg.inv(all_inv_cov)
+        self._indices  = [all_params.index(param) for param in self._params]
 
-        self._total_cov = np.linalg.inv(self._total_cov)
-
-        self._generated_data = np.random.multivariate_normal(gaussian.mean, gaussian.cov, 200_000).T
+        # construct a GaussianInfo object from the total cov and mean defined above
+        self._gaussian       = GaussianInfo(all_mean[indices], all_cov[np.ix_(indices, indices)], self._params)
+        self._generated_data = np.random.multivariate_normal(all_mean, all_cov, n).T
 
 
-    def load_data(self, filename):
+        # add tau_ion as a parameter
+        if self._add_tau is True:
+            self._params = np.array(['tau_reio'] + list(self._params))
+        
+
+
+    def load_data(self, filename) -> GaussianInfo:
 
         gaussian = GaussianInfo()
 
         with open(filename, 'rb') as file:
             data = np.load(file)
-            gaussian.cov     = data.get('cov', None)
-            gaussian.params  = list(to_CLASS_names(data['params'])) if 'params' in data else None
-            gaussian.mean    = data.get('fiducial')
+            gaussian.cov         = data.get('cov', None)
+            gaussian.param_names = list(to_CLASS_names(data['params'])) if 'params' in data else None
+            gaussian.mean        = data.get('fiducial', None)
+
+            if gaussian.mean is None:
+                gaussian.mean = data.get('mean', None)
 
         return gaussian
 
         
 
     def flat(self, discard: np.ndarray | None = None, thin: None | int = None, **kwargs) -> np.ndarray:
+        
+        if discard is None:
+            discard = 0
 
-        return self._generated_data
+        if thin is None:
+            thin = 1
+        
+        flat_chain = self._generated_data[:, discard::thin]
 
+        if self._add_tau is True:
 
+            classifier = kwargs.get('classifier', None)
+            regressor  = kwargs.get('regressor', None)
 
+            if regressor is None:
+                regressor = Regressor.load()
+
+            mask = np.full_like(flat_chain, fill_value=True, dtype=bool)
+
+            for ip, param in enumerate(to_CLASS_names(regressor.parameters_name)):
+                if param in self.param_names[1:]: # only take from index 1 as tau is the zeroth
+                    index = list(self.param_names[1:]).index(param)
+                    val_range = regressor.parameters_range
+                    mask[index, :] =  flat_chain[index, :] < val_range[ip, 1]
+                    mask[index, :] =  (flat_chain[index, :] > val_range[ip, 0]) & mask[index, :]
+
+            valid_columns = np.all(mask, axis=0)
+            flat_chain = flat_chain[:, valid_columns]
+
+            tau = compute_tau(flat_chain, self.param_names, classifier, regressor)
+
+            return np.vstack((tau[None, :], flat_chain[self._indices, :]))
+
+        return flat_chain[self._indices, :]
+
+    @property
+    def param_names(self) -> np.ndarray:
+        return self._params
 
     @property
     def scaling_factor(self) -> dict:
         return {name: 1.0 for name in self.param_names}
-
-
+    
+    @property
+    def gaussian(self) -> GaussianInfo:
+        return self._gaussian
 
 
 class EMCEESamples(Samples):
@@ -1154,14 +1214,36 @@ class ProcessedData:
 
 
 
-def compute_quantiles(hist, edges, q):
+def compute_quantiles(sample: np.ndarray, q: float, bins: int | np.ndarray =30) -> tuple[float, float]:
+    """
+    Give the q-th quantile of the input sample.
+
+    Parameters
+    ----------
+    sample : np.ndarray
+        1D array of data points.
+    q : float
+        Quantile value.
+    bins : int | np.ndarray, optional
+        Binning of the histogram that is used 
+        for a first approximation of the quantile 
+        edges, by default 30.
+
+    Returns
+    -------
+    tuple[float, float]
+       min,max bound
+    """
+
+    # evaluate the histogram
+    hist, edges = np.histogram(sample, bins = bins, density = True)
 
     # normalising the histogram
     hist = hist/np.max(hist)
 
     y_arr = np.linspace(0.0, 1.0, 1000)
     f_arr = np.empty(len(y_arr))
-    e_arr = np.empty((len(y_arr), 2))
+    e_arr = np.empty((len(y_arr), 4))
 
     # precompute the sum of the total sum of the histogram
     s_hist  = np.sum(hist, axis=-1)
@@ -1172,20 +1254,47 @@ def compute_quantiles(hist, edges, q):
         edges_bound_min  = edges[:-1][hist > y]
         edges_bound_max  = edges[1:][hist > y]
         e_arr[iy, 0] = np.min(edges_bound_min) if len(edges_bound_min) > 0 else np.nan
-        e_arr[iy, 1] = np.max(edges_bound_max) if len(edges_bound_max) > 0 else np.nan
+        e_arr[iy, 1] = np.min(edges_bound_max) if len(edges_bound_max) > 0 else np.nan
+        e_arr[iy, 2] = np.max(edges_bound_min) if len(edges_bound_min) > 0 else np.nan
+        e_arr[iy, 3] = np.max(edges_bound_max) if len(edges_bound_max) > 0 else np.nan
 
     iq_arr = np.where(f_arr > q)[0]
 
     # we could do much efficient by just computing f until it reaches
     # the desired value of confidence level
-    # however, then we cannot do this check for multimodel distributions
+    # however, then we cannot do this check for multimodal distributions
     if not np.all(np.diff(iq_arr) == 1):
-        print("Impossible to find a confidence interval for multimodal distribution")
+        warnings.warn("Impossible to find a confidence interval for multimodal distribution")
         return 0, 0
 
     iq = iq_arr[-1]
 
-    return e_arr[iq, 0], e_arr[iq, 1]
+    # with e_arr[iq, 0] and e_arr[iq, 3] we already have a upper limit of the quantile bound
+    # we make something more refined by really looking for the 68% confidence level that is
+    # the most centered possible around the median within the bin edges size
+
+    # first define a grid of points in the bin of interest
+    # x_m for the lower bound (m for minus)
+    # x_p for the upper bound (p for plus)
+    x_m = np.linspace(e_arr[iq, 0], e_arr[iq, 1], 30)
+    x_p = np.linspace(e_arr[iq, 2], e_arr[iq, 3], 30)
+
+    # for each value of x_m find the value of x_p such that quantile is q
+    mask = (sample > x_m[:, None, None]) & (sample <  x_p[None, :, None])
+    m_x_p = x_p[np.argmin(np.abs(np.count_nonzero(mask, axis=-1)/len(sample) - q), axis=1)]
+    
+    # remove the values where x_p is just equal to the max
+    # at the very edege of the grid 
+    mask_xp = np.argmin(m_x_p != x_p[-1])
+    xm  = x_m[:mask_xp+1]
+    xp  = m_x_p[:mask_xp+1]
+
+    # find the value of x_m, x_p that are the most
+    # centered around the median
+    m = np.median(sample)
+    index = np.argmin(np.sqrt((2*m - xm - xp)**2))
+
+    return xm[index], xp[index]
 
 
 def generate_contours(samples: np.ndarray, bins: int = 20, q = [0.68, 0.95]) -> ProcessedData:
@@ -1222,7 +1331,7 @@ def generate_contours(samples: np.ndarray, bins: int = 20, q = [0.68, 0.95]) -> 
         # evaluate the quantiles
         for il, q_val in enumerate(q):
             try:
-                quantiles[il, i, 0], quantiles[il, i, 1] = compute_quantiles(hists_1D[i], edges[i], q_val)
+                quantiles[il, i, 0], quantiles[il, i, 1] = compute_quantiles(samples[i, :], q_val)
             except:
                 print("impossible to compute quantiles for entry", i)
 
@@ -1467,9 +1576,8 @@ def get_xHII_stats(samples: Samples,
 
     # make an histogram for each value of z
     for iz, x in enumerate(np.log10(xHII.T)):
-        hist, edges = np.histogram(x, bins = bins)
         for iq, q_val in enumerate(q):
-            quantiles[iq, iz, 0], quantiles[iq, iz, 1] = compute_quantiles(hist, edges, q=q_val)
+            quantiles[iq, iz, 0], quantiles[iq, iz, 1] = compute_quantiles(x, q=q_val)
             quantiles[iq, iz, :] = 10**(quantiles[iq, iz, :])
     
     return z, mean, med, quantiles
@@ -1498,14 +1606,13 @@ def get_xHII_tanh_stats(samples: Samples, q: list[float] = [0.68, 0.95], bins: i
 
     # make an histogram for each value of z
     for iz, x in enumerate(np.log10(xHII.T)):
-        hist, edges = np.histogram(x, bins = bins)
         
         if np.all(np.diff(x) ==  0):
             for iq, q_val in enumerate(q):
                 quantiles[iq, iz, 0], quantiles[iq, iz, 1] = x[0], x[1]
         else:
             for iq, q_val in enumerate(q):
-                quantiles[iq, iz, 0], quantiles[iq, iz, 1] = compute_quantiles(hist, edges, q=q_val)
+                quantiles[iq, iz, 0], quantiles[iq, iz, 1] = compute_quantiles(x, q=q_val)
         
         for iq, q_val in enumerate(q):
             quantiles[iq, iz, :] = 10**(quantiles[iq, iz, :])

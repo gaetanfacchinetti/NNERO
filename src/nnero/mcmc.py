@@ -58,16 +58,24 @@ class Likelihood(ABC):
         self._index = {key: i for i, key in enumerate(parameters)} 
 
 
-   
-    def loglkl(self, theta: np.ndarray, xi: np.ndarray, **kwargs) -> np.ndarray:
-
+    def get_x(self,  theta: np.ndarray, xi: np.ndarray) -> np.ndarray:
+        
         if len(theta.shape) == 1:
             theta = theta[None, :]
 
         if len(xi.shape) == 1:
             xi = np.tile(xi, (theta.shape[0], 1))
 
-        x: np.ndarray = np.hstack((theta, xi))
+        return np.hstack((theta, xi))
+    
+
+    def get_x_dict(self, x: np.ndarray) -> dict:
+        return {param:x[:,self._index('param')] for param in self._parameters}
+
+   
+    def loglkl(self, theta: np.ndarray, xi: np.ndarray, **kwargs) -> np.ndarray:
+
+        x = self.get_x(theta, xi)
 
         if x.shape[-1] != len(self.parameters):
             raise ValueError('theta and xi should make an array that is the size of the parameter vector' )
@@ -94,7 +102,7 @@ class Likelihood(ABC):
 
 class UVLFLikelihood(Likelihood):
     """
-    Likelihood for the UV luminosity functions
+    Likelihood for the UV luminosity functions.
 
     Parameters
     ----------
@@ -124,7 +132,7 @@ class UVLFLikelihood(Likelihood):
             omega_m = 0.3*(h**2)
             cosmo = classy.Class()
             
-            params_cosmo = {'output' : 'mPk', 'P_k_max_h/Mpc' : 500.0, 'h' : 0.7, 'omega_m' : omega_m}
+            params_cosmo = {'output' : 'mPk', 'P_k_max_h/Mpc' : 650.0, 'h' : 0.7, 'omega_m' : omega_m}
 
             if parameters_xi is not None and 'Ln1010As' in parameters_xi:
                 params_cosmo['ln10^{10}A_s'] = xi[parameters_xi.index('Ln1010As')]
@@ -170,13 +178,8 @@ class UVLFLikelihood(Likelihood):
             self.sigma_phi_uv_down = data_uv['sigma_p_uv_down']
             self.sigma_phi_uv_up   = data_uv['sigma_p_uv_up']
 
-
-
-        
         self._z_array = []
         self._z_index_from_table = [[] for j in [0, 1, 2, 3]]
-
-
 
         self._precompute = precompute
         self._masses = np.empty(0)
@@ -186,7 +189,6 @@ class UVLFLikelihood(Likelihood):
         # because the matter power spectrum does not vary
         # then we do it here
         if self._precompute:
-
 
             for j in [0, 1, 2, 3]:
 
@@ -238,6 +240,13 @@ class UVLFLikelihood(Likelihood):
      
         log_lkl = np.zeros(x.shape[0])
 
+        # if we pass pk in argument then we cannot use 
+        # the precoputed values for the halo mass function
+        # (that is self._dndmh)
+        precompute = self._precompute
+        if kwargs.get('pk', None) is not None:
+            precompute = False
+
         # allow k and pk to be passed as extra arguments of the function
         # in the case they depend on some parameters in theta
         k  = kwargs.get('k', self.k)
@@ -259,7 +268,7 @@ class UVLFLikelihood(Likelihood):
 
                 try:
 
-                    if self._precompute is False:
+                    if precompute is False:
                         # predict the UV luminosity function on the range of magnitude m_uv at that redshift bin
                         # in the future, could add sheth_a, sheth_q, sheth_p and c as nuisance parameters
                         phi_uv_pred_z = phi_uv(z, hz, self.m_uv_exp[j][iz], k, pk, alpha_star, t_star, f_star10, m_turn, omega_b, omega_m, h, 
@@ -290,6 +299,45 @@ class UVLFLikelihood(Likelihood):
                 log_lkl = log_lkl + contrib
 
         return log_lkl
+    
+
+
+    def get_k_max(self, x) -> (None | float):
+        
+    
+        omega_b = x[:, self.index['Ombh2']]
+
+        h       = np.full_like(omega_b, fill_value=0.7)
+        omega_m = np.full_like(omega_b, fill_value=0.3 * (0.7**2))
+
+        alpha_star = x[:, self.index['ALPHA_STAR']]
+        t_star     = x[:, self.index['t_STAR']]
+        f_star10   = 10**x[:, self.index['F_STAR10']]
+
+        min_mh = np.inf
+
+        for j in [1, 2, 3]:
+
+            # loop on the redshift bins
+            for iz, z, in enumerate(self.z_uv_exp[j]):
+
+                hz = 100 * h_factor_no_rad(z, omega_b, omega_m - omega_b, h)[0, 0] * CONVERSIONS.km_to_mpc # approximation of the hubble factor
+                mh, _ = m_halo(hz, self.m_uv_exp[j][iz], alpha_star, t_star, f_star10, omega_b, omega_m)
+
+                mh = mh[0, 0]
+
+                # set the min of mh
+                if np.min(mh) < min_mh:
+                    min_mh = np.min(mh)
+                    
+        rhom0  = omega_m * CST_MSOL_MPC.rho_c_over_h2        
+        k_max = 1.3 * self.c * (3*min_mh/(4*np.pi)/rhom0)**(-1/3)
+
+        # one should (almost) never need self.kmax if large enough
+        # set here as a security to do not make CLASS take to much
+        # time and crash
+        return np.min([k_max / h, 10000])
+
 
 
 
@@ -381,7 +429,6 @@ class OpticalDepthLikelihood(Likelihood):
 
         return res
     
-        #return loglkl 
     
 
 
@@ -539,25 +586,52 @@ def log_likelihood(theta: np.ndarray,
                    xi: np.ndarray,
                    likelihoods: list[Likelihood],
                    **kwargs) -> np.ndarray:
-    """_summary_
+    """
+    Compute the log Likelihood values.
 
     Parameters
     ----------
     theta : np.ndarray
         Varying parameters.
     xi : np.ndarray
-        Extra fixed parameters
+        Extra fixed parameters.
     likelihoods : list[Likelihood]
-        The likelihoods to evaluate for the fit
+        The likelihoods to evaluate for the fit.
 
     Returns
     -------
     np.ndarray
-        _description_
+        Values of the log Likelihood for each chain.
     """
     
     res = np.zeros(theta.shape[0])
 
+    need_pk: bool   = False
+    uvlf_lkl: UVLFLikelihood | None = None
+
+    if 'matter_power_spectrum_computer' in kwargs:
+        for likelihood in likelihoods:
+            if isinstance(likelihood, UVLFLikelihood):
+                need_pk  = True
+                uvlf_lkl = likelihood
+
+    if need_pk is True:
+
+        # first, get the k_max needed
+        x: np.ndarray      = uvlf_lkl.get_x(theta, xi)
+        k_max: float       = uvlf_lkl.get_k_max(x)
+
+        # second, compute the matter power spectrum from a given function
+        k_arr: np.ndarray  = np.logspace(np.log10(uvlf_lkl.k[0]), np.log10(k_max), 50000)
+        func: function     = kwargs.get('matter_power_spectrum_computer')
+        x_dict: dict       = uvlf_lkl.get_x_dict(x)
+        pk_arr: np.ndarray = func(k_arr, x_dict)
+
+        kwargs['k']  = k_arr
+        kwargs['pk'] = pk_arr
+        
+
+    # makes the sum of the log prior and log likelihood 
     for likelihood in likelihoods:
         res = res  + likelihood.loglkl(theta, xi, **kwargs)
 
@@ -578,7 +652,6 @@ def log_probability(theta:     np.ndarray,
     mask = np.isfinite(res)
     res[~mask] = -np.inf
 
-    # makes the sum of the log prior and log likelihood 
     res[mask] = log_likelihood(theta[mask, :], xi, likelihoods, **kwargs)
 
     return res 
