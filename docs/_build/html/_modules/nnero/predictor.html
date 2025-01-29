@@ -100,16 +100,18 @@
 <span class="kn">from</span> <span class="nn">.cosmology</span>  <span class="kn">import</span> <span class="n">optical_depth_no_rad</span>
 <span class="kn">from</span> <span class="nn">.classifier</span> <span class="kn">import</span> <span class="n">Classifier</span>
 <span class="kn">from</span> <span class="nn">.regressor</span>  <span class="kn">import</span> <span class="n">Regressor</span>
+<span class="kn">from</span> <span class="nn">.data</span>       <span class="kn">import</span> <span class="n">MP_KEY_CORRESPONDANCE</span>
 
 
-<span class="n">DEFAULT_VALUES</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;F_STAR10&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="s1">&#39;ALPHA_STAR&#39;</span> <span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;t_STAR&#39;</span> <span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;F_ESC10&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;ALPHA_ESC&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;M_TURN&#39;</span> <span class="p">:</span> <span class="mf">8.7</span><span class="p">,</span>
-            <span class="s1">&#39;Omch2&#39;</span> <span class="p">:</span> <span class="mf">0.11933</span><span class="p">,</span> <span class="s1">&#39;Ombh2&#39;</span> <span class="p">:</span> <span class="mf">0.02242</span><span class="p">,</span> <span class="s1">&#39;hlittle&#39;</span> <span class="p">:</span> <span class="mf">0.6736</span><span class="p">,</span> <span class="s1">&#39;Ln_1010_As&#39;</span> <span class="p">:</span> <span class="mf">3.047</span><span class="p">,</span> <span class="s1">&#39;POWER_INDEX&#39;</span> <span class="p">:</span> <span class="mf">0.9665</span><span class="p">,</span> 
-            <span class="s1">&#39;INVERSE_M_WDM&#39;</span> <span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s1">&#39;NEUTRINO_MASS_1&#39;</span> <span class="p">:</span> <span class="mf">0.02</span><span class="p">,</span> <span class="s1">&#39;FRAC_WDM&#39;</span> <span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;M_WDM&#39;</span> <span class="p">:</span> <span class="s1">&#39;20.0&#39;</span><span class="p">,</span> <span class="s1">&#39;L_X&#39;</span> <span class="p">:</span> <span class="mf">40.0</span><span class="p">,</span> <span class="s1">&#39;NU_X_THRESH&#39;</span> <span class="p">:</span> <span class="mi">500</span><span class="p">}</span>
+<span class="n">DEFAULT_VALUES</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;F_STAR10&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="s1">&#39;ALPHA_STAR&#39;</span> <span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;t_STAR&#39;</span> <span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;F_ESC10&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;ALPHA_ESC&#39;</span> <span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s1">&#39;M_TURN&#39;</span> <span class="p">:</span> <span class="mf">8.7</span><span class="p">,</span>
+            <span class="s1">&#39;Omdmh2&#39;</span> <span class="p">:</span> <span class="mf">0.11933</span><span class="p">,</span> <span class="s1">&#39;Ombh2&#39;</span> <span class="p">:</span> <span class="mf">0.02242</span><span class="p">,</span>  <span class="s1">&#39;hlittle&#39;</span> <span class="p">:</span> <span class="mf">0.6736</span><span class="p">,</span> <span class="s1">&#39;Ln_1010_As&#39;</span> <span class="p">:</span> <span class="mf">3.047</span><span class="p">,</span> <span class="s1">&#39;POWER_INDEX&#39;</span> <span class="p">:</span> <span class="mf">0.9665</span><span class="p">,</span> 
+            <span class="s1">&#39;INVERSE_M_WDM&#39;</span> <span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;NEUTRINO_MASS_1&#39;</span> <span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;FRAC_WDM&#39;</span> <span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;M_WDM&#39;</span> <span class="p">:</span> <span class="s1">&#39;20.0&#39;</span><span class="p">,</span> <span class="s1">&#39;L_X&#39;</span> <span class="p">:</span> <span class="mf">40.0</span><span class="p">,</span> <span class="s1">&#39;NU_X_THRESH&#39;</span> <span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+            <span class="s1">&#39;LOG10_PMF_SB&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="s1">&#39;PMF_NB&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">2.0</span><span class="p">}</span>
 
 
-<span class="n">MP_KEY_CORRESPONDANCE</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;log10_f_star10&#39;</span> <span class="p">:</span> <span class="s1">&#39;F_STAR10&#39;</span><span class="p">,</span> <span class="s1">&#39;alpha_star&#39;</span> <span class="p">:</span> <span class="s1">&#39;ALPHA_STAR&#39;</span><span class="p">,</span> <span class="s1">&#39;t_star&#39;</span> <span class="p">:</span> <span class="s1">&#39;t_STAR&#39;</span><span class="p">,</span> <span class="s1">&#39;log10_f_esc10&#39;</span> <span class="p">:</span> <span class="s1">&#39;F_ESC10&#39;</span><span class="p">,</span> 
-                         <span class="s1">&#39;alpha_esc&#39;</span> <span class="p">:</span> <span class="s1">&#39;ALPHA_ESC&#39;</span><span class="p">,</span> <span class="s1">&#39;omega_wcdm&#39;</span> <span class="p">:</span> <span class="s1">&#39;Omch2&#39;</span><span class="p">,</span> <span class="s1">&#39;omega_b&#39;</span> <span class="p">:</span> <span class="s1">&#39;Ombh2&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">:</span><span class="s1">&#39;hlittle&#39;</span><span class="p">,</span> <span class="s1">&#39;ln10^</span><span class="si">{10}</span><span class="s1">A_s&#39;</span> <span class="p">:</span> <span class="s1">&#39;Ln_1010_As&#39;</span><span class="p">,</span>
-                         <span class="s1">&#39;n_s&#39;</span> <span class="p">:</span> <span class="s1">&#39;POWER_INDEX&#39;</span><span class="p">,</span> <span class="s1">&#39;mnu1&#39;</span> <span class="p">:</span> <span class="s1">&#39;NEUTRINO_MASS_1&#39;</span><span class="p">,</span> <span class="s1">&#39;f_WDM&#39;</span> <span class="p">:</span> <span class="s1">&#39;FRAC_WDM&#39;</span><span class="p">,</span> <span class="s1">&#39;m_wdm&#39;</span> <span class="p">:</span> <span class="s1">&#39;M_WDM&#39;</span><span class="p">,</span> <span class="s1">&#39;nu_X_thresh&#39;</span> <span class="p">:</span> <span class="s1">&#39;NU_X_THRESH&#39;</span><span class="p">}</span>
+
+<span class="c1">## Note that due to a strange naming convention in 21cmFAST, Omch2 actually corresponded to omega_dm</span>
+<span class="c1">## This notation is deprecated today, prefer to use Omdmh2</span>
 
 <span class="c1"># ---------------------------------------------------</span>
 <span class="c1"># CHECKS AND PREPARATION OF THE DATA TO FED TO THE NN</span>
@@ -147,7 +149,7 @@
     
 <div class="viewcode-block" id="input_values">
 <a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.input_values">[docs]</a>
-<span class="k">def</span> <span class="nf">input_values</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="n">MetaData</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">input_values</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="n">MetaData</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_VALUES</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
     <span class="n">params_name</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">parameters_name</span>
 
@@ -155,14 +157,14 @@
     <span class="n">iparams</span> <span class="o">=</span> <span class="p">{</span><span class="n">value</span><span class="p">:</span> <span class="n">index</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">params_name</span><span class="p">)}</span>
 
     <span class="c1"># predefined default values for most common parameters</span>
-    <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">DEFAULT_VALUES</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params_name</span><span class="p">])</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">default</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params_name</span><span class="p">])</span>
         
     <span class="c1"># check that the arguments passed in kwargs were trained on</span>
     <span class="n">kw_keys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
     <span class="n">kw_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
 
     <span class="c1"># translate the keys that could be comming with a different naming convention</span>
-    <span class="n">kw_keys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">MP_KEY_CORRESPONDANCE</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">MP_KEY_CORRESPONDANCE</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">else</span> <span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kw_keys</span><span class="p">])</span>
+    <span class="n">kw_keys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">MP_KEY_CORRESPONDANCE</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">MP_KEY_CORRESPONDANCE</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">else</span> <span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kw_keys</span><span class="p">])</span>
 
     <span class="c1"># error handling, check that inputs are in the trained parameters list</span>
     <span class="c1"># concatenate params_name and kw_keys and get unique input, if all goes well</span>
@@ -196,8 +198,8 @@
 
 <div class="viewcode-block" id="uniform_input_values">
 <a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.uniform_input_values">[docs]</a>
-<span class="k">def</span> <span class="nf">uniform_input_values</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="n">MetaData</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="n">vals</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">uniform_input_values</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="n">MetaData</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span><span class="nb">dict</span> <span class="o">=</span> <span class="n">DEFAULT_VALUES</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">true_to_uniform</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">parameters_min_val</span><span class="p">,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">parameters_max_val</span><span class="p">)</span></div>
 
 
@@ -216,30 +218,37 @@
 
 <div class="viewcode-block" id="predict_classifier">
 <a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_classifier">[docs]</a>
-<span class="k">def</span> <span class="nf">predict_classifier</span><span class="p">(</span><span class="n">classifier</span><span class="p">:</span><span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">predict_classifier</span><span class="p">(</span><span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                       <span class="n">default</span> <span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                       <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Prediction of the classifier</span>
+<span class="sd">    Prediction of the classifier. See `predict_classifier_numpy` for a more</span>
+<span class="sd">    advanced but faster method (working with numpy arrays).</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    -----------</span>
-<span class="sd">    - classifier: nnero.Classifier</span>
-<span class="sd">        classifier object already trained</span>
-<span class="sd">    - **kwargs:</span>
-<span class="sd">        any value for a parameter the classifier </span>
-<span class="sd">        has been trained on</span>
+<span class="sd">    classifier: nnero.Classifier | None, optional</span>
+<span class="sd">        Classifier object already trained. Default is None. If None, the default</span>
+<span class="sd">        classifier `DefaultClassifier` is used.</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Any value for a parameter the classifier has been trained on.</span>
+<span class="sd">        Keys should corresponds to `classifier.parameters_name`.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    --------</span>
-<span class="sd">    - boolean value:</span>
-<span class="sd">        True for an early reionization</span>
-<span class="sd">        False for a late reionization</span>
+<span class="sd">    bool</span>
+<span class="sd">        True for an early reionization.</span>
+<span class="sd">        False for a late reionization.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">default</span> <span class="o">=</span> <span class="n">DEFAULT_VALUES</span>
     
     <span class="c1"># if no classifier pass as input, load the default one</span>
     <span class="k">if</span> <span class="n">classifier</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">classifier</span> <span class="o">=</span> <span class="n">Classifier</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
 
-    <span class="n">u_vals</span> <span class="o">=</span> <span class="n">uniform_input_values</span><span class="p">(</span><span class="n">classifier</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">u_vals</span> <span class="o">=</span> <span class="n">uniform_input_values</span><span class="p">(</span><span class="n">classifier</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">u_vals</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">u_vals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     
     <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
@@ -253,7 +262,30 @@
 
 <div class="viewcode-block" id="predict_classifier_numpy">
 <a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_classifier_numpy">[docs]</a>
-<span class="k">def</span> <span class="nf">predict_classifier_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">predict_classifier_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                             <span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prediction of the classifier. Same as `predict_classifier` but much faster</span>
+<span class="sd">    as it work with numpy arrays.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    theta: np.ndarray</span>
+<span class="sd">        Array of shape (n, p) of parameters, where p is the number of parameters.</span>
+<span class="sd">        The p parameters values should be given in the order they were fed to the</span>
+<span class="sd">        classifier for training. These parameters and their order are accesible </span>
+<span class="sd">        calling `classifier.info()`.</span>
+<span class="sd">    classifier: nnero.Classifier | None, optional</span>
+<span class="sd">        Classifier object already trained. Default is None. If None, the default</span>
+<span class="sd">        classifier `DefaultClassifier` is used.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    --------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        Array of booleans.</span>
+<span class="sd">        True for an early reionization.</span>
+<span class="sd">        False for a late reionization.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">classifier</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">classifier</span> <span class="o">=</span> <span class="n">Classifier</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
@@ -273,30 +305,36 @@
 
 <div class="viewcode-block" id="predict_regressor">
 <a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_regressor">[docs]</a>
-<span class="k">def</span> <span class="nf">predict_regressor</span><span class="p">(</span><span class="n">regressor</span><span class="p">:</span> <span class="n">Regressor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">predict_regressor</span><span class="p">(</span><span class="n">regressor</span><span class="p">:</span> <span class="n">Regressor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                      <span class="n">default</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                      <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        prediction of the regressor</span>
+<span class="sd">    Prediction of the regressor. See `predict_regressor_numpy` for a more</span>
+<span class="sd">    advanced but faster method (working with numpy arrays).</span>
 
-<span class="sd">    Parameters:</span>
+<span class="sd">    Parameters</span>
 <span class="sd">    -----------</span>
-<span class="sd">    - classifier: nnero.Classifier</span>
-<span class="sd">        classifier object already trained</span>
-<span class="sd">    - **kwargs:</span>
-<span class="sd">        any value for a parameter the classifier </span>
-<span class="sd">        has been trained on</span>
+<span class="sd">    regressor: nnero.Regressor | None, optional</span>
+<span class="sd">        Regressor object already trained. Default is None. If None, the default</span>
+<span class="sd">        regressor `DefaultRegressor` is used.</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Any value for a parameter the regressor has been trained on.</span>
+<span class="sd">        Keys should corresponds to `regressor.parameters_name`.</span>
 
-<span class="sd">    Returns:</span>
+<span class="sd">    Returns</span>
 <span class="sd">    --------</span>
-<span class="sd">    returns boolean value:</span>
-<span class="sd">    True for an early reionization</span>
-<span class="sd">    False for a late reionization</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        Array of values for X_e.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">default</span> <span class="o">=</span> <span class="n">DEFAULT_VALUES</span>
 
     <span class="c1"># if no regressor passed as input, load the default one</span>
     <span class="k">if</span> <span class="n">regressor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">regressor</span> <span class="o">=</span> <span class="n">Regressor</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
      
-    <span class="n">u_vals</span> <span class="o">=</span> <span class="n">uniform_input_values</span><span class="p">(</span><span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">u_vals</span> <span class="o">=</span> <span class="n">uniform_input_values</span><span class="p">(</span><span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">u_vals</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">u_vals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     
     <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
@@ -310,10 +348,33 @@
 
 <div class="viewcode-block" id="predict_regressor_numpy">
 <a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_regressor_numpy">[docs]</a>
-<span class="k">def</span> <span class="nf">predict_regressor_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">regressor</span><span class="p">:</span> <span class="n">Regressor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">predict_regressor_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                            <span class="n">regressor</span><span class="p">:</span> <span class="n">Regressor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prediction of the regressor. Same as `predict_regressor` but much faster</span>
+<span class="sd">    as it work with numpy arrays.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    theta: np.ndarray</span>
+<span class="sd">        Array of shape (n, p) of parameters, where p is the number of parameters.</span>
+<span class="sd">        The p parameters values should be given in the order they were fed to the</span>
+<span class="sd">        regressor for training. These parameters and their order are accesible </span>
+<span class="sd">        calling `regressor.info()`.</span>
+<span class="sd">    regressor: nnero.Regressor | None, optional</span>
+<span class="sd">        Regressor object already trained. Default is None. If None, the default</span>
+<span class="sd">        regressor `DefaultRegressor` is used.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    --------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        2D array of shape (n, p) for the values for X_e</span>
+<span class="sd">        with n the number of redshift bins and p the number for parameters. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">regressor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">regressor</span> <span class="o">=</span> <span class="n">Regressor</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+
 
     <span class="n">u_vals</span> <span class="o">=</span> <span class="n">uniform_input_array</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
     <span class="n">u_vals</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">u_vals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
@@ -326,27 +387,86 @@
 
 
 
-<div class="viewcode-block" id="predict_xHII">
-<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_xHII">[docs]</a>
-<span class="k">def</span> <span class="nf">predict_xHII</span><span class="p">(</span><span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
-            <span class="n">regressor</span><span class="p">:</span>  <span class="n">Regressor</span>  <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
-            <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="predict_Xe">
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_Xe">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_Xe</span><span class="p">(</span><span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+               <span class="n">regressor</span><span class="p">:</span>  <span class="n">Regressor</span>  <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+               <span class="n">default</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+               <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="nb">bool</span> <span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prediction of the free electron fraction X_e, taking into account</span>
+<span class="sd">    the selection from the classifier. See `predict_Xe_numpy` for a more</span>
+<span class="sd">    advanced but faster method (working with numpy arrays).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    classifier : Classifier | None, optional</span>
+<span class="sd">        Classifier object already trained. Default is None. If None, the default</span>
+<span class="sd">        classifier `DefaultClassifier` is used.</span>
+<span class="sd">    regressor : Regressor | None, optional</span>
+<span class="sd">        Regressor object already trained. Default is None. If None, the default</span>
+<span class="sd">        regressor `DefaultRegressor` is used.</span>
+<span class="sd">    default : dict | None, optional</span>
+<span class="sd">        Dictionnary of default values, by default None.</span>
+<span class="sd">        The default dictionnaly should have keys corresponding to those of the trained dataset</span>
+<span class="sd">        as accessible from `regressor.info()` or `classifier.info()`.</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Any value for a parameter the classifier and regressor have been trained on.</span>
+<span class="sd">        Keys should corresponds to `regressor.parameters_name` or `classifier.parameters_name`.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray | bool</span>
+<span class="sd">        Returns `False` if the classifier returns `False`. Returns the prediction</span>
+<span class="sd">        from the regressor for the free electron fraction X_e otherwise.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">default</span> <span class="o">=</span> <span class="n">DEFAULT_VALUES</span>
     
-    <span class="n">early</span> <span class="o">=</span> <span class="n">predict_classifier</span><span class="p">(</span><span class="n">classifier</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">early</span> <span class="o">=</span> <span class="n">predict_classifier</span><span class="p">(</span><span class="n">classifier</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">early</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span>
     
-    <span class="n">xHII</span> <span class="o">=</span> <span class="n">predict_regressor</span><span class="p">(</span><span class="n">regressor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">xHII</span> <span class="o">=</span> <span class="n">predict_regressor</span><span class="p">(</span><span class="n">regressor</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">xHII</span></div>
 
 
 
-<div class="viewcode-block" id="predict_xHII_numpy">
-<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_xHII_numpy">[docs]</a>
-<span class="k">def</span> <span class="nf">predict_xHII_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-            <span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
-            <span class="n">regressor</span><span class="p">:</span>  <span class="n">Regressor</span>  <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="predict_Xe_numpy">
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_Xe_numpy">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_Xe_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                     <span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                     <span class="n">regressor</span><span class="p">:</span>  <span class="n">Regressor</span>  <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prediction of the free electron fraction X_e, taking into account</span>
+<span class="sd">    the selection from the classifier. Same as `predict_Xe` but much faster</span>
+<span class="sd">    as it work with numpy arrays.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    theta: np.ndarray</span>
+<span class="sd">        Array of shape (n, p) of parameters, where p is the number of parameters.</span>
+<span class="sd">        The p parameters values should be given in the order they were fed to the</span>
+<span class="sd">        regressor for training. These parameters and their order are accesible </span>
+<span class="sd">        calling `regressor.info()`.</span>
+<span class="sd">    classifier : Classifier | None, optional</span>
+<span class="sd">        Classifier object already trained. Default is None. If None, the default</span>
+<span class="sd">        classifier `DefaultClassifier` is used.</span>
+<span class="sd">    regressor : Regressor | None, optional</span>
+<span class="sd">        Regressor object already trained. Default is None. If None, the default</span>
+<span class="sd">        regressor `DefaultRegressor` is used.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        2D array of shape (n, p) for the values for X_e</span>
+<span class="sd">        with n the number of redshift bins and p the number for parameters.</span>
+<span class="sd">        When the classifier outputs false, the array is filled with -1. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">regressor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">regressor</span> <span class="o">=</span> <span class="n">Regressor</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
     
     <span class="n">mask</span> <span class="o">=</span> <span class="n">predict_classifier_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">classifier</span><span class="p">)</span>
     <span class="n">xHII</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">z</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
@@ -358,29 +478,83 @@
 
 
 
-<div class="viewcode-block" id="predict_tau_from_xHII">
-<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_tau_from_xHII">[docs]</a>
-<span class="k">def</span> <span class="nf">predict_tau_from_xHII</span><span class="p">(</span><span class="n">xHII</span><span class="p">,</span> <span class="n">metadata</span> <span class="p">:</span> <span class="n">MetaData</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="predict_tau_from_Xe">
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_tau_from_Xe">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_tau_from_Xe</span><span class="p">(</span><span class="n">xe</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                        <span class="n">metadata</span><span class="p">:</span> <span class="n">MetaData</span><span class="p">,</span> 
+                        <span class="n">default</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                        <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Predict the optical depth to reionization from an array of X_e.</span>
+<span class="sd">    See `predict_tau_from_Xe_numpy` for a more advanced but faster method </span>
+<span class="sd">    (working with numpy arrays).</span>
 
-    <span class="n">vals</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    xe : np.ndarray</span>
+<span class="sd">        Array for the free electron fraction X_e = xHII(1+db).</span>
+<span class="sd">    metadata : MetaData</span>
+<span class="sd">        Metadata object (attached to the networks) describing properties</span>
+<span class="sd">        of the data the networks have been trained on.</span>
+<span class="sd">    default : dict | None, optional</span>
+<span class="sd">        Dictionnary of default values, by default None.</span>
+<span class="sd">        The default dictionnaly should have keys corresponding to those of the trained dataset</span>
+<span class="sd">        as accessible from `metadata.parameters_name`.</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Any value for a parameter in metadata.</span>
+<span class="sd">        Keys should corresponds to `metadata.parameters_name`.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">default</span> <span class="o">=</span> <span class="n">DEFAULT_VALUES</span>
+
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     
     <span class="n">omega_b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vals</span><span class="p">[</span><span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_b</span><span class="p">]])[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
     <span class="n">omega_c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vals</span><span class="p">[</span><span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_c</span><span class="p">]])[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
     <span class="n">hlittle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vals</span><span class="p">[</span><span class="n">metadata</span><span class="o">.</span><span class="n">pos_hlittle</span><span class="p">]])[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
     
-    <span class="k">return</span> <span class="n">optical_depth_no_rad</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="n">xHII</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_c</span><span class="p">,</span> <span class="n">hlittle</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
+    <span class="k">return</span> <span class="n">optical_depth_no_rad</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="n">xe</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_c</span><span class="p">,</span> <span class="n">hlittle</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
 
 
 
-<div class="viewcode-block" id="predict_tau_from_xHII_numpy">
-<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_tau_from_xHII_numpy">[docs]</a>
-<span class="k">def</span> <span class="nf">predict_tau_from_xHII_numpy</span><span class="p">(</span><span class="n">xHII</span><span class="p">,</span> <span class="n">theta</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">metadata</span> <span class="p">:</span> <span class="n">MetaData</span><span class="p">):</span>
+<div class="viewcode-block" id="predict_tau_from_Xe_numpy">
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_tau_from_Xe_numpy">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_tau_from_Xe_numpy</span><span class="p">(</span><span class="n">xe</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                              <span class="n">theta</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                              <span class="n">metadata</span> <span class="p">:</span> <span class="n">MetaData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Predict the optical depth to reionization from an array of X_e.</span>
+<span class="sd">    Same as `predict_tau_from_Xe` but much faster as it work with numpy arrays.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    xe : np.ndarray</span>
+<span class="sd">        Array for the free electron fraction X_e = xHII(1+db).</span>
+<span class="sd">    theta: np.ndarray</span>
+<span class="sd">        Array of shape (n, p) of parameters, where p is the number of parameters.</span>
+<span class="sd">        The p parameters values should be given in the order they were fed to the</span>
+<span class="sd">        regressor for training. These parameters and their order are accesible </span>
+<span class="sd">        calling `metadata.parameters_name`.</span>
+<span class="sd">    metadata : MetaData</span>
+<span class="sd">        Metadata object (attached to the networks) describing properties</span>
+<span class="sd">        of the data the networks have been trained on.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        Array of values of the optical depth to reionization.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="n">omega_b</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[:,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_b</span><span class="p">]</span>
     <span class="n">omega_c</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[:,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_c</span><span class="p">]</span>
     <span class="n">hlittle</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[:,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">pos_hlittle</span><span class="p">]</span>
 
-    <span class="k">return</span> <span class="n">optical_depth_no_rad</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="n">xHII</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_c</span><span class="p">,</span> <span class="n">hlittle</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">optical_depth_no_rad</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="n">xe</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_c</span><span class="p">,</span> <span class="n">hlittle</span><span class="p">)</span></div>
 
 
 
@@ -388,35 +562,141 @@
 <a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_tau">[docs]</a>
 <span class="k">def</span> <span class="nf">predict_tau</span><span class="p">(</span><span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="n">regressor</span><span class="p">:</span> <span class="n">Regressor</span>   <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="n">default</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Predict the optical depth to reionization from a trained classifier and regressor</span>
+<span class="sd">    as well as parameters passed in kwargs or default. See `predict_tau_numpy` </span>
+<span class="sd">    for a more advanced but faster method (working with numpy arrays).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    classifier : Classifier | None, optional</span>
+<span class="sd">        Classifier object already trained. Default is None. If None, the default</span>
+<span class="sd">        classifier `DefaultClassifier` is used.</span>
+<span class="sd">    regressor : Regressor | None, optional</span>
+<span class="sd">        Regressor object already trained. Default is None. If None, the default</span>
+<span class="sd">        regressor `DefaultRegressor` is used.</span>
+<span class="sd">    default : dict | None, optional</span>
+<span class="sd">        Dictionnary of default values, by default None.</span>
+<span class="sd">        The default dictionnaly should have keys corresponding to those of the trained dataset</span>
+<span class="sd">        as accessible from `regressor.info()` or `classifier.info()`.</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Any value for a parameter the classifier and regressor have been trained on.</span>
+<span class="sd">        Keys should corresponds to `regressor.parameters_name` or `classifier.parameters_name`.</span>
+<span class="sd">        </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     
-    <span class="n">xHII</span> <span class="o">=</span> <span class="n">predict_xHII</span><span class="p">(</span><span class="n">classifier</span><span class="p">,</span> <span class="n">regressor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">default</span> <span class="o">=</span> <span class="n">DEFAULT_VALUES</span>
+
+    <span class="k">if</span> <span class="n">regressor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">regressor</span> <span class="o">=</span> <span class="n">Regressor</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+
+    <span class="n">xHII</span> <span class="o">=</span> <span class="n">predict_Xe</span><span class="p">(</span><span class="n">classifier</span><span class="p">,</span> <span class="n">regressor</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     
     <span class="k">if</span> <span class="n">xHII</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
         <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
     
-    <span class="k">return</span> <span class="n">predict_tau_from_xHII</span><span class="p">(</span><span class="n">xHII</span><span class="p">,</span> <span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">predict_tau_from_Xe</span><span class="p">(</span><span class="n">xHII</span><span class="p">,</span> <span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 
 
 <div class="viewcode-block" id="predict_tau_numpy">
 <a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_tau_numpy">[docs]</a>
-<span class="k">def</span> <span class="nf">predict_tau_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-                <span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="n">regressor</span><span class="p">:</span> <span class="n">Regressor</span>   <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">predict_tau_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                      <span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                      <span class="n">regressor</span><span class="p">:</span> <span class="n">Regressor</span>   <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Predict the optical depth to reionization from a trained classifier and regressor</span>
+<span class="sd">    as well as parameters passed in kwargs or default. Same as `predict_tau` but much faster</span>
+<span class="sd">    as it work with numpy arrays.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    theta: np.ndarray</span>
+<span class="sd">        Array of shape (n, p) of parameters, where p is the number of parameters.</span>
+<span class="sd">        The p parameters values should be given in the order they were fed to the</span>
+<span class="sd">        regressor for training. These parameters and their order are accesible </span>
+<span class="sd">        calling `regressor.info()` or `classifier.info()`.</span>
+<span class="sd">    classifier : Classifier | None, optional</span>
+<span class="sd">        Classifier object already trained. Default is None. If None, the default</span>
+<span class="sd">        classifier `DefaultClassifier` is used.</span>
+<span class="sd">    regressor : Regressor | None, optional</span>
+<span class="sd">        Regressor object already trained. Default is None. If None, the default</span>
+<span class="sd">        regressor `DefaultRegressor` is used.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        Array of values of the optical depth to reionization.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="k">if</span> <span class="n">regressor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">regressor</span> <span class="o">=</span> <span class="n">Regressor</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
     
-    <span class="n">xHII</span> <span class="o">=</span> <span class="n">predict_xHII_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">classifier</span><span class="p">,</span> <span class="n">regressor</span><span class="p">)</span>
+    <span class="n">xHII</span> <span class="o">=</span> <span class="n">predict_Xe_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">classifier</span><span class="p">,</span> <span class="n">regressor</span><span class="p">)</span>
     
     <span class="n">res</span>  <span class="o">=</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xHII</span><span class="p">))</span>
     <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">xHII</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
     
-    <span class="n">res</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>  <span class="o">=</span> <span class="n">predict_tau_from_xHII_numpy</span><span class="p">(</span><span class="n">xHII</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="p">:],</span> <span class="n">theta</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="p">:],</span> <span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+    <span class="n">res</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>  <span class="o">=</span> <span class="n">predict_tau_from_Xe_numpy</span><span class="p">(</span><span class="n">xHII</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="p">:],</span> <span class="n">theta</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="p">:],</span> <span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">res</span></div>
+
+
+<span class="c1">###########################################</span>
+
+<span class="c1"># Defining equivalent names for functions that are now deprecated</span>
+
+<div class="viewcode-block" id="predict_xHII">
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_xHII">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_xHII</span><span class="p">(</span><span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">regressor</span><span class="p">:</span>  <span class="n">Regressor</span>  <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">default</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. deprecated::</span>
+<span class="sd">        See `predict_Xe` instead.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">predict_Xe</span><span class="p">(</span><span class="n">classifier</span><span class="p">,</span> <span class="n">regressor</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="predict_xHII_numpy">
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_xHII_numpy">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_xHII_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                     <span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                     <span class="n">regressor</span><span class="p">:</span>  <span class="n">Regressor</span>  <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. deprecated::</span>
+<span class="sd">        See `predict_Xe_numpy` instead.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">predict_Xe_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">classifier</span><span class="p">,</span> <span class="n">regressor</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="predict_tau_from_xHII">
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_tau_from_xHII">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_tau_from_xHII</span><span class="p">(</span><span class="n">Xe</span><span class="p">,</span> <span class="n">metadata</span> <span class="p">:</span> <span class="n">MetaData</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. deprecated::</span>
+<span class="sd">        See `predict_tau_from_Xe` instead.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">predict_tau_from_Xe</span><span class="p">(</span><span class="n">Xe</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="predict_tau_from_xHII_numpy">
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_tau_from_xHII_numpy">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_tau_from_xHII_numpy</span><span class="p">(</span><span class="n">Xe</span><span class="p">,</span> <span class="n">theta</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">metadata</span> <span class="p">:</span> <span class="n">MetaData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. deprecated::</span>
+<span class="sd">        See `predict_tau_from_Xe_numpy` instead.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">predict_tau_from_Xe_numpy</span><span class="p">(</span><span class="n">Xe</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span></div>
 
 </pre></div>
 

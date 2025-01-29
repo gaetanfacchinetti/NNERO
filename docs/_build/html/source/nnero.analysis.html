@@ -1,0 +1,616 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analysis &mdash; NNERO 0.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=7026087e"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="MCMC" href="nnero.mcmc.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            NNERO
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/tutorial.html">Introduction to the Tutorial</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../modules.html">nnero</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="nnero.cosmology.html">Cosmology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.astrophysics.html">Astrophysics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.data.html">Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.network.html">Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.classifier.html">Classifier</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.regressor.html">Regressor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.predictor.html">Predictor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.mcmc.html">MCMC</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.AxesGrid"><code class="docutils literal notranslate"><span class="pre">AxesGrid</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.AxesGrid.add_title"><code class="docutils literal notranslate"><span class="pre">AxesGrid.add_title()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.AxesGrid.get"><code class="docutils literal notranslate"><span class="pre">AxesGrid.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.AxesGrid.index_1D"><code class="docutils literal notranslate"><span class="pre">AxesGrid.index_1D()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.AxesGrid.index_from_name"><code class="docutils literal notranslate"><span class="pre">AxesGrid.index_from_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.AxesGrid.indices_2D"><code class="docutils literal notranslate"><span class="pre">AxesGrid.indices_2D()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.AxesGrid.set_label"><code class="docutils literal notranslate"><span class="pre">AxesGrid.set_label()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.AxesGrid.show"><code class="docutils literal notranslate"><span class="pre">AxesGrid.show()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.AxesGrid.update_labels"><code class="docutils literal notranslate"><span class="pre">AxesGrid.update_labels()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.AxesGrid.update_titles"><code class="docutils literal notranslate"><span class="pre">AxesGrid.update_titles()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.EMCEESamples"><code class="docutils literal notranslate"><span class="pre">EMCEESamples</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.EMCEESamples.convergence"><code class="docutils literal notranslate"><span class="pre">EMCEESamples.convergence()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.EMCEESamples.flat"><code class="docutils literal notranslate"><span class="pre">EMCEESamples.flat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.EMCEESamples.load_chains"><code class="docutils literal notranslate"><span class="pre">EMCEESamples.load_chains()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.GaussianInfo"><code class="docutils literal notranslate"><span class="pre">GaussianInfo</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.GaussianInfo.compatible_with"><code class="docutils literal notranslate"><span class="pre">GaussianInfo.compatible_with()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.GaussianInfo.cov"><code class="docutils literal notranslate"><span class="pre">GaussianInfo.cov</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.GaussianInfo.mean"><code class="docutils literal notranslate"><span class="pre">GaussianInfo.mean</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.GaussianInfo.param_names"><code class="docutils literal notranslate"><span class="pre">GaussianInfo.param_names</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.GaussianSamples"><code class="docutils literal notranslate"><span class="pre">GaussianSamples</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.GaussianSamples.flat"><code class="docutils literal notranslate"><span class="pre">GaussianSamples.flat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.GaussianSamples.load_data"><code class="docutils literal notranslate"><span class="pre">GaussianSamples.load_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.MPChain"><code class="docutils literal notranslate"><span class="pre">MPChain</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.MPChain.compute_stats"><code class="docutils literal notranslate"><span class="pre">MPChain.compute_stats()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.MPChain.load"><code class="docutils literal notranslate"><span class="pre">MPChain.load()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.MPChain.remove_burnin"><code class="docutils literal notranslate"><span class="pre">MPChain.remove_burnin()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.MPChain.values"><code class="docutils literal notranslate"><span class="pre">MPChain.values()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.MPSamples"><code class="docutils literal notranslate"><span class="pre">MPSamples</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.MPSamples.convergence"><code class="docutils literal notranslate"><span class="pre">MPSamples.convergence()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.MPSamples.covmat"><code class="docutils literal notranslate"><span class="pre">MPSamples.covmat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.MPSamples.flat"><code class="docutils literal notranslate"><span class="pre">MPSamples.flat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.MPSamples.load_chains"><code class="docutils literal notranslate"><span class="pre">MPSamples.load_chains()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.MPSamples.load_paramnames"><code class="docutils literal notranslate"><span class="pre">MPSamples.load_paramnames()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.MPSamples.load_scaling_factor"><code class="docutils literal notranslate"><span class="pre">MPSamples.load_scaling_factor()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.MPSamples.print_best_fit"><code class="docutils literal notranslate"><span class="pre">MPSamples.print_best_fit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.ProcessedData"><code class="docutils literal notranslate"><span class="pre">ProcessedData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.ProcessedData.bestfit"><code class="docutils literal notranslate"><span class="pre">ProcessedData.bestfit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.ProcessedData.centers"><code class="docutils literal notranslate"><span class="pre">ProcessedData.centers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.ProcessedData.edges"><code class="docutils literal notranslate"><span class="pre">ProcessedData.edges</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.ProcessedData.hists_1D"><code class="docutils literal notranslate"><span class="pre">ProcessedData.hists_1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.ProcessedData.hists_2D"><code class="docutils literal notranslate"><span class="pre">ProcessedData.hists_2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.ProcessedData.levels"><code class="docutils literal notranslate"><span class="pre">ProcessedData.levels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.ProcessedData.mean"><code class="docutils literal notranslate"><span class="pre">ProcessedData.mean</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.ProcessedData.median"><code class="docutils literal notranslate"><span class="pre">ProcessedData.median</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.ProcessedData.q"><code class="docutils literal notranslate"><span class="pre">ProcessedData.q</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.ProcessedData.quantiles"><code class="docutils literal notranslate"><span class="pre">ProcessedData.quantiles</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.ProcessedData.samples"><code class="docutils literal notranslate"><span class="pre">ProcessedData.samples</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.ProcessedData.size"><code class="docutils literal notranslate"><span class="pre">ProcessedData.size</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.Samples"><code class="docutils literal notranslate"><span class="pre">Samples</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#nnero.analysis.Samples.flat"><code class="docutils literal notranslate"><span class="pre">Samples.flat()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.compute_quantiles"><code class="docutils literal notranslate"><span class="pre">compute_quantiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.compute_tau"><code class="docutils literal notranslate"><span class="pre">compute_tau()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.generate_contours"><code class="docutils literal notranslate"><span class="pre">generate_contours()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.get_xHII_stats"><code class="docutils literal notranslate"><span class="pre">get_xHII_stats()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.get_xHII_tanh_stats"><code class="docutils literal notranslate"><span class="pre">get_xHII_tanh_stats()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.neutrino_masses"><code class="docutils literal notranslate"><span class="pre">neutrino_masses()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.plot_data"><code class="docutils literal notranslate"><span class="pre">plot_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.prepare_data_plot"><code class="docutils literal notranslate"><span class="pre">prepare_data_plot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.save_sampling_parameters"><code class="docutils literal notranslate"><span class="pre">save_sampling_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.to_21cmFAST_names"><code class="docutils literal notranslate"><span class="pre">to_21cmFAST_names()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.analysis.to_CLASS_names"><code class="docutils literal notranslate"><span class="pre">to_CLASS_names()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">NNERO</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../modules.html">nnero</a></li>
+      <li class="breadcrumb-item active">Analysis</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/nnero.analysis.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-nnero.analysis">
+<span id="analysis"></span><h1>Analysis<a class="headerlink" href="#module-nnero.analysis" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="nnero.analysis.AxesGrid">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">AxesGrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wspace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hspace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#AxesGrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.AxesGrid" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.AxesGrid.add_title">
+<span class="sig-name descname"><span class="pre">add_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_titles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#AxesGrid.add_title"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.AxesGrid.add_title" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.AxesGrid.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#AxesGrid.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.AxesGrid.get" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.AxesGrid.index_1D">
+<span class="sig-name descname"><span class="pre">index_1D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#AxesGrid.index_1D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.AxesGrid.index_1D" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.AxesGrid.index_from_name">
+<span class="sig-name descname"><span class="pre">index_from_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#AxesGrid.index_from_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.AxesGrid.index_from_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.AxesGrid.indices_2D">
+<span class="sig-name descname"><span class="pre">indices_2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#AxesGrid.indices_2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.AxesGrid.indices_2D" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.AxesGrid.set_label">
+<span class="sig-name descname"><span class="pre">set_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#AxesGrid.set_label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.AxesGrid.set_label" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.AxesGrid.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#AxesGrid.show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.AxesGrid.show" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.AxesGrid.update_labels">
+<span class="sig-name descname"><span class="pre">update_labels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#AxesGrid.update_labels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.AxesGrid.update_labels" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.AxesGrid.update_titles">
+<span class="sig-name descname"><span class="pre">update_titles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#AxesGrid.update_titles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.AxesGrid.update_titles" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nnero.analysis.EMCEESamples">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">EMCEESamples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_tau</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#EMCEESamples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.EMCEESamples" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nnero.analysis.Samples" title="nnero.analysis.Samples"><code class="xref py py-class docutils literal notranslate"><span class="pre">Samples</span></code></a></p>
+<p>Daughter class of Samples for emcee chains.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.EMCEESamples.convergence">
+<span class="sig-name descname"><span class="pre">convergence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#EMCEESamples.convergence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.EMCEESamples.convergence" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.EMCEESamples.flat">
+<span class="sig-name descname"><span class="pre">flat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">discard</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/analysis.html#EMCEESamples.flat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.EMCEESamples.flat" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.EMCEESamples.load_chains">
+<span class="sig-name descname"><span class="pre">load_chains</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#EMCEESamples.load_chains"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.EMCEESamples.load_chains" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nnero.analysis.GaussianInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">GaussianInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mean</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cov</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#GaussianInfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.GaussianInfo" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.GaussianInfo.compatible_with">
+<span class="sig-name descname"><span class="pre">compatible_with</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Self</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/nnero/analysis.html#GaussianInfo.compatible_with"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.GaussianInfo.compatible_with" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.analysis.GaussianInfo.cov">
+<span class="sig-name descname"><span class="pre">cov</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nnero.analysis.GaussianInfo.cov" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.analysis.GaussianInfo.mean">
+<span class="sig-name descname"><span class="pre">mean</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nnero.analysis.GaussianInfo.mean" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.analysis.GaussianInfo.param_names">
+<span class="sig-name descname"><span class="pre">param_names</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nnero.analysis.GaussianInfo.param_names" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nnero.analysis.GaussianSamples">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">GaussianSamples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gaussians</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#nnero.analysis.GaussianInfo" title="nnero.analysis.GaussianInfo"><span class="pre">GaussianInfo</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#nnero.analysis.GaussianInfo" title="nnero.analysis.GaussianInfo"><span class="pre">GaussianInfo</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_tau</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">200000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#GaussianSamples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.GaussianSamples" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nnero.analysis.Samples" title="nnero.analysis.Samples"><code class="xref py py-class docutils literal notranslate"><span class="pre">Samples</span></code></a></p>
+<p>Daughter class of Samples for gaussian generated chains.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.GaussianSamples.flat">
+<span class="sig-name descname"><span class="pre">flat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">discard</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/analysis.html#GaussianSamples.flat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.GaussianSamples.flat" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.GaussianSamples.load_data">
+<span class="sig-name descname"><span class="pre">load_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#nnero.analysis.GaussianInfo" title="nnero.analysis.GaussianInfo"><span class="pre">GaussianInfo</span></a></span></span><a class="reference internal" href="../_modules/nnero/analysis.html#GaussianSamples.load_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.GaussianSamples.load_data" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nnero.analysis.MPChain">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">MPChain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#MPChain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.MPChain" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class MPChain reading chains from MontePython output files</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – Path to the the file where the chain is stored.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.MPChain.compute_stats">
+<span class="sig-name descname"><span class="pre">compute_stats</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/nnero/analysis.html#MPChain.compute_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.MPChain.compute_stats" title="Link to this definition"></a></dt>
+<dd><p>Compute the mean and standard deviation within the chain.
+Should be called after <cite>remove_burnin()</cite>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.MPChain.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/nnero/analysis.html#MPChain.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.MPChain.load" title="Link to this definition"></a></dt>
+<dd><p>Load the chain and automatically remove the non-markovian points.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.MPChain.remove_burnin">
+<span class="sig-name descname"><span class="pre">remove_burnin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">global_max_lnlkl</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/nnero/analysis.html#MPChain.remove_burnin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.MPChain.remove_burnin" title="Link to this definition"></a></dt>
+<dd><p>Remove the burnin points according to the value of the maximum
+log likelihood over all chains. Only points of the chain that are
+after its overcrossing of global_max_lnlkl - 3 are kept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>global_max_lnlkl</strong> (<em>float</em>) – Global maximum log likelihood over all chains</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.MPChain.values">
+<span class="sig-name descname"><span class="pre">values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">discard</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/analysis.html#MPChain.values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.MPChain.values" title="Link to this definition"></a></dt>
+<dd><p>Get the values of the chain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>discard</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of initial points to discard, by default 0.</p></li>
+<li><p><strong>thin</strong> (<em>int</em><em>, </em><em>optional</em>) – Thining factor (taking only one value every value of thin), by default 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray with dimension (number of parameters, length of chain)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nnero.analysis.MPSamples">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">MPSamples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#MPSamples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.MPSamples" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nnero.analysis.Samples" title="nnero.analysis.Samples"><code class="xref py py-class docutils literal notranslate"><span class="pre">Samples</span></code></a></p>
+<p>Daughter class of Samples for MontePython chains.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.MPSamples.convergence">
+<span class="sig-name descname"><span class="pre">convergence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/analysis.html#MPSamples.convergence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.MPSamples.convergence" title="Link to this definition"></a></dt>
+<dd><p>Gelman-Rubin criterion weighted by the length of the chain as implemented
+in MontePython.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>R-1 for all parameters</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.MPSamples.covmat">
+<span class="sig-name descname"><span class="pre">covmat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">discard</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params_in_cov</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/analysis.html#MPSamples.covmat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.MPSamples.covmat" title="Link to this definition"></a></dt>
+<dd><p>Covariance matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>discard</strong> (<em>np.ndarray</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Number of points to discard at begining of the chain, by default None (0).</p></li>
+<li><p><strong>data_to_cov</strong> (<em>list</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em><em>, </em><em>optional</em>) – List of parameters to put in the covariance matrix (in the order of that list).
+If None consider all parameters available.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Covariance matric (n, n) array</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.MPSamples.flat">
+<span class="sig-name descname"><span class="pre">flat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">discard</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/analysis.html#MPSamples.flat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.MPSamples.flat" title="Link to this definition"></a></dt>
+<dd><p>Flatten samples of all chains.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>discard</strong> (<em>np.ndarray</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Number of points to discard at begining of the chain, by default None (0).</p></li>
+<li><p><strong>thin</strong> (<em>None</em><em> | </em><em>int</em><em>, </em><em>optional</em>) – Reduce the size of the sample by taking one point every <cite>thin</cite>, by default None.
+If Nont compute the reduced size such that the total length of the sample is 10000.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Sample in a 2 dimensional array of shape (# of parameters, # of points)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.MPSamples.load_chains">
+<span class="sig-name descname"><span class="pre">load_chains</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/nnero/analysis.html#MPSamples.load_chains"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.MPSamples.load_chains" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.MPSamples.load_paramnames">
+<span class="sig-name descname"><span class="pre">load_paramnames</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#MPSamples.load_paramnames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.MPSamples.load_paramnames" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.MPSamples.load_scaling_factor">
+<span class="sig-name descname"><span class="pre">load_scaling_factor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/nnero/analysis.html#MPSamples.load_scaling_factor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.MPSamples.load_scaling_factor" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.MPSamples.print_best_fit">
+<span class="sig-name descname"><span class="pre">print_best_fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">discard</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#MPSamples.print_best_fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.MPSamples.print_best_fit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nnero.analysis.ProcessedData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">ProcessedData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hists_1D</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hists_2D</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">levels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">median</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bestfit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#ProcessedData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.ProcessedData" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.analysis.ProcessedData.bestfit">
+<span class="sig-name descname"><span class="pre">bestfit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nnero.analysis.ProcessedData.bestfit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.analysis.ProcessedData.centers">
+<span class="sig-name descname"><span class="pre">centers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nnero.analysis.ProcessedData.centers" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.analysis.ProcessedData.edges">
+<span class="sig-name descname"><span class="pre">edges</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nnero.analysis.ProcessedData.edges" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.analysis.ProcessedData.hists_1D">
+<span class="sig-name descname"><span class="pre">hists_1D</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nnero.analysis.ProcessedData.hists_1D" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.analysis.ProcessedData.hists_2D">
+<span class="sig-name descname"><span class="pre">hists_2D</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nnero.analysis.ProcessedData.hists_2D" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.analysis.ProcessedData.levels">
+<span class="sig-name descname"><span class="pre">levels</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nnero.analysis.ProcessedData.levels" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.analysis.ProcessedData.mean">
+<span class="sig-name descname"><span class="pre">mean</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nnero.analysis.ProcessedData.mean" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.analysis.ProcessedData.median">
+<span class="sig-name descname"><span class="pre">median</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nnero.analysis.ProcessedData.median" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.analysis.ProcessedData.q">
+<span class="sig-name descname"><span class="pre">q</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nnero.analysis.ProcessedData.q" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.analysis.ProcessedData.quantiles">
+<span class="sig-name descname"><span class="pre">quantiles</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nnero.analysis.ProcessedData.quantiles" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.analysis.ProcessedData.samples">
+<span class="sig-name descname"><span class="pre">samples</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nnero.analysis.ProcessedData.samples" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nnero.analysis.ProcessedData.size">
+<span class="sig-name descname"><span class="pre">size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nnero.analysis.ProcessedData.size" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nnero.analysis.Samples">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">Samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#Samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.Samples" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Class containing all chains of a MCMC analysis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – Path to the chains.</p></li>
+<li><p><strong>ids</strong> (<em>list</em><em> | </em><em>np.ndarray</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – List of chains to take into accoung. If none all possible found chains are added. By default None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nnero.analysis.Samples.flat">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">flat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">discard</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/analysis.html#Samples.flat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.Samples.flat" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.analysis.compute_quantiles">
+<span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">compute_quantiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/nnero/analysis.html#compute_quantiles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.compute_quantiles" title="Link to this definition"></a></dt>
+<dd><p>Give the q-th quantile of the input sample.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample</strong> (<em>np.ndarray</em>) – 1D array of data points.</p></li>
+<li><p><strong>q</strong> (<em>float</em>) – Quantile value.</p></li>
+<li><p><strong>bins</strong> (<em>int</em><em> | </em><em>np.ndarray</em><em>, </em><em>optional</em>) – Binning of the histogram that is used
+for a first approximation of the quantile
+edges, by default 30.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>min,max bound</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[float, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.analysis.compute_tau">
+<span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">compute_tau</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flat_chain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><span class="pre">Classifier</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><span class="pre">Regressor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/analysis.html#compute_tau"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.compute_tau" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.analysis.generate_contours">
+<span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">generate_contours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.68,</span> <span class="pre">0.95]</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#nnero.analysis.ProcessedData" title="nnero.analysis.ProcessedData"><span class="pre">ProcessedData</span></a></span></span><a class="reference internal" href="../_modules/nnero/analysis.html#generate_contours"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.generate_contours" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.analysis.get_xHII_stats">
+<span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">get_xHII_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nnero.analysis.Samples" title="nnero.analysis.Samples"><span class="pre">Samples</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_to_plot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[0.68,</span> <span class="pre">0.95]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discard</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><span class="pre">Classifier</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><span class="pre">Regressor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#get_xHII_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.get_xHII_stats" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.analysis.get_xHII_tanh_stats">
+<span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">get_xHII_tanh_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nnero.analysis.Samples" title="nnero.analysis.Samples"><span class="pre">Samples</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[0.68,</span> <span class="pre">0.95]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discard</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_inf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0002</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#get_xHII_tanh_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.get_xHII_tanh_stats" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.analysis.neutrino_masses">
+<span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">neutrino_masses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mnu_1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mnu_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mnu_3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hierarchy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NORMAL'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#neutrino_masses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.neutrino_masses" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.analysis.plot_data">
+<span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">plot_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nnero.analysis.AxesGrid" title="nnero.analysis.AxesGrid"><span class="pre">AxesGrid</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nnero.analysis.ProcessedData" title="nnero.analysis.ProcessedData"><span class="pre">ProcessedData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_hist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_surface</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_contour</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[False,</span> <span class="pre">False]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mean</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">redefine_edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_in_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.68</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'orange'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_mean</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#plot_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.plot_data" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.analysis.prepare_data_plot">
+<span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">prepare_data_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nnero.analysis.Samples" title="nnero.analysis.Samples"><span class="pre">Samples</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_to_plot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discard</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#prepare_data_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.prepare_data_plot" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.analysis.save_sampling_parameters">
+<span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">save_sampling_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters_theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters_xi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#save_sampling_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.save_sampling_parameters" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.analysis.to_21cmFAST_names">
+<span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">to_21cmFAST_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#to_21cmFAST_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.to_21cmFAST_names" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.analysis.to_CLASS_names">
+<span class="sig-prename descclassname"><span class="pre">nnero.analysis.</span></span><span class="sig-name descname"><span class="pre">to_CLASS_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/analysis.html#to_CLASS_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.analysis.to_CLASS_names" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="nnero.mcmc.html" class="btn btn-neutral float-left" title="MCMC" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Gaétan Facchinetti.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

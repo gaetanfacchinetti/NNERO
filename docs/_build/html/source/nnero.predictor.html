@@ -58,11 +58,15 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Predictor</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.check_values"><code class="docutils literal notranslate"><span class="pre">check_values()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.input_values"><code class="docutils literal notranslate"><span class="pre">input_values()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_Xe"><code class="docutils literal notranslate"><span class="pre">predict_Xe()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_Xe_numpy"><code class="docutils literal notranslate"><span class="pre">predict_Xe_numpy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_classifier"><code class="docutils literal notranslate"><span class="pre">predict_classifier()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_classifier_numpy"><code class="docutils literal notranslate"><span class="pre">predict_classifier_numpy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_regressor"><code class="docutils literal notranslate"><span class="pre">predict_regressor()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_regressor_numpy"><code class="docutils literal notranslate"><span class="pre">predict_regressor_numpy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_tau"><code class="docutils literal notranslate"><span class="pre">predict_tau()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_tau_from_Xe"><code class="docutils literal notranslate"><span class="pre">predict_tau_from_Xe()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_tau_from_Xe_numpy"><code class="docutils literal notranslate"><span class="pre">predict_tau_from_Xe_numpy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_tau_from_xHII"><code class="docutils literal notranslate"><span class="pre">predict_tau_from_xHII()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_tau_from_xHII_numpy"><code class="docutils literal notranslate"><span class="pre">predict_tau_from_xHII_numpy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_tau_numpy"><code class="docutils literal notranslate"><span class="pre">predict_tau_numpy()</span></code></a></li>
@@ -73,6 +77,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="nnero.mcmc.html">MCMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nnero.analysis.html">Analysis</a></li>
 </ul>
 </li>
 </ul>
@@ -111,104 +116,305 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nnero.predictor.input_values">
-<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">input_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.data.html#nnero.data.MetaData" title="nnero.data.MetaData"><span class="pre">MetaData</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/predictor.html#input_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.input_values" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">input_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.data.html#nnero.data.MetaData" title="nnero.data.MetaData"><span class="pre">MetaData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{'ALPHA_ESC':</span> <span class="pre">0.3,</span> <span class="pre">'ALPHA_STAR':</span> <span class="pre">0.5,</span> <span class="pre">'FRAC_WDM':</span> <span class="pre">0.0,</span> <span class="pre">'F_ESC10':</span> <span class="pre">-1.0,</span> <span class="pre">'F_STAR10':</span> <span class="pre">-1.5,</span> <span class="pre">'INVERSE_M_WDM':</span> <span class="pre">0.0,</span> <span class="pre">'LOG10_PMF_SB':</span> <span class="pre">-5.0,</span> <span class="pre">'L_X':</span> <span class="pre">40.0,</span> <span class="pre">'Ln_1010_As':</span> <span class="pre">3.047,</span> <span class="pre">'M_TURN':</span> <span class="pre">8.7,</span> <span class="pre">'M_WDM':</span> <span class="pre">'20.0',</span> <span class="pre">'NEUTRINO_MASS_1':</span> <span class="pre">0.0,</span> <span class="pre">'NU_X_THRESH':</span> <span class="pre">500,</span> <span class="pre">'Ombh2':</span> <span class="pre">0.02242,</span> <span class="pre">'Omdmh2':</span> <span class="pre">0.11933,</span> <span class="pre">'PMF_NB':</span> <span class="pre">-2.0,</span> <span class="pre">'POWER_INDEX':</span> <span class="pre">0.9665,</span> <span class="pre">'hlittle':</span> <span class="pre">0.6736,</span> <span class="pre">'t_STAR':</span> <span class="pre">0.5}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/predictor.html#input_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.input_values" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="nnero.predictor.predict_classifier">
-<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_classifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><span class="pre">Classifier</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_classifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_classifier" title="Link to this definition"></a></dt>
-<dd><p>Prediction of the classifier</p>
+<dt class="sig sig-object py" id="nnero.predictor.predict_Xe">
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_Xe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><span class="pre">Classifier</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><span class="pre">Regressor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_Xe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_Xe" title="Link to this definition"></a></dt>
+<dd><p>Prediction of the free electron fraction X_e, taking into account
+the selection from the classifier. See <cite>predict_Xe_numpy</cite> for a more
+advanced but faster method (working with numpy arrays).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>classifier</strong> (<em>-</em>) – classifier object already trained</p></li>
-<li><p><strong>**kwargs</strong> (<em>-</em>) – <p>any value for a parameter the classifier
-has been trained on</p>
-</p></li>
+<li><p><strong>classifier</strong> (<a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><em>Classifier</em></a><em> | </em><em>None</em><em>, </em><em>optional</em>) – Classifier object already trained. Default is None. If None, the default
+classifier <cite>DefaultClassifier</cite> is used.</p></li>
+<li><p><strong>regressor</strong> (<a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><em>Regressor</em></a><em> | </em><em>None</em><em>, </em><em>optional</em>) – Regressor object already trained. Default is None. If None, the default
+regressor <cite>DefaultRegressor</cite> is used.</p></li>
+<li><p><strong>default</strong> (<em>dict</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Dictionnary of default values, by default None.
+The default dictionnaly should have keys corresponding to those of the trained dataset
+as accessible from <cite>regressor.info()</cite> or <cite>classifier.info()</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Any value for a parameter the classifier and regressor have been trained on.
+Keys should corresponds to <cite>regressor.parameters_name</cite> or <cite>classifier.parameters_name</cite>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>True for an early reionization
-False for a late reionization</p>
+<dd class="field-even"><p>Returns <cite>False</cite> if the classifier returns <cite>False</cite>. Returns the prediction
+from the regressor for the free electron fraction X_e otherwise.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><ul class="simple">
-<li><p>boolean value</p></li>
+<dd class="field-odd"><p>np.ndarray | bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.predictor.predict_Xe_numpy">
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_Xe_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><span class="pre">Classifier</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><span class="pre">Regressor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_Xe_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_Xe_numpy" title="Link to this definition"></a></dt>
+<dd><p>Prediction of the free electron fraction X_e, taking into account
+the selection from the classifier. Same as <cite>predict_Xe</cite> but much faster
+as it work with numpy arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>theta</strong> (<em>np.ndarray</em>) – Array of shape (n, p) of parameters, where p is the number of parameters.
+The p parameters values should be given in the order they were fed to the
+regressor for training. These parameters and their order are accesible
+calling <cite>regressor.info()</cite>.</p></li>
+<li><p><strong>classifier</strong> (<a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><em>Classifier</em></a><em> | </em><em>None</em><em>, </em><em>optional</em>) – Classifier object already trained. Default is None. If None, the default
+classifier <cite>DefaultClassifier</cite> is used.</p></li>
+<li><p><strong>regressor</strong> (<a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><em>Regressor</em></a><em> | </em><em>None</em><em>, </em><em>optional</em>) – Regressor object already trained. Default is None. If None, the default
+regressor <cite>DefaultRegressor</cite> is used.</p></li>
 </ul>
-</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>2D array of shape (n, p) for the values for X_e
+with n the number of redshift bins and p the number for parameters.
+When the classifier outputs false, the array is filled with -1.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.predictor.predict_classifier">
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_classifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><span class="pre">Classifier</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_classifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_classifier" title="Link to this definition"></a></dt>
+<dd><p>Prediction of the classifier. See <cite>predict_classifier_numpy</cite> for a more
+advanced but faster method (working with numpy arrays).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>classifier</strong> (<em>nnero.Classifier</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Classifier object already trained. Default is None. If None, the default
+classifier <cite>DefaultClassifier</cite> is used.</p></li>
+<li><p><strong>**kwargs</strong> – Any value for a parameter the classifier has been trained on.
+Keys should corresponds to <cite>classifier.parameters_name</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True for an early reionization.
+False for a late reionization.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nnero.predictor.predict_classifier_numpy">
-<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_classifier_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><span class="pre">Classifier</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_classifier_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_classifier_numpy" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_classifier_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><span class="pre">Classifier</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_classifier_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_classifier_numpy" title="Link to this definition"></a></dt>
+<dd><p>Prediction of the classifier. Same as <cite>predict_classifier</cite> but much faster
+as it work with numpy arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>theta</strong> (<em>np.ndarray</em>) – Array of shape (n, p) of parameters, where p is the number of parameters.
+The p parameters values should be given in the order they were fed to the
+classifier for training. These parameters and their order are accesible
+calling <cite>classifier.info()</cite>.</p></li>
+<li><p><strong>classifier</strong> (<em>nnero.Classifier</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Classifier object already trained. Default is None. If None, the default
+classifier <cite>DefaultClassifier</cite> is used.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Array of booleans.
+True for an early reionization.
+False for a late reionization.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nnero.predictor.predict_regressor">
-<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_regressor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><span class="pre">Regressor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_regressor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_regressor" title="Link to this definition"></a></dt>
-<dd><blockquote>
-<div><p>prediction of the regressor</p>
-</div></blockquote>
-<section id="parameters">
-<h2>Parameters:<a class="headerlink" href="#parameters" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><dl class="simple">
-<dt>classifier: nnero.Classifier</dt><dd><p>classifier object already trained</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs:</dt><dd><p>any value for a parameter the classifier
-has been trained on</p>
-</dd>
-</dl>
-</li>
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_regressor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><span class="pre">Regressor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_regressor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_regressor" title="Link to this definition"></a></dt>
+<dd><p>Prediction of the regressor. See <cite>predict_regressor_numpy</cite> for a more
+advanced but faster method (working with numpy arrays).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>regressor</strong> (<em>nnero.Regressor</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Regressor object already trained. Default is None. If None, the default
+regressor <cite>DefaultRegressor</cite> is used.</p></li>
+<li><p><strong>**kwargs</strong> – Any value for a parameter the regressor has been trained on.
+Keys should corresponds to <cite>regressor.parameters_name</cite>.</p></li>
 </ul>
-</section>
-<section id="returns">
-<h2>Returns:<a class="headerlink" href="#returns" title="Link to this heading"></a></h2>
-<p>returns boolean value:
-True for an early reionization
-False for a late reionization</p>
-</section>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Array of values for X_e.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nnero.predictor.predict_regressor_numpy">
-<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_regressor_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><span class="pre">Regressor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_regressor_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_regressor_numpy" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_regressor_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><span class="pre">Regressor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_regressor_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_regressor_numpy" title="Link to this definition"></a></dt>
+<dd><p>Prediction of the regressor. Same as <cite>predict_regressor</cite> but much faster
+as it work with numpy arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>theta</strong> (<em>np.ndarray</em>) – Array of shape (n, p) of parameters, where p is the number of parameters.
+The p parameters values should be given in the order they were fed to the
+regressor for training. These parameters and their order are accesible
+calling <cite>regressor.info()</cite>.</p></li>
+<li><p><strong>regressor</strong> (<em>nnero.Regressor</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Regressor object already trained. Default is None. If None, the default
+regressor <cite>DefaultRegressor</cite> is used.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>2D array of shape (n, p) for the values for X_e
+with n the number of redshift bins and p the number for parameters.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nnero.predictor.predict_tau">
-<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_tau</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><span class="pre">Classifier</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><span class="pre">Regressor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_tau"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_tau" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_tau</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><span class="pre">Classifier</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><span class="pre">Regressor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_tau"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_tau" title="Link to this definition"></a></dt>
+<dd><p>Predict the optical depth to reionization from a trained classifier and regressor
+as well as parameters passed in kwargs or default. See <cite>predict_tau_numpy</cite>
+for a more advanced but faster method (working with numpy arrays).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>classifier</strong> (<a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><em>Classifier</em></a><em> | </em><em>None</em><em>, </em><em>optional</em>) – Classifier object already trained. Default is None. If None, the default
+classifier <cite>DefaultClassifier</cite> is used.</p></li>
+<li><p><strong>regressor</strong> (<a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><em>Regressor</em></a><em> | </em><em>None</em><em>, </em><em>optional</em>) – Regressor object already trained. Default is None. If None, the default
+regressor <cite>DefaultRegressor</cite> is used.</p></li>
+<li><p><strong>default</strong> (<em>dict</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Dictionnary of default values, by default None.
+The default dictionnaly should have keys corresponding to those of the trained dataset
+as accessible from <cite>regressor.info()</cite> or <cite>classifier.info()</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Any value for a parameter the classifier and regressor have been trained on.
+Keys should corresponds to <cite>regressor.parameters_name</cite> or <cite>classifier.parameters_name</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.predictor.predict_tau_from_Xe">
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_tau_from_Xe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.data.html#nnero.data.MetaData" title="nnero.data.MetaData"><span class="pre">MetaData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_tau_from_Xe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_tau_from_Xe" title="Link to this definition"></a></dt>
+<dd><p>Predict the optical depth to reionization from an array of X_e.
+See <cite>predict_tau_from_Xe_numpy</cite> for a more advanced but faster method
+(working with numpy arrays).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xe</strong> (<em>np.ndarray</em>) – Array for the free electron fraction X_e = xHII(1+db).</p></li>
+<li><p><strong>metadata</strong> (<a class="reference internal" href="nnero.data.html#nnero.data.MetaData" title="nnero.data.MetaData"><em>MetaData</em></a>) – Metadata object (attached to the networks) describing properties
+of the data the networks have been trained on.</p></li>
+<li><p><strong>default</strong> (<em>dict</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Dictionnary of default values, by default None.
+The default dictionnaly should have keys corresponding to those of the trained dataset
+as accessible from <cite>metadata.parameters_name</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Any value for a parameter in metadata.
+Keys should corresponds to <cite>metadata.parameters_name</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.predictor.predict_tau_from_Xe_numpy">
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_tau_from_Xe_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.data.html#nnero.data.MetaData" title="nnero.data.MetaData"><span class="pre">MetaData</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_tau_from_Xe_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_tau_from_Xe_numpy" title="Link to this definition"></a></dt>
+<dd><p>Predict the optical depth to reionization from an array of X_e.
+Same as <cite>predict_tau_from_Xe</cite> but much faster as it work with numpy arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xe</strong> (<em>np.ndarray</em>) – Array for the free electron fraction X_e = xHII(1+db).</p></li>
+<li><p><strong>theta</strong> (<em>np.ndarray</em>) – Array of shape (n, p) of parameters, where p is the number of parameters.
+The p parameters values should be given in the order they were fed to the
+regressor for training. These parameters and their order are accesible
+calling <cite>metadata.parameters_name</cite>.</p></li>
+<li><p><strong>metadata</strong> (<a class="reference internal" href="nnero.data.html#nnero.data.MetaData" title="nnero.data.MetaData"><em>MetaData</em></a>) – Metadata object (attached to the networks) describing properties
+of the data the networks have been trained on.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Array of values of the optical depth to reionization.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nnero.predictor.predict_tau_from_xHII">
-<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_tau_from_xHII</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xHII</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.data.html#nnero.data.MetaData" title="nnero.data.MetaData"><span class="pre">MetaData</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_tau_from_xHII"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_tau_from_xHII" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_tau_from_xHII</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Xe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.data.html#nnero.data.MetaData" title="nnero.data.MetaData"><span class="pre">MetaData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_tau_from_xHII"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_tau_from_xHII" title="Link to this definition"></a></dt>
+<dd><div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version See: </span><cite>predict_tau_from_Xe</cite> instead.</p>
+</div>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nnero.predictor.predict_tau_from_xHII_numpy">
-<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_tau_from_xHII_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xHII</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.data.html#nnero.data.MetaData" title="nnero.data.MetaData"><span class="pre">MetaData</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_tau_from_xHII_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_tau_from_xHII_numpy" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_tau_from_xHII_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Xe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.data.html#nnero.data.MetaData" title="nnero.data.MetaData"><span class="pre">MetaData</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_tau_from_xHII_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_tau_from_xHII_numpy" title="Link to this definition"></a></dt>
+<dd><div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version See: </span><cite>predict_tau_from_Xe_numpy</cite> instead.</p>
+</div>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nnero.predictor.predict_tau_numpy">
-<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_tau_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><span class="pre">Classifier</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><span class="pre">Regressor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_tau_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_tau_numpy" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_tau_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><span class="pre">Classifier</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><span class="pre">Regressor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_tau_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_tau_numpy" title="Link to this definition"></a></dt>
+<dd><p>Predict the optical depth to reionization from a trained classifier and regressor
+as well as parameters passed in kwargs or default. Same as <cite>predict_tau</cite> but much faster
+as it work with numpy arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>theta</strong> (<em>np.ndarray</em>) – Array of shape (n, p) of parameters, where p is the number of parameters.
+The p parameters values should be given in the order they were fed to the
+regressor for training. These parameters and their order are accesible
+calling <cite>regressor.info()</cite> or <cite>classifier.info()</cite>.</p></li>
+<li><p><strong>classifier</strong> (<a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><em>Classifier</em></a><em> | </em><em>None</em><em>, </em><em>optional</em>) – Classifier object already trained. Default is None. If None, the default
+classifier <cite>DefaultClassifier</cite> is used.</p></li>
+<li><p><strong>regressor</strong> (<a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><em>Regressor</em></a><em> | </em><em>None</em><em>, </em><em>optional</em>) – Regressor object already trained. Default is None. If None, the default
+regressor <cite>DefaultRegressor</cite> is used.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Array of values of the optical depth to reionization.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nnero.predictor.predict_xHII">
-<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_xHII</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><span class="pre">Classifier</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><span class="pre">Regressor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_xHII"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_xHII" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_xHII</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><span class="pre">Classifier</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><span class="pre">Regressor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_xHII"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_xHII" title="Link to this definition"></a></dt>
+<dd><div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version See: </span><cite>predict_Xe</cite> instead.</p>
+</div>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nnero.predictor.predict_xHII_numpy">
-<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_xHII_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><span class="pre">Classifier</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><span class="pre">Regressor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_xHII_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_xHII_numpy" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_xHII_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><span class="pre">Classifier</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><span class="pre">Regressor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_xHII_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_xHII_numpy" title="Link to this definition"></a></dt>
+<dd><div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version See: </span><cite>predict_Xe_numpy</cite> instead.</p>
+</div>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nnero.predictor.uniform_input_array">
@@ -217,7 +423,7 @@ False for a late reionization</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nnero.predictor.uniform_input_values">
-<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">uniform_input_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.data.html#nnero.data.MetaData" title="nnero.data.MetaData"><span class="pre">MetaData</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/predictor.html#uniform_input_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.uniform_input_values" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">uniform_input_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.data.html#nnero.data.MetaData" title="nnero.data.MetaData"><span class="pre">MetaData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{'ALPHA_ESC':</span> <span class="pre">0.3,</span> <span class="pre">'ALPHA_STAR':</span> <span class="pre">0.5,</span> <span class="pre">'FRAC_WDM':</span> <span class="pre">0.0,</span> <span class="pre">'F_ESC10':</span> <span class="pre">-1.0,</span> <span class="pre">'F_STAR10':</span> <span class="pre">-1.5,</span> <span class="pre">'INVERSE_M_WDM':</span> <span class="pre">0.0,</span> <span class="pre">'LOG10_PMF_SB':</span> <span class="pre">-5.0,</span> <span class="pre">'L_X':</span> <span class="pre">40.0,</span> <span class="pre">'Ln_1010_As':</span> <span class="pre">3.047,</span> <span class="pre">'M_TURN':</span> <span class="pre">8.7,</span> <span class="pre">'M_WDM':</span> <span class="pre">'20.0',</span> <span class="pre">'NEUTRINO_MASS_1':</span> <span class="pre">0.0,</span> <span class="pre">'NU_X_THRESH':</span> <span class="pre">500,</span> <span class="pre">'Ombh2':</span> <span class="pre">0.02242,</span> <span class="pre">'Omdmh2':</span> <span class="pre">0.11933,</span> <span class="pre">'PMF_NB':</span> <span class="pre">-2.0,</span> <span class="pre">'POWER_INDEX':</span> <span class="pre">0.9665,</span> <span class="pre">'hlittle':</span> <span class="pre">0.6736,</span> <span class="pre">'t_STAR':</span> <span class="pre">0.5}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nnero/predictor.html#uniform_input_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.uniform_input_values" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>

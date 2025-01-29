@@ -110,7 +110,7 @@
 <a class="viewcode-back" href="../../source/nnero.classifier.html#nnero.classifier.Classifier">[docs]</a>
 <span class="k">class</span> <span class="nc">Classifier</span><span class="p">(</span><span class="n">NeuralNetwork</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Daughter class of :py:class:`NeuralNetwork` specialised for classifier</span>
+<span class="sd">    Daughter class of :py:class:`NeuralNetwork` specialised for classifier.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -192,8 +192,6 @@
         <span class="k">if</span> <span class="n">dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_check_metadata_and_partition</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
 
-        <span class="c1"># print the number of parameters</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">print_parameters</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="Classifier.load">
@@ -216,6 +214,8 @@
 
         <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
             <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">DATA_PATH</span><span class="p">,</span> <span class="s2">&quot;DefaultClassifier&quot;</span><span class="p">)</span>
+
+        <span class="n">name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span>  <span class="o">+</span> <span class="s1">&#39;_struct.npy&#39;</span><span class="p">):</span>
 
@@ -228,6 +228,8 @@
                     <span class="n">classifier</span><span class="o">.</span><span class="n">load_weights_and_extras</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
                     <span class="n">classifier</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
 
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Model &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; sucessfully loaded&#39;</span><span class="p">)</span>
+
                     <span class="k">return</span> <span class="n">classifier</span>
         
         <span class="c1"># if the struct read is not of the right size</span>
@@ -236,6 +238,9 @@
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span>  <span class="o">+</span> <span class="s1">&#39;.pth&#39;</span><span class="p">)</span> <span class="p">:</span>
             <span class="n">classifier</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="s2">&quot;.pth&quot;</span><span class="p">)</span>
             <span class="n">classifier</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Model &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; sucessfully loaded from a .pth archive&#39;</span><span class="p">)</span>
+
             <span class="k">return</span> <span class="n">classifier</span>
         
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Could not find a fully saved classifier model at: &quot;</span> <span class="o">+</span> <span class="n">path</span><span class="p">)</span></div>
@@ -246,12 +251,12 @@
 <a class="viewcode-back" href="../../source/nnero.classifier.html#nnero.classifier.Classifier.forward">[docs]</a>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Forward evaluation of the model</span>
+<span class="sd">        Forward evaluation of the model.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        x: torch.Tensor</span>
-<span class="sd">            input features</span>
+<span class="sd">            Input features.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
 
@@ -262,25 +267,74 @@
     
 <div class="viewcode-block" id="Classifier.test">
 <a class="viewcode-back" href="../../source/nnero.classifier.html#nnero.classifier.Classifier.test">[docs]</a>
-    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">DataSet</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">DataSet</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">x_test</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">y_test</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test the efficiency of the classifier.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        dataset: DataSet</span>
+<span class="sd">        dataset: DataSet | None</span>
 <span class="sd">            DataSet containing the training partition and the test partition.</span>
+<span class="sd">        x_test: np.ndarray</span>
+<span class="sd">        y_test: np.ndarray</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple(np.ndarray, np.ndarray, np.ndarray)</span>
+<span class="sd">            y_pred, y_test, and array of true if rightly classifier, false otherwise </span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            Either the dataset or both x_test and y_test must be provided.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_check_metadata_and_partition</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">check_only</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="n">x_test</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">x_array</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">total_test</span><span class="p">],</span>      <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-        <span class="n">y_test</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">y_classifier</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">total_test</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_check_metadata_and_partition</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">check_only</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="n">x_test</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">x_array</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">total_test</span><span class="p">],</span>      <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">y_test</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">y_classifier</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">total_test</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">x_test</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">y_test</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">x_test</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">x_test</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">y_test</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Either the dataset or both x_test and y_test must be provided.&quot;</span><span class="p">)</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
         
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
             <span class="n">y_pred</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">x_test</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The accuracy is </span><span class="si">{</span><span class="mi">100</span><span class="o">*</span><span class="p">(</span><span class="n">y_pred</span><span class="o">.</span><span class="n">round</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">y_test</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span></div>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The accuracy is </span><span class="si">{</span><span class="mi">100</span><span class="o">*</span><span class="p">(</span><span class="n">y_pred</span><span class="o">.</span><span class="n">round</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">y_test</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">y_pred</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">y_test</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="p">(</span><span class="n">y_pred</span><span class="o">.</span><span class="n">round</span><span class="p">()</span> <span class="o">==</span> <span class="n">y_test</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span></div>
+
+        
+
+<div class="viewcode-block" id="Classifier.validate">
+<a class="viewcode-back" href="../../source/nnero.classifier.html#nnero.classifier.Classifier.validate">[docs]</a>
+    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">DataSet</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate the efficiency of the classifier.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dataset: DataSet</span>
+<span class="sd">            DataSet containing the training partition and the test partition.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple(np.ndarray, np.ndarray, np.ndarray)</span>
+<span class="sd">            y_pred, y_test, and array of true if rightly classifier, false otherwise </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_check_metadata_and_partition</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">check_only</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">x_valid</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">x_array</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">total_valid</span><span class="p">],</span>      <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">y_valid</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">y_classifier</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">total_valid</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+        
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">y_pred</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">x_valid</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The accuracy is </span><span class="si">{</span><span class="mi">100</span><span class="o">*</span><span class="p">(</span><span class="n">y_pred</span><span class="o">.</span><span class="n">round</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">y_valid</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">y_pred</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">y_valid</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="p">(</span><span class="n">y_pred</span><span class="o">.</span><span class="n">round</span><span class="p">()</span> <span class="o">==</span> <span class="n">y_valid</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span></div>
 </div>
 
 
@@ -296,6 +350,10 @@
                      <span class="n">learning_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">,</span> 
                      <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> 
                      <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span> 
+                     <span class="n">x_train</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="n">y_train</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="n">x_valid</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="n">y_valid</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                      <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Trains a given classifier.</span>
@@ -309,22 +367,34 @@
 <span class="sd">    optimizer : torch.optim.Optimizer</span>
 <span class="sd">        Optimizer used for training.</span>
 <span class="sd">    epochs : int, optional</span>
-<span class="sd">        Number of epochs, by default 50</span>
+<span class="sd">        Number of epochs, by default 50.</span>
 <span class="sd">    learning_rate : float, optional</span>
-<span class="sd">        Learning rate for training, by default 1e-3</span>
+<span class="sd">        Learning rate for training, by default 1e-3.</span>
 <span class="sd">    verbose : bool, optional</span>
-<span class="sd">        If true, outputs a summary of the losses at each epoch, by default True</span>
+<span class="sd">        If true, outputs a summary of the losses at each epoch, by default True.</span>
 <span class="sd">    batch_size : int, optional</span>
-<span class="sd">        Size of the training batches, by default 64</span>
+<span class="sd">        Size of the training batches, by default 64.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># set the metadata and parition object of the model</span>
     <span class="n">model</span><span class="o">.</span><span class="n">set_check_metadata_and_partition</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
 
+    <span class="k">if</span> <span class="n">x_train</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">x_train</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">x_array</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">total_train</span><span class="p">]</span>
+    
+    <span class="k">if</span> <span class="n">y_train</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">y_train</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y_classifier</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">total_train</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">x_valid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">x_valid</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">x_array</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">total_valid</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">y_valid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">y_valid</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y_classifier</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">total_valid</span><span class="p">]</span>
+        
     <span class="c1"># format the data for the classifier</span>
-    <span class="n">train_dataset</span> <span class="o">=</span> <span class="n">TorchDataset</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">x_array</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">total_train</span><span class="p">],</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y_classifier</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">total_train</span><span class="p">])</span>
-    <span class="n">valid_dataset</span> <span class="o">=</span> <span class="n">TorchDataset</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">x_array</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">total_valid</span><span class="p">],</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y_classifier</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">partition</span><span class="o">.</span><span class="n">total_valid</span><span class="p">])</span>
-    <span class="n">train_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="n">valid_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">valid_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">train_dataset</span> <span class="o">=</span> <span class="n">TorchDataset</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+    <span class="n">valid_dataset</span> <span class="o">=</span> <span class="n">TorchDataset</span><span class="p">(</span><span class="n">x_valid</span><span class="p">,</span> <span class="n">y_valid</span><span class="p">)</span>
+    <span class="n">train_loader</span>  <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">valid_loader</span>  <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">valid_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     
     <span class="c1"># we have only one param_group here</span>
     <span class="c1"># we modify the learning rate of that group</span>

@@ -12,5 +12,6 @@ nnero
    source/nnero.regressor
    source/nnero.predictor
    source/nnero.mcmc
+   source/nnero.analysis
    
    

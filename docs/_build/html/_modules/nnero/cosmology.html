@@ -112,7 +112,12 @@
 <a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.convert_array">[docs]</a>
 <span class="k">def</span> <span class="nf">convert_array</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">to_torch</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">arr</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">to_torch</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="ow">and</span> <span class="n">to_torch</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">arr</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">to_torch</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="ow">and</span> <span class="n">to_torch</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">arr</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">arr</span><span class="p">])</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">to_torch</span> <span class="k">else</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="n">arr</span><span class="p">])</span></div>
 
 
@@ -160,7 +165,27 @@
 <span class="sd">        float or np.ndarray or torch.tensor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">rho_baryons</span><span class="p">(</span><span class="n">omega_b</span><span class="p">)</span> <span class="o">/</span> <span class="n">CST_EV_M_S_K</span><span class="o">.</span><span class="n">mass_proton</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">CST_NO_DIM</span><span class="o">.</span><span class="n">YHe</span> <span class="o">/</span> <span class="mf">4.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">CST_EV_M_S_K</span><span class="o">.</span><span class="n">mass_helium</span><span class="o">/</span><span class="n">CST_EV_M_S_K</span><span class="o">.</span><span class="n">mass_hydrogen</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="c1"># in 1/m^3</span></div>
+    <span class="k">return</span> <span class="n">rho_baryons</span><span class="p">(</span><span class="n">omega_b</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span> <span class="p">(</span><span class="mf">1.0</span><span class="o">-</span> <span class="n">CST_NO_DIM</span><span class="o">.</span><span class="n">YHe</span><span class="p">)</span> <span class="o">/</span> <span class="n">CST_EV_M_S_K</span><span class="o">.</span><span class="n">mass_hydrogen</span> <span class="o">+</span>  <span class="n">CST_NO_DIM</span><span class="o">.</span><span class="n">YHe</span> <span class="o">/</span> <span class="n">CST_EV_M_S_K</span><span class="o">.</span><span class="n">mass_helium</span>  <span class="p">)</span> <span class="c1"># in 1/m^3</span></div>
+
+
+
+<div class="viewcode-block" id="n_hydrogen">
+<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.n_hydrogen">[docs]</a>
+<span class="k">def</span> <span class="nf">n_hydrogen</span><span class="p">(</span><span class="n">omega_b</span> <span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Hydrogen number density (in 1 / m^3)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    omega_b: float | np.ndarray | torch.Tensor</span>
+<span class="sd">        reduced abundance of baryons (i.e. times h^2)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">        float or np.ndarray or torch.tensor</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">rho_baryons</span><span class="p">(</span><span class="n">omega_b</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">CST_NO_DIM</span><span class="o">.</span><span class="n">YHe</span><span class="p">)</span> <span class="o">/</span> <span class="n">CST_EV_M_S_K</span><span class="o">.</span><span class="n">mass_hydrogen</span></div>
 
 
 
@@ -385,81 +410,6 @@
 
 
 
-<div class="viewcode-block" id="optical_depth_numpy">
-<a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.optical_depth_numpy">[docs]</a>
-<span class="k">def</span> <span class="nf">optical_depth_numpy</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">xHII</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_c</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">m_nus</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">low_value</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Efficient evaluation of the opetical depth to reionization</span>
-<span class="sd">    optical depth to reionization (dimensionless)</span>
-<span class="sd">    uses fast numpy operations with trapezoid rule</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    z: float | numpy.ndarray | torch.Tensor</span>
-<span class="sd">        shape (p,) if array, redshift range</span>
-<span class="sd">    xHII: numpy.ndarray | torch.Tensor</span>
-<span class="sd">        shape (n, p), ionization fraction vs the redshift for the n models</span>
-<span class="sd">    omega_b: float | numpy.ndarray | torch.Tensor</span>
-<span class="sd">        shape (n,) if array, reduced abundance of baryons (i.e. times h^2)</span>
-<span class="sd">    omega_c: float | numpy.ndarray | torch.Tensor</span>
-<span class="sd">        shape (n,) if array, reduced abundance of dark matter (i.e. times h^2)</span>
-<span class="sd">    h: float | numpy.ndarray | torch.Tensor</span>
-<span class="sd">        shape (n,) if array, Hubble factor</span>
-<span class="sd">    m_nus: np.ndarray | torch.Tensor</span>
-<span class="sd">        shape (n, 3), mass of the three neutrinos in a given model</span>
-<span class="sd">    low_value: float</span>
-<span class="sd">        value of xHII at redshift smaller than min(z)</span>
-
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    numpy.ndarray or torch.Tensor with shape(n, p)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># define if we work with torch or numpy</span>
-    <span class="n">xp</span> <span class="o">=</span> <span class="n">np</span>
-    <span class="n">to_torch</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xHII</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
-        <span class="n">xp</span> <span class="o">=</span> <span class="n">torch</span>
-        <span class="n">to_torch</span> <span class="o">=</span> <span class="kc">True</span>
-
-    <span class="c1"># convert the floats to arrays or tensors</span>
-    <span class="n">z</span>       <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">to_torch</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
-    <span class="n">h</span>       <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">to_torch</span><span class="p">)</span>
-    <span class="n">omega_b</span> <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">omega_b</span><span class="p">,</span> <span class="n">to_torch</span><span class="p">)</span>
-    <span class="n">omega_c</span> <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">omega_c</span><span class="p">,</span> <span class="n">to_torch</span><span class="p">)</span>
-    
-    <span class="c1"># prepare data for redshifts &lt; min(z)</span>
-    <span class="c1"># we assume that at small z value xHII = 1</span>
-    <span class="n">z_small</span>    <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>  <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">z</span><span class="p">),</span> <span class="mi">20</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>    
-    <span class="n">xHII_small</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">z_small</span><span class="p">)),</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">low_value</span><span class="p">)</span> 
-    
-    <span class="c1"># fast trapezoid integration scheme (on small z values)</span>
-    <span class="c1"># h_factor_numpy is of shape (p, n), z_small of shape (1, p) and xHII_small of shape (1, p)</span>
-    <span class="c1"># integrand_small is of shape (n, p), trapz_small of shape (n, p-1)</span>
-    <span class="c1"># res is of shape (n,)</span>
-    <span class="n">integrand_small</span> <span class="o">=</span> <span class="n">xHII_small</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">z_small</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">h_factor_numpy</span><span class="p">(</span><span class="n">z_small</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_c</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">m_nus</span><span class="p">)</span>
-    <span class="n">trapz_small</span>     <span class="o">=</span> <span class="p">(</span><span class="n">integrand_small</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">integrand_small</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mf">2.0</span>
-    <span class="n">dz_small</span>        <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">z_small</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">res</span>             <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">trapz_small</span> <span class="o">*</span> <span class="n">dz_small</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-
-    <span class="c1"># fast trapezoid integration scheme (on large z values)</span>
-    <span class="c1"># h_factor_numpy is of shape (p, n), z of shape (1, p) and xHII of shape (n, p)</span>
-    <span class="c1"># integrand is of shape (n, p), trapz of shape (n, p-1)</span>
-    <span class="c1"># res is of shape (n,)</span>
-    <span class="n">integrand</span> <span class="o">=</span> <span class="n">xHII</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">_z</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">h_factor_numpy</span><span class="p">(</span><span class="n">_z</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_c</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">m_nus</span><span class="p">)</span>
-    <span class="n">trapz</span>     <span class="o">=</span> <span class="p">(</span><span class="n">integrand</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">integrand</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mf">2.0</span>
-    <span class="n">dz</span>        <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">_z</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">res</span>       <span class="o">=</span> <span class="n">res</span> <span class="o">+</span> <span class="n">xp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">trapz</span> <span class="o">*</span> <span class="n">dz</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-    
-    <span class="c1"># adding the correct prefactor in front</span>
-    <span class="n">pref</span> <span class="o">=</span> <span class="n">CST_EV_M_S_K</span><span class="o">.</span><span class="n">c_light</span> <span class="o">*</span> <span class="n">CST_EV_M_S_K</span><span class="o">.</span><span class="n">sigma_Thomson</span> <span class="o">*</span> <span class="n">n_baryons</span><span class="p">(</span><span class="n">omega_b</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="n">h</span> <span class="o">*</span> <span class="n">CONVERSIONS</span><span class="o">.</span><span class="n">km_to_mpc</span><span class="p">)</span>
-    
-    <span class="k">return</span> <span class="n">pref</span> <span class="o">*</span> <span class="n">res</span></div>
-
-
-
-
 <div class="viewcode-block" id="optical_depth_no_rad">
 <a class="viewcode-back" href="../../source/nnero.cosmology.html#nnero.cosmology.optical_depth_no_rad">[docs]</a>
 <span class="k">def</span> <span class="nf">optical_depth_no_rad</span><span class="p">(</span><span class="n">z</span><span class="p">:</span>       <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> 
@@ -468,7 +418,9 @@
                          <span class="n">omega_c</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> 
                          <span class="n">h</span><span class="p">:</span>       <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
                          <span class="o">*</span><span class="p">,</span> 
-                         <span class="n">low_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">):</span>
+                         <span class="n">low_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+                         <span class="n">with_helium</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                         <span class="n">cut_integral_min</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Optical depth to reionization without radiation.</span>
 
@@ -507,33 +459,71 @@
         <span class="n">to_torch</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="c1"># convert the floats to arrays or tensors</span>
-    <span class="n">z</span>       <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">to_torch</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">z</span>       <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">to_torch</span><span class="p">)</span>
     <span class="n">h</span>       <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">to_torch</span><span class="p">)</span>
     <span class="n">omega_b</span> <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">omega_b</span><span class="p">,</span> <span class="n">to_torch</span><span class="p">)</span>
     <span class="n">omega_c</span> <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">omega_c</span><span class="p">,</span> <span class="n">to_torch</span><span class="p">)</span>
 
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">xHII</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xHII</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">xHII</span> <span class="o">=</span> <span class="n">xHII</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xHII</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+            <span class="n">xHII</span> <span class="o">=</span> <span class="n">xHII</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
     <span class="c1"># prepare data for redshifts &lt; min(z)</span>
     <span class="c1"># we assume that at small z value xHII = 1</span>
     <span class="n">z_small</span>    <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>  <span class="n">z</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="mi">20</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>    
-    <span class="n">xHII_small</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">z_small</span><span class="p">)),</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">low_value</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span> 
+    <span class="n">xHII_small</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">xHII</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">z_small</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">low_value</span><span class="p">)</span>
 
-    <span class="c1"># fast trapezoid integration scheme (on small z values)</span>
-    <span class="c1"># h_factor_numpy is of shape (p, n), z_small of shape (1, p) and xHII_small of shape (1, p)</span>
-    <span class="c1"># integrand_small is of shape (n, p), trapz_small of shape (n, p-1)</span>
-    <span class="c1"># res is of shape (n,)</span>
-    <span class="n">integrand_small</span> <span class="o">=</span> <span class="n">xHII_small</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">z_small</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">h_factor_no_rad</span><span class="p">(</span><span class="n">z_small</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_c</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
-    <span class="n">trapz_small</span>     <span class="o">=</span> <span class="p">(</span><span class="n">integrand_small</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">integrand_small</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mf">2.0</span>
-    <span class="n">dz_small</span>        <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">z_small</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">res</span>             <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">trapz_small</span> <span class="o">*</span> <span class="n">dz_small</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># concatenate the two parts (small and large z)</span>
+    <span class="n">rs</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">z_small</span><span class="p">,</span> <span class="n">z</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">Xe</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">xHII_small</span><span class="p">,</span> <span class="n">xHII</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="c1"># fast trapezoid integration scheme (on large z values)</span>
+    <span class="c1"># add the Helium contribution</span>
+    <span class="k">if</span> <span class="n">with_helium</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">fHe</span> <span class="o">=</span> <span class="n">CST_NO_DIM</span><span class="o">.</span><span class="n">YHe</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span>  <span class="n">CST_NO_DIM</span><span class="o">.</span><span class="n">YHe</span><span class="p">)</span> <span class="o">*</span> <span class="n">CST_EV_M_S_K</span><span class="o">.</span><span class="n">mass_hydrogen</span> <span class="o">/</span> <span class="n">CST_EV_M_S_K</span><span class="o">.</span><span class="n">mass_helium</span>  
+        <span class="n">Xe</span><span class="p">[:,</span> <span class="n">rs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">Xe</span><span class="p">[:,</span> <span class="n">rs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">fHe</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">fHe</span><span class="p">)</span>
+        
+    <span class="k">if</span> <span class="n">cut_integral_min</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="c1"># find the minimum and cut the integral as it is done in CLASS</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">Xe</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">Xe</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="n">index</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">Xe</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+    
+    <span class="c1"># fast trapezoid integration scheme</span>
     <span class="c1"># h_factor_numpy is of shape (n, p), z of shape (1, p) and xHII of shape (n, p)</span>
     <span class="c1"># integrand is of shape (n, p), trapz of shape (n, p-1)</span>
     <span class="c1"># res is of shape (n,)</span>
-    <span class="n">integrand</span> <span class="o">=</span> <span class="n">xHII</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">z</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">h_factor_no_rad</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_c</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+    <span class="n">integrand</span> <span class="o">=</span> <span class="n">Xe</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">rs</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">h_factor_no_rad</span><span class="p">(</span><span class="n">rs</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_c</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
     <span class="n">trapz</span>     <span class="o">=</span> <span class="p">(</span><span class="n">integrand</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">integrand</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mf">2.0</span>
-    <span class="n">dz</span>        <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">res</span>       <span class="o">=</span> <span class="n">res</span> <span class="o">+</span> <span class="n">xp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">trapz</span> <span class="o">*</span> <span class="n">dz</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">dz</span>        <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">rs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">res</span>       <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">trapz</span> <span class="o">*</span> <span class="n">dz</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    # fast trapezoid integration scheme (on small z values)</span>
+<span class="sd">    # h_factor_numpy is of shape (p, n), z_small of shape (1, p) and xHII_small of shape (1, p)</span>
+<span class="sd">    # integrand_small is of shape (n, p), trapz_small of shape (n, p-1)</span>
+<span class="sd">    # res is of shape (n,)</span>
+<span class="sd">    integrand_small = xHII_small * (1+z_small)**2 / h_factor_no_rad(z_small, omega_b, omega_c, h)</span>
+<span class="sd">    trapz_small     = (integrand_small[..., 1:] + integrand_small[..., :-1])/2.0</span>
+<span class="sd">    dz_small        = xp.diff(z_small, axis=-1)</span>
+<span class="sd">    res             = xp.sum(trapz_small * dz_small, axis=-1)</span>
+
+<span class="sd">    # fast trapezoid integration scheme (on large z values)</span>
+<span class="sd">    # h_factor_numpy is of shape (n, p), z of shape (1, p) and xHII of shape (n, p)</span>
+<span class="sd">    # integrand is of shape (n, p), trapz of shape (n, p-1)</span>
+<span class="sd">    # res is of shape (n,)</span>
+<span class="sd">    integrand = xHII * (1+z)**2 / h_factor_no_rad(z, omega_b, omega_c, h)</span>
+<span class="sd">    trapz     = (integrand[..., 1:] + integrand[..., :-1])/2.0</span>
+<span class="sd">    dz        = xp.diff(z, axis=-1)</span>
+<span class="sd">    res       = res + xp.sum(trapz * dz, axis=-1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># adding the correct prefactor in front</span>
     <span class="c1"># pref is of shape (n,)</span>
@@ -600,16 +590,17 @@
 
     <span class="c1"># as no way to control the precision of the integral, </span>
     <span class="c1"># require that at least it is computed on enough points</span>
-    
+
+
     <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">ik_radius</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">p</span><span class="p">):</span>
-        <span class="n">vals_problem</span> <span class="o">=</span> <span class="n">radius</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">][</span><span class="n">ik_radius</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">p</span><span class="p">]</span>
+        <span class="n">vals_problem</span> <span class="o">=</span> <span class="n">radius</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">][</span><span class="n">ik_radius</span> <span class="o">&lt;=</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">p</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">vals_problem</span> <span class="o">==</span> <span class="n">vals_problem</span><span class="p">):</span> <span class="c1"># ignore the nan</span>
-            <span class="k">raise</span> <span class="n">ShortPowerSpectrumRange</span><span class="p">(</span><span class="n">vals_problem</span><span class="p">[</span><span class="n">vals_problem</span> <span class="o">==</span> <span class="n">vals_problem</span><span class="p">],</span> <span class="s2">&quot;The result may be laking precision, consider running CLASS up to lower values of k (p = &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span> <span class="p">)</span> 
+            <span class="k">raise</span> <span class="n">ShortPowerSpectrumRange</span><span class="p">(</span><span class="n">vals_problem</span><span class="p">[</span><span class="n">vals_problem</span> <span class="o">==</span> <span class="n">vals_problem</span><span class="p">],</span> <span class="s2">&quot;The result may be laking precision, consider running CLASS up to lower values of k (p = </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="p">)</span> 
     
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">ik_radius</span> <span class="o">&lt;</span> <span class="n">p</span><span class="p">):</span>
-        <span class="n">vals_problem</span> <span class="o">=</span> <span class="n">radius</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">][</span><span class="n">ik_radius</span> <span class="o">&gt;</span> <span class="n">p</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">ik_radius</span> <span class="o">&lt;</span> <span class="n">p</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">vals_problem</span> <span class="o">=</span> <span class="n">radius</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">][</span><span class="n">ik_radius</span> <span class="o">&gt;=</span> <span class="n">p</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">vals_problem</span> <span class="o">==</span> <span class="n">vals_problem</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">ShortPowerSpectrumRange</span><span class="p">(</span><span class="n">vals_problem</span><span class="p">[</span><span class="n">vals_problem</span> <span class="o">==</span> <span class="n">vals_problem</span><span class="p">],</span> <span class="s2">&quot;The result may be laking precision, consider running CLASS up to larger values of k (p = &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span><span class="p">)</span> </div>
+            <span class="k">raise</span> <span class="n">ShortPowerSpectrumRange</span><span class="p">(</span><span class="n">vals_problem</span><span class="p">[</span><span class="n">vals_problem</span> <span class="o">==</span> <span class="n">vals_problem</span><span class="p">],</span> <span class="s2">&quot;The result may be laking precision, consider running CLASS up to larger values of k (p = </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="p">))</span> </div>
 
 
 
