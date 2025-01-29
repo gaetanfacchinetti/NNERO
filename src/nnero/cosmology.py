@@ -388,8 +388,8 @@ def optical_depth_no_rad(z:       float | np.ndarray | torch.Tensor,
         
     if cut_integral_min is True:
         # find the minimum and cut the integral as it is done in CLASS
-        index = np.argmin(Xe, axis=-1)
-        mask = np.arange(Xe.shape[-1]) >= index[:, None]
+        index = xp.argmin(Xe, axis=-1)
+        mask = xp.arange(Xe.shape[-1]) >= index[:, None]
         Xe[mask] = 0.0
     
     # fast trapezoid integration scheme
