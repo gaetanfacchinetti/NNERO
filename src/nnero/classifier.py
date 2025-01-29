@@ -33,7 +33,7 @@ DATA_PATH = pkg_resources.resource_filename('nnero', 'nn_data/')
 
 class Classifier(NeuralNetwork):
     """
-    Daughter class of :py:class:`NeuralNetwork` specialised for classifier
+    Daughter class of :py:class:`NeuralNetwork` specialised for classifier.
     
     Parameters
     ----------
@@ -169,12 +169,12 @@ class Classifier(NeuralNetwork):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Forward evaluation of the model
+        Forward evaluation of the model.
 
         Parameters
         ----------
         x: torch.Tensor
-            input features
+            Input features.
         """
         return torch.flatten(self._model(x))
     
@@ -200,7 +200,7 @@ class Classifier(NeuralNetwork):
 
         Raises
         ------
-        ValueError:
+        ValueError
             Either the dataset or both x_test and y_test must be provided.
         """
 
@@ -275,13 +275,13 @@ def train_classifier(model: Classifier,
     optimizer : torch.optim.Optimizer
         Optimizer used for training.
     epochs : int, optional
-        Number of epochs, by default 50
+        Number of epochs, by default 50.
     learning_rate : float, optional
-        Learning rate for training, by default 1e-3
+        Learning rate for training, by default 1e-3.
     verbose : bool, optional
-        If true, outputs a summary of the losses at each epoch, by default True
+        If true, outputs a summary of the losses at each epoch, by default True.
     batch_size : int, optional
-        Size of the training batches, by default 64
+        Size of the training batches, by default 64.
     """
     # set the metadata and parition object of the model
     model.set_check_metadata_and_partition(dataset)

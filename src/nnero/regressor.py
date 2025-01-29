@@ -33,6 +33,49 @@ DATA_PATH = pkg_resources.resource_filename('nnero', 'nn_data/')
 
 
 class Regressor(NeuralNetwork):
+    """
+    Daughter class of :py:class:`NeuralNetwork` specialised for regressors.
+    
+    Parameters
+    ----------
+    model: torch.nn.Module | None
+        If not None, the model that will be used for classifier. 
+        Otherwise, a new model is constructed from `n_input`, `n_hidden_features` 
+        and `n_hidden_layers`. Default is None.
+    n_input: int, optional
+        Number of input on the neural network 
+        (corresponds to the number of parameters).
+        Default is 16.
+    n_input: int, optional
+        Number of output on the neural network 
+        (corresponds to the number of redshift bins).
+        Default is 50. Overriden if `dataset` is specified.
+    n_hidden_features: int, optional
+        Number of hidden features per layer. Default is 80.
+    n_hidden_layers: int, optional
+        Number of layers. Default is 5.
+    name: str | None
+        Name of the neural network. If None, automatically set to DefaultClassifier.
+        Default is None.
+    dataset: Dataset | None
+        Dataset on which the model will be trained. 
+        If provided, gets `n_input` and `n_output` from the data and overrides the user input value.
+    use_pca: bool, optional
+        If `True`, decompose the interpolated function on the principal component eigenbasis.
+        Default is True.
+    pca_precision: float, optional
+        If `use_pca` is `True` sets how many eigenvalues needs to be considered.
+        Only consider eigenvectors with eigenvalues > precision^2 * max(eigenvalues).
+        Default is 1e-3.
+    alpha_tau: float, optioal
+        Weighting of the relative error on X_e and optical depth in the cost function.
+        Default is 0.5
+        
+    Attributes
+    ----------
+    - name : str
+        the name of the model
+    """
 
     def __init__(self, 
                  *, 
@@ -117,7 +160,23 @@ class Regressor(NeuralNetwork):
 
 
     @classmethod
-    def load(cls, path = os.path.join(DATA_PATH, "DefaultRegressor")):
+    def load(cls, path: str | None = None):
+        """
+        Loads a regressor.
+
+        Parameters
+        ----------
+        path: str | None
+            Path to the saved files containing the regresor data.
+            If None automatically fetch the DefaultRegressor.
+
+        Returns
+        -------
+        Regressor
+        """
+
+        if path is None:
+            path = os.path.join(DATA_PATH, "DefaultRegressor")
 
         name = path.split('/')[-1]
         
@@ -158,6 +217,15 @@ class Regressor(NeuralNetwork):
 
         
     def forward(self, x):
+        """
+        Forward evaluation of the model.
+
+        Parameters
+        ----------
+        x: torch.Tensor
+            input features
+        """
+
         if self.use_pca is True:
             # reconstruct the value of the function in the principal component eigenbasis
             y = torch.matmul(self._model(x), self.metadata.torch_pca_eigenvectors[0:self.metadata.pca_n_eigenvectors, :])
@@ -168,6 +236,17 @@ class Regressor(NeuralNetwork):
         return torch.clamp(y, max=1.0)
     
     def tau_ion(self, x, y):
+        """
+        Optical depth to reionization.
+
+        Parameters
+        ----------
+        x: torch.Tensor
+            Input features.
+        y: torch.Tensor
+            Output of the Regressor. Corresponds to X_e(z).
+        """
+
         z_tensor = torch.tensor(self.metadata.z, dtype=torch.float32)
         omega_b  = uniform_to_true(x[:, self.metadata.pos_omega_b], self.metadata.min_omega_b, self.metadata.max_omega_b)
         omega_c  = uniform_to_true(x[:, self.metadata.pos_omega_c], self.metadata.min_omega_c, self.metadata.max_omega_c)
@@ -180,7 +259,21 @@ class Regressor(NeuralNetwork):
     def loss_tau(self, tau_pred, target):
         return torch.mean(torch.abs(1.0 - torch.div(tau_pred, target[:, -1])))
     
-    def test_tau(self, dataset:DataSet):
+    def test_tau(self, dataset:DataSet) -> np.ndarray:
+        """
+        Test the efficiency of the regressor to reconstruct the optical depth to reionization.
+
+        Parameters
+        ----------
+        dataset : DataSet
+            DataSet containing the training partition and the test partition.
+
+        Returns
+        -------
+        np.ndarray
+            Distribution of relative error between the predicted and true optical depth. 
+            Array with the size of the test dataset.
+        """
 
         self.set_check_metadata_and_partition(dataset, check_only = True)
         x_test   = torch.tensor(dataset.x_array[dataset.partition.early_test],     dtype=torch.float32)
@@ -194,7 +287,20 @@ class Regressor(NeuralNetwork):
 
         return (1.0-tau_pred/tau_test).numpy()
 
-    def test_xHII(self, dataset:DataSet):
+    def test_xHII(self, dataset:DataSet) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Test the efficiency of the regressor to reconstruct the free electron fraction X_e.
+
+        Parameters
+        ----------
+        dataset : DataSet
+            DataSet containing the training partition and the test partition.
+
+        Returns
+        -------
+        tuple(np.ndarray, np.ndarray)
+            Prediction for X_e and true values.
+        """
 
         self.set_check_metadata_and_partition(dataset, check_only = True)
         x_test = torch.tensor(dataset.x_array[dataset.partition.early_test],          dtype=torch.float32)
@@ -234,6 +340,26 @@ def train_regressor(model: Regressor,
                     verbose = True, 
                     batch_size = 64, 
                     **kwargs):
+    """
+    Trains a given regressor.
+
+    Parameters
+    ----------
+    model : Regressor
+        Regressor model to train.
+    dataset : DataSet
+        Dataset on which to train the regressor.
+    optimizer : torch.optim.Optimizer
+        Optimizer used for training.
+    epochs : int, optional
+        Number of epochs, by default 50.
+    learning_rate : float, optional
+        Learning rate for training, by default 1e-3.
+    verbose : bool, optional
+        If true, outputs a summary of the losses at each epoch, by default True.
+    batch_size : int, optional
+        Size of the training batches, by default 64.
+    """
     
     # if we use pca but have not yet initialised it in metadata do it at first training step
     # this can happen if no dataset is given to initialise the model while havind use_pca = True
