@@ -544,7 +544,7 @@ class EMCEESamples(Samples):
         
         self._reader = emcee.backends.HDFBackend(self.path)
         
-        with open(self.path.split('.')[0] + '.npz', 'rb') as file:
+        with open(self.path.split('.')[:-1] + '.npz', 'rb') as file:
 
             data = np.load(file)
             self._parameters_theta = data.get('parameters_theta', None)
@@ -877,9 +877,9 @@ class MPSamples(Samples):
 
 
 
-    def print_best_fit(self, discard: np.ndarray | None = None ):
+    def print_best_fit(self, discard: np.ndarray | None = None, **kwargs):
         
-        samples_flat = self.flat(discard=discard, thin=1)
+        samples_flat = self.flat(discard=discard, thin=1, **kwargs)
         med  = np.median(samples_flat, axis=1)
         mean = np.mean(samples_flat, axis=1)
 
@@ -932,7 +932,7 @@ class MPSamples(Samples):
 
 
 
-def prepare_data_plot(samples: Samples, data_to_plot, discard = 0, thin = 1):
+def prepare_data_plot(samples: Samples, data_to_plot, discard = 0, thin = 1, **kwargs):
 
     data_to_plot = to_CLASS_names(data_to_plot)
 
@@ -952,7 +952,7 @@ def prepare_data_plot(samples: Samples, data_to_plot, discard = 0, thin = 1):
         return param_names
 
 
-    data = samples.flat(discard=discard, thin=thin)
+    data = samples.flat(discard=discard, thin=thin, **kwargs)
     param_names = copy(samples.param_names)
 
     # rescaling the data according to the scaling factor
@@ -1572,15 +1572,17 @@ def get_xHII_stats(samples: Samples,
     med  = np.median(xHII, axis=0)
 
     z = regressor.metadata.z
-    quantiles = np.empty((len(q), len(z), 2))
+    quantiles_lin = np.empty((len(q), len(z), 2))
+    quantiles_log = np.empty((len(q), len(z), 2))
 
     # make an histogram for each value of z
-    for iz, x in enumerate(np.log10(xHII.T)):
+    for iz, x in enumerate(xHII.T):
         for iq, q_val in enumerate(q):
-            quantiles[iq, iz, 0], quantiles[iq, iz, 1] = compute_quantiles(x, q=q_val)
-            quantiles[iq, iz, :] = 10**(quantiles[iq, iz, :])
+            quantiles_log[iq, iz, 0], quantiles_log[iq, iz, 1] = compute_quantiles(np.log10(x), q=q_val)
+            quantiles_lin[iq, iz, 0], quantiles_lin[iq, iz, 1] = compute_quantiles(x, q=q_val)
+            quantiles_log[iq, iz, :] = 10**(quantiles_log[iq, iz, :])
     
-    return z, mean, med, quantiles
+    return z, mean, med, quantiles_lin, quantiles_log, xHII
 
 
 
@@ -1588,33 +1590,36 @@ def get_xHII_stats(samples: Samples,
 
 
 def get_xHII_tanh_stats(samples: Samples, q: list[float] = [0.68, 0.95], bins: int = 30, 
-                        discard: int = 0, thin : int = 100, x_inf: float = 2e-4):
+                        discard: int = 0, thin : int = 100, x_inf: float = 2e-4, **kwargs):
 
     def xHII_class(z, z_reio = 8.0):
         return 0.5 * ( 1+np.tanh(  (1+z_reio)/(1.5*0.5)*(1-((1+z)/(1+z_reio))**(1.5))   ) )   
 
     index = list(samples.param_names).index('z_reio')
-    z_reio = samples.flat(discard=discard, thin=thin)[index, :]
+    z_reio = samples.flat(discard=discard, thin=thin, **kwargs)[index, :]
 
-    z = np.linspace(0, 35, 200)
+    z = np.linspace(0, 35, 100)
     xHII = xHII_class(z, z_reio[:, None]) + x_inf
 
     mean = np.mean(xHII, axis=0)
     med  = np.median(xHII, axis=0)
 
-    quantiles = np.empty((len(q), len(z), 2))
+    quantiles_lin = np.empty((len(q), len(z), 2))
+    quantiles_log = np.empty((len(q), len(z), 2))
 
     # make an histogram for each value of z
-    for iz, x in enumerate(np.log10(xHII.T)):
+    for iz, x in enumerate(xHII.T):
         
         if np.all(np.diff(x) ==  0):
             for iq, q_val in enumerate(q):
-                quantiles[iq, iz, 0], quantiles[iq, iz, 1] = x[0], x[1]
+                quantiles_lin[iq, iz, 0], quantiles_lin[iq, iz, 1] = x[0], x[1]
+                quantiles_log[iq, iz, 0], quantiles_log[iq, iz, 1] = np.log10(x[0]), np.log10(x[1])
         else:
             for iq, q_val in enumerate(q):
-                quantiles[iq, iz, 0], quantiles[iq, iz, 1] = compute_quantiles(x, q=q_val)
+                quantiles_lin[iq, iz, 0], quantiles_lin[iq, iz, 1] = compute_quantiles(x, q=q_val)
+                quantiles_log[iq, iz, 0], quantiles_log[iq, iz, 1] = compute_quantiles(np.log10(x), q=q_val)
         
         for iq, q_val in enumerate(q):
-            quantiles[iq, iz, :] = 10**(quantiles[iq, iz, :])
+            quantiles_log[iq, iz, :] = 10**(quantiles_log[iq, iz, :])
         
-    return z, mean, med, quantiles
+    return z, mean, med, quantiles_lin, quantiles_log
