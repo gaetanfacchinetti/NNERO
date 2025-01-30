@@ -544,7 +544,9 @@ class EMCEESamples(Samples):
         
         self._reader = emcee.backends.HDFBackend(self.path)
         
-        with open(self.path.split('.')[:-1] + '.npz', 'rb') as file:
+        filename = os.path.join(*self.path.split('/')[:-1], *self.path.split('/')[-1].split('.')[:-1])
+
+        with open(filename + '.npz', 'rb') as file:
 
             data = np.load(file)
             self._parameters_theta = data.get('parameters_theta', None)
@@ -1214,7 +1216,7 @@ class ProcessedData:
 
 
 
-def compute_quantiles(sample: np.ndarray, q: float, bins: int | np.ndarray =30) -> tuple[float, float]:
+def compute_quantiles(sample: np.ndarray, q: float, bins: int | np.ndarray = 30) -> tuple[np.ndarray, np.ndarray]:
     """
     Give the q-th quantile of the input sample.
 
@@ -1231,8 +1233,10 @@ def compute_quantiles(sample: np.ndarray, q: float, bins: int | np.ndarray =30) 
 
     Returns
     -------
-    tuple[float, float]
-       min,max bound
+    tuple[np.ndarray, np.ndarray]
+       min,max bounds
+    """
+
     """
 
     # evaluate the histogram
@@ -1295,6 +1299,164 @@ def compute_quantiles(sample: np.ndarray, q: float, bins: int | np.ndarray =30) 
     index = np.argmin(np.sqrt((2*m - xm - xp)**2))
 
     return xm[index], xp[index]
+    """
+
+    def split_in_groups(lst):
+    
+        res = [[int(lst[0])]]
+        i = 0
+
+        for il, element in enumerate(lst):
+            element = int(element)
+            if il > 0:
+                if element - lst[il-1] == 1:
+                    res[i].append(element)
+                else:
+                    res.append([element])
+                    i = i+1
+
+        return res
+        
+    # define the histogram from the sample
+    hist, edges = np.histogram(sample, bins=bins, density=True)
+    hist_count, _ = np.histogram(sample, bins=bins)
+
+    # normalise the histogram to 1
+    hist = hist/np.max(hist)
+
+    # define the total sum of the histogram
+    s_hist = np.sum(hist)
+
+    # order the histogram values
+    ordered_hist  = np.sort(hist)[::-1]
+    order_of_hist = np.argsort(hist)[::-1]
+
+    # compute the cumulative sum and get all indices that
+    # contribute to the quantile
+    sum_hist = np.cumsum(ordered_hist)/s_hist 
+    indices = np.arange(0, len(hist), dtype=int)[sum_hist < q]
+
+    # the first bin is already high enough we return its boundaries
+    if len(indices) == 0:
+
+        e_min = np.empty((1, 2))
+        e_max = np.empty((1, 2))
+
+        index_one = order_of_hist[0]
+
+        e_min[0, 0] = edges[:-1][index_one]
+        e_max[0, 0] = edges[:-1][index_one]
+        e_min[0, 1] = edges[1:][index_one]
+        e_max[0, 1] = edges[1:][index_one]
+
+        ilg = 0
+        total_count_small = 0
+
+        x_min = np.zeros(1)
+        x_max = np.zeros(1)
+
+        m = np.median(sample)
+
+    else:
+
+        # add an extra index to be sure we capture all the good bins
+        final_index = int(indices[-1]+1)
+
+        # if we have same size hist values where sum_hist = q then
+        # we need to consider all possible bins that can contribute
+        # we put all these indices into a table
+        multiple_indices = [final_index]
+
+        while final_index < len(ordered_hist)-1 and (ordered_hist[final_index] == ordered_hist[final_index+1]):
+            multiple_indices.append(final_index+1)
+            final_index = final_index+1
+
+        # chack for each last index what is the one that minimize the number of groups 
+        len_groups = []
+
+        for index in multiple_indices:
+            bin_indices = np.sort(order_of_hist[np.concatenate((indices, np.array([index])))]) # all bins contributing
+            len_groups.append(len(split_in_groups(bin_indices)))
+
+        index_min_groups = np.argmin(len_groups)
+        bin_indices    = np.sort(order_of_hist[np.concatenate((indices, np.array([multiple_indices[index_min_groups]])))])
+        groups = split_in_groups(bin_indices)
+
+
+        # here size is different from length,
+        # size refers to the 'physical' size
+        size_groups   = []
+        count_groups  = []
+        sample_groups = []
+
+        # get what is inside the groups
+        # approximate values of the other groups
+        e_min = np.empty((len(groups), 2))
+        e_max = np.empty((len(groups), 2))
+
+        x_min = np.empty((len_groups))
+        x_max = np.empty((len_groups))
+
+        for ig, group in enumerate(groups):
+            index_min, index_max = np.min(group), np.max(group)
+            
+            e_max[ig, 0], e_max[ig, 1] = edges[:-1][index_max], edges[1:][index_max]
+            e_min[ig, 0], e_min[ig, 1] = edges[:-1][index_min], edges[1:][index_min]
+
+            size_groups.append(float(e_max[ig, 1]-e_min[ig, 0]))
+            count_groups.append(int(np.sum(hist_count[group])))
+
+            mask = (sample > e_min[ig, 0]) & (sample < e_max[ig, 1])
+            sample_groups.append(sample[mask])
+
+            x_min[ig] = e_min[ig, 0]
+            x_max[ig] = e_max[ig, 1]
+
+            # adjust the exact value for the largest group
+            # and keep only the bins of the smaller groups
+
+
+        ilg = np.argmax(size_groups)
+        total_count_small = np.sum(count_groups) - count_groups[ilg]
+        m = np.median(sample_groups[ilg]) if len(groups) > 0 else np.median(sample)
+
+
+    # define the grid for the finner search
+    x_m = np.linspace(e_min[ilg, 0], e_min[ilg, 1], 30)
+    x_p = np.linspace(e_max[ilg, 0], e_max[ilg, 1], 30)
+
+
+    # for each value of x_m find the value of x_p such that quantile is q
+    mask  = (sample >= x_m[:, None, None]) & (sample <=  x_p[None, :, None])
+    count = (np.count_nonzero(mask, axis=-1) + total_count_small)/len(sample)
+    m_x_p = x_p[np.argmin(np.abs(count - q), axis=1)]
+    
+    if count[0, -2] < q and count[1, -1] < q and count[1, -2] < q:
+        x_min[ilg], x_max[ilg] = x_m[0], x_p[-1]
+        return x_min, x_max
+
+    # remove the values where x_p is just equal to the max
+    # at the very edege of the grid 
+    mask_xp = np.argmin(m_x_p != x_p[-1])
+
+    # if we have removed all points then problem
+    # we actually do not mask, it is just that we
+    # cannot really find the q contour with our
+    # resolution. Return the max value
+    if mask_xp == 0:
+        x_min[ilg] = x_m[-1]
+        x_max[ilg] = x_p[-1]
+    else:
+        xm  = x_m[:mask_xp+1]
+        xp  = m_x_p[:mask_xp+1]
+
+        index = np.argmin(np.sqrt((2*m - xm - xp)**2))
+        x_min[ilg], x_max[ilg] = xm[index], xp[index]
+
+    return x_min, x_max
+
+
+
 
 
 def generate_contours(samples: np.ndarray, bins: int = 20, q = [0.68, 0.95]) -> ProcessedData:
@@ -1307,7 +1469,7 @@ def generate_contours(samples: np.ndarray, bins: int = 20, q = [0.68, 0.95]) -> 
     hists_2D   = np.empty((n, n, bins, bins))    # 2D array of 2D array
     levels     = np.empty((n, n, len(q)+1)) # 2D array of 1D array
 
-    quantiles  = np.empty((len(q), n, 2))
+    quantiles  = np.full((len(q), n, 2), fill_value=np.nan)
 
     q = np.array(q)
     if np.any(q != sorted(q)):
@@ -1331,9 +1493,18 @@ def generate_contours(samples: np.ndarray, bins: int = 20, q = [0.68, 0.95]) -> 
         # evaluate the quantiles
         for il, q_val in enumerate(q):
             try:
-                quantiles[il, i, 0], quantiles[il, i, 1] = compute_quantiles(samples[i, :], q_val)
+                x_min, x_max = compute_quantiles(samples[i, :], q_val, bins=bins)
             except:
-                print("impossible to compute quantiles for entry", i)
+                warnings.warn(f"Impossible to compute quantiles for entry {i}")
+
+            if len(x_min) > 1 or len(x_max) > 1:
+                warnings.warn(f"Quantiles not given for what appears to be a multimodal distribution {i}")
+            else:
+                try:
+                    quantiles[il, i, 0], quantiles[il, i, 1] = x_min[0], x_max[0]
+                except Exception as e:
+                    print(quantiles[il, i, 0], quantiles[il, i, 1], x_min, x_max)
+                    raise e
 
     
     # loop over all places with 2D histograms
@@ -1473,7 +1644,10 @@ def plot_data(grid: AxesGrid,
             raise ValueError('quantile in title should be a q value given in generate_contour')
         
         if (show_title is True) and (i not in exclude_title):
-            grid.add_title(axes[i], r'${:.3g}$'.format(data.median[i], color=colors[0]) + '$^{{ +{:.2g} }}_{{ -{:.2g} }}$'.format(data.quantiles[jq, i, 1] - data.median[i], data.median[i] - data.quantiles[jq, i, 0] ), color=title_color)  
+            if not np.isnan(data.quantiles[jq, i, 0]) and not np.isnan(data.quantiles[jq, i, 1]) :
+                grid.add_title(axes[i], r'${:.3g}$'.format(data.median[i], color=colors[0]) + '$^{{ +{:.2g} }}_{{ -{:.2g} }}$'.format(data.quantiles[jq, i, 1] - data.median[i], data.median[i] - data.quantiles[jq, i, 0] ), color=title_color)  
+            else:
+                grid.add_title(axes[i], r'${:.3g}$'.format(data.median[i], color=colors[0]), color=title_color) 
     
     grid.update_titles()
 
@@ -1514,7 +1688,7 @@ def get_xHII_stats(samples: Samples,
                    q: list[float] = [0.68, 0.95], 
                    bins: int = 30, 
                    discard: int = 0, 
-                   thin: int = 1000,
+                   thin: int = 100,
                    *,
                    classifier: Classifier | None = None,
                    regressor: Regressor | None = None):
@@ -1544,7 +1718,7 @@ def get_xHII_stats(samples: Samples,
     labels_correspondance = {value : key for key, value in MP_KEY_CORRESPONDANCE.items()}
     
     # get the data sample 
-    data_sample = prepare_data_plot(samples, data_for_xHII, discard=discard, thin=thin)
+    data_sample = prepare_data_plot(samples, data_for_xHII, discard=discard, thin=thin, regressor = regressor, classifier = classifier)
     data = np.empty((len(parameters), data_sample.shape[-1])) 
 
     # find the ordering in which data_sample is set in prepare_data_plot
@@ -1572,21 +1746,26 @@ def get_xHII_stats(samples: Samples,
     med  = np.median(xHII, axis=0)
 
     z = regressor.metadata.z
-    quantiles_lin = np.empty((len(q), len(z), 2))
-    quantiles_log = np.empty((len(q), len(z), 2))
+    quantiles_lin = np.full((len(q), len(z), 2, 5), fill_value=np.nan)
+    quantiles_log = np.full((len(q), len(z), 2, 5), fill_value=np.nan)
+
+
 
     # make an histogram for each value of z
     for iz, x in enumerate(xHII.T):
+
         for iq, q_val in enumerate(q):
-            quantiles_log[iq, iz, 0], quantiles_log[iq, iz, 1] = compute_quantiles(np.log10(x), q=q_val)
-            quantiles_lin[iq, iz, 0], quantiles_lin[iq, iz, 1] = compute_quantiles(x, q=q_val)
-            quantiles_log[iq, iz, :] = 10**(quantiles_log[iq, iz, :])
+            
+            x_min_log, x_max_log = compute_quantiles(np.log10(x), q=q_val, bins=bins)
+            x_min_lin, x_max_lin = compute_quantiles(x, q=q_val, bins=bins)
     
-    return z, mean, med, quantiles_lin, quantiles_log, xHII
+            quantiles_log[iq, iz, 0, 0:len(x_min_log)], quantiles_log[iq, iz, 1, 0:len(x_max_log)] = x_min_log, x_max_log
+            quantiles_lin[iq, iz, 0, 0:len(x_min_lin)], quantiles_lin[iq, iz, 1, 0:len(x_max_lin)] = x_min_lin, x_max_lin
+            quantiles_log[iq, iz] = 10**(quantiles_log[iq, iz])
+    
+    return z, mean, med, quantiles_lin, quantiles_log
 
 
-
-#def add_tau_reio_to_sample(sample, pa)
 
 
 def get_xHII_tanh_stats(samples: Samples, q: list[float] = [0.68, 0.95], bins: int = 30, 
@@ -1604,22 +1783,26 @@ def get_xHII_tanh_stats(samples: Samples, q: list[float] = [0.68, 0.95], bins: i
     mean = np.mean(xHII, axis=0)
     med  = np.median(xHII, axis=0)
 
-    quantiles_lin = np.empty((len(q), len(z), 2))
-    quantiles_log = np.empty((len(q), len(z), 2))
+    quantiles_lin = np.full((len(q), len(z), 2, 5), fill_value=np.nan)
+    quantiles_log = np.full((len(q), len(z), 2, 5), fill_value=np.nan)
 
     # make an histogram for each value of z
     for iz, x in enumerate(xHII.T):
         
         if np.all(np.diff(x) ==  0):
             for iq, q_val in enumerate(q):
-                quantiles_lin[iq, iz, 0], quantiles_lin[iq, iz, 1] = x[0], x[1]
-                quantiles_log[iq, iz, 0], quantiles_log[iq, iz, 1] = np.log10(x[0]), np.log10(x[1])
+                quantiles_lin[iq, iz, 0, 0], quantiles_lin[iq, iz, 1, 0] = x[0], x[1]
+                quantiles_log[iq, iz, 0, 0], quantiles_log[iq, iz, 1, 0] = np.log10(x[0]), np.log10(x[1])
         else:
             for iq, q_val in enumerate(q):
-                quantiles_lin[iq, iz, 0], quantiles_lin[iq, iz, 1] = compute_quantiles(x, q=q_val)
-                quantiles_log[iq, iz, 0], quantiles_log[iq, iz, 1] = compute_quantiles(np.log10(x), q=q_val)
+
+                x_min_log, x_max_log = compute_quantiles(np.log10(x), q=q_val, bins=bins)
+                x_min_lin, x_max_lin = compute_quantiles(x, q=q_val, bins=bins)
         
+                quantiles_log[iq, iz, 0, 0:len(x_min_log)], quantiles_log[iq, iz, 1, 0:len(x_max_log)] = x_min_log, x_max_log
+                quantiles_lin[iq, iz, 0, 0:len(x_min_lin)], quantiles_lin[iq, iz, 1, 0:len(x_max_lin)] = x_min_lin, x_max_lin
+            
         for iq, q_val in enumerate(q):
-            quantiles_log[iq, iz, :] = 10**(quantiles_log[iq, iz, :])
+            quantiles_log[iq, iz] = 10**(quantiles_log[iq, iz])
         
     return z, mean, med, quantiles_lin, quantiles_log
