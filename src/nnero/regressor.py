@@ -249,7 +249,7 @@ class Regressor(NeuralNetwork):
 
         z_tensor = torch.tensor(self.metadata.z, dtype=torch.float32)
         omega_b  = uniform_to_true(x[:, self.metadata.pos_omega_b], self.metadata.min_omega_b, self.metadata.max_omega_b)
-        omega_c  = uniform_to_true(x[:, self.metadata.pos_omega_c], self.metadata.min_omega_c, self.metadata.max_omega_c)
+        omega_c  = uniform_to_true(x[:, self.metadata.pos_omega_dm], self.metadata.min_omega_c, self.metadata.max_omega_c)
         hlittle  = uniform_to_true(x[:, self.metadata.pos_hlittle], self.metadata.min_hlittle, self.metadata.max_hlittle)
         return optical_depth_no_rad(z_tensor, y, omega_b, omega_c, hlittle)
     

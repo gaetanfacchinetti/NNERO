@@ -408,7 +408,7 @@ def predict_tau_from_Xe(xe: np.ndarray,
     vals = input_values(metadata, default, **kwargs)
     
     omega_b = np.array([vals[metadata.pos_omega_b]])[None, :]
-    omega_c = np.array([vals[metadata.pos_omega_c]])[None, :]
+    omega_c = np.array([vals[metadata.pos_omega_dm]])[None, :]
     hlittle = np.array([vals[metadata.pos_hlittle]])[None, :]
     
     return optical_depth_no_rad(metadata.z[None, :], xe[None, :], omega_b, omega_c, hlittle)[0]
@@ -441,7 +441,7 @@ def predict_tau_from_Xe_numpy(xe: np.ndarray,
     """
     
     omega_b = theta[:, metadata.pos_omega_b]
-    omega_c = theta[:, metadata.pos_omega_c]
+    omega_c = theta[:, metadata.pos_omega_dm]
     hlittle = theta[:, metadata.pos_hlittle]
 
     return optical_depth_no_rad(metadata.z[None, :], xe, omega_b, omega_c, hlittle)

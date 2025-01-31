@@ -398,16 +398,16 @@ class MetaData:
         self._parameters_max_val = parameters_max_val
 
         # derived quantities
-        self._pos_omega_b = np.where(self.parameters_name == 'Ombh2')[0][0]
-        self._pos_omega_c = np.where(self.parameters_name == 'Omdmh2')[0][0]
-        self._pos_hlittle = np.where(self.parameters_name == 'hlittle')[0][0]
+        self._pos_omega_b  = np.where(self.parameters_name == 'Ombh2')[0][0]
+        self._pos_omega_dm = np.where(self.parameters_name == 'Omdmh2')[0][0]
+        self._pos_hlittle  = np.where(self.parameters_name == 'hlittle')[0][0]
 
         self._min_omega_b = self._parameters_min_val[self._pos_omega_b]
-        self._min_omega_c = self._parameters_min_val[self._pos_omega_c]
+        self._min_omega_c = self._parameters_min_val[self._pos_omega_dm]
         self._min_hlittle = self._parameters_min_val[self._pos_hlittle]
 
         self._max_omega_b = self._parameters_max_val[self._pos_omega_b]
-        self._max_omega_c = self._parameters_max_val[self._pos_omega_c]
+        self._max_omega_c = self._parameters_max_val[self._pos_omega_dm]
         self._max_hlittle = self._parameters_max_val[self._pos_hlittle]
 
         # principal component analysis quantities
@@ -526,8 +526,8 @@ class MetaData:
         return self._pos_omega_b
     
     @property
-    def pos_omega_c(self):
-        return self._pos_omega_c
+    def pos_omega_dm(self):
+        return self._pos_omega_dm
     
     @property
     def pos_hlittle(self):
@@ -682,7 +682,7 @@ class DataSet:
         # assume a late time universe with no radiation (very good approximation)
         self._tau = optical_depth_no_rad(self._redshifts, self._xHIIdb, 
                                                      self._features[:, self.metadata.pos_omega_b], 
-                                                     self._features[:, self.metadata.pos_omega_c],
+                                                     self._features[:, self.metadata.pos_omega_dm],
                                                      self._features[:, self.metadata.pos_hlittle])
         
         self._x_array = true_to_uniform(self._features, self.metadata.parameters_min_val, self.metadata.parameters_max_val)

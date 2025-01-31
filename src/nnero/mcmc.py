@@ -70,8 +70,11 @@ class Likelihood(ABC):
     
 
     def get_x_dict(self, x: np.ndarray) -> dict:
-        return {param:x[:,self._index('param')] for param in self._parameters}
+        return {param:x[:,self._index[param]] for param in self._parameters}
 
+    def get_x_dicts(self, x:np.ndarray) -> list[dict]:
+        return [ {param:x[i,self._index[param]] for param in self._parameters} for i in range(x.shape[0])]
+            
    
     def loglkl(self, theta: np.ndarray, xi: np.ndarray, **kwargs) -> np.ndarray:
 
@@ -121,40 +124,40 @@ class UVLFLikelihood(Likelihood):
                  pk: np.ndarray | None = None,
                  precompute: bool = False) -> None:
     
-        if (k is not None) and (pk is not None):
+    
+        self._k  = k
+        self._pk = pk
 
-            self._k  = k
-            self._pk = pk
+        if precompute:
 
-        elif CLASSY_IMPORTED:
+            if (self._k is None) and (self._pk is None) and CLASSY_IMPORTED:
 
-            h = 0.7
-            omega_m = 0.3*(h**2)
-            cosmo = classy.Class()
-            
-            params_cosmo = {'output' : 'mPk', 'P_k_max_h/Mpc' : 650.0, 'h' : 0.7, 'omega_m' : omega_m}
+                h = 0.7
+                omega_m = 0.3*(h**2)
+                cosmo = classy.Class()
+                
+                params_cosmo = {'output' : 'mPk', 'P_k_max_h/Mpc' : 650.0, 'h' : 0.7, 'omega_m' : omega_m}
 
-            if parameters_xi is not None and 'Ln1010As' in parameters_xi:
-                params_cosmo['ln10^{10}A_s'] = xi[parameters_xi.index('Ln1010As')]
-            
-            if parameters_xi is not None and 'Ombh2' in parameters_xi:
-                params_cosmo['omega_b'] = xi[parameters_xi.index('Ombh2')]
+                if parameters_xi is not None and 'Ln1010As' in parameters_xi:
+                    params_cosmo['ln10^{10}A_s'] = xi[parameters_xi.index('Ln1010As')]
+                
+                if parameters_xi is not None and 'Ombh2' in parameters_xi:
+                    params_cosmo['omega_b'] = xi[parameters_xi.index('Ombh2')]
 
-            if parameters_xi is not None and 'POWER_INDEX' in parameters_xi:
-                params_cosmo['n_s'] = xi[parameters_xi.index('POWER_INDEX')]
+                if parameters_xi is not None and 'POWER_INDEX' in parameters_xi:
+                    params_cosmo['n_s'] = xi[parameters_xi.index('POWER_INDEX')]
 
-            if parameters_xi is None:
-                print("Attention: matter power spectrum evaluated for a default cosmology.")
+                if parameters_xi is None:
+                    print("Attention: matter power spectrum evaluated for a default cosmology.")
 
-            cosmo.set(params_cosmo)
-            cosmo.compute()
+                cosmo.set(params_cosmo)
+                cosmo.compute()
 
-            self._k     = np.logspace(-5, np.log10(cosmo.pars['P_k_max_h/Mpc'] * h), 50000)
-            self._pk    = np.array([cosmo.pk_lin(_k, 0) for _k in self._k]) 
+                self._k     = np.logspace(-5, np.log10(cosmo.pars['P_k_max_h/Mpc'] * h), 50000)
+                self._pk    = np.array([cosmo.pk_lin(_k, 0) for _k in self._k]) 
 
-        else:
-            raise ValueError('If CLASS not installed, need to provide k and pk as arguments')
-        
+            else: 
+                raise ValueError("Need to import CLASS to pecompute the matter power spectrum if not given as input.")
     
         self.sheth_a = 0.322
         self.sheth_q = 1.0
@@ -286,7 +289,7 @@ class UVLFLikelihood(Likelihood):
 
                 except ShortPowerSpectrumRange:
                     # kill the log likelihood in that case by setting it to -infinity
-                    return ValueError('Power spectrum not evaluated on a large enough range')               
+                    raise ValueError('Power spectrum not evaluated on a large enough range')               
 
                 # get a sigma that is either the down or the up one depending 
                 # if prediction is lower / higher than the observed value        
@@ -314,21 +317,18 @@ class UVLFLikelihood(Likelihood):
         t_star     = x[:, self.index['t_STAR']]
         f_star10   = 10**x[:, self.index['F_STAR10']]
 
-        min_mh = np.inf
+        min_mh = np.full(x.shape[0], fill_value=np.inf)
 
         for j in [1, 2, 3]:
 
             # loop on the redshift bins
             for iz, z, in enumerate(self.z_uv_exp[j]):
 
-                hz = 100 * h_factor_no_rad(z, omega_b, omega_m - omega_b, h)[0, 0] * CONVERSIONS.km_to_mpc # approximation of the hubble factor
+                hz = 100 * h_factor_no_rad(z, omega_b, omega_m - omega_b, h) * CONVERSIONS.km_to_mpc # approximation of the hubble factor
                 mh, _ = m_halo(hz, self.m_uv_exp[j][iz], alpha_star, t_star, f_star10, omega_b, omega_m)
 
-                mh = mh[0, 0]
-
-                # set the min of mh
-                if np.min(mh) < min_mh:
-                    min_mh = np.min(mh)
+                mh = np.squeeze(mh, axis=1)   
+                min_mh = np.minimum(min_mh, np.min(mh, axis=-1))
                     
         rhom0  = omega_m * CST_MSOL_MPC.rho_c_over_h2        
         k_max = 1.3 * self.c * (3*min_mh/(4*np.pi)/rhom0)**(-1/3)
@@ -336,7 +336,8 @@ class UVLFLikelihood(Likelihood):
         # one should (almost) never need self.kmax if large enough
         # set here as a security to do not make CLASS take to much
         # time and crash
-        return np.min([k_max / h, 10000])
+        # print("Value of k_max: ", np.minimum(k_max / h, 10000))
+        return np.minimum(k_max / h, 10000)
 
 
 
@@ -622,10 +623,14 @@ def log_likelihood(theta: np.ndarray,
         k_max: float       = uvlf_lkl.get_k_max(x)
 
         # second, compute the matter power spectrum from a given function
-        k_arr: np.ndarray  = np.logspace(np.log10(uvlf_lkl.k[0]), np.log10(k_max), 50000)
+        k_arr: np.ndarray  = np.logspace(np.log10(uvlf_lkl.k[0]), np.log10(k_max), 50000).T
         func: function     = kwargs.get('matter_power_spectrum_computer')
-        x_dict: dict       = uvlf_lkl.get_x_dict(x)
-        pk_arr: np.ndarray = func(k_arr, x_dict)
+        x_dicts: dict       = uvlf_lkl.get_x_dicts(x)
+
+        pk_arr = np.zeros((x.shape[0], k_arr.shape[1]))
+
+        for i in range(x.shape[0]):
+            pk_arr[i] = func(k_arr[i], x_dicts[i])
 
         kwargs['k']  = k_arr
         kwargs['pk'] = pk_arr
@@ -645,6 +650,9 @@ def log_probability(theta:     np.ndarray,
                     likelihoods: list[Likelihood],
                     **kwargs) -> np.ndarray:
     
+    if len(theta.shape) == 1:
+        theta = theta[None, :]
+
     # compute the log prior
     res = log_prior(theta, theta_min, theta_max, **kwargs)
     

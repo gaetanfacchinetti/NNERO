@@ -1394,8 +1394,8 @@ def compute_quantiles(sample: np.ndarray, q: float, bins: int | np.ndarray = 30)
         e_min = np.empty((len(groups), 2))
         e_max = np.empty((len(groups), 2))
 
-        x_min = np.empty((len_groups))
-        x_max = np.empty((len_groups))
+        x_min = np.empty(len(groups))
+        x_max = np.empty(len(groups))
 
         for ig, group in enumerate(groups):
             index_min, index_max = np.min(group), np.max(group)
