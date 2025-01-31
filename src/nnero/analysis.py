@@ -1678,15 +1678,11 @@ def plot_data(grid: AxesGrid,
 
 
 
-    
-
-    
 
 
 def get_xHII_stats(samples: Samples, 
-                   data_to_plot: list[str] | np.ndarray, 
-                   q: list[float] = [0.68, 0.95], 
-                   bins: int = 30, 
+                   data_to_plot: list[str] | np.ndarray,  
+                   nbins: int = 100, 
                    discard: int = 0, 
                    thin: int = 100,
                    *,
@@ -1741,34 +1737,35 @@ def get_xHII_stats(samples: Samples,
         warnings.warn("More than 1 percent of outliers with late reionization")
 
     xHII = xHII[xHII[:, -1] > 0]
-
-    mean = np.mean(xHII, axis=0)
-    med  = np.median(xHII, axis=0)
-
     z = regressor.metadata.z
-    quantiles_lin = np.full((len(q), len(z), 2, 5), fill_value=np.nan)
-    quantiles_log = np.full((len(q), len(z), 2, 5), fill_value=np.nan)
+    
+    mean, med = np.mean(xHII, axis=0), np.median(xHII, axis=0)
+    min, max  = np.min(xHII), np.max(xHII)
 
+    log_bins = np.linspace(np.log10(min), np.log10(max), nbins)
+    log_hist = np.zeros((len(z), len(log_bins)-1))
 
+    lin_bins = np.linspace(min, max, nbins)
+    lin_hist = np.zeros((len(z), len(lin_bins)-1))
 
     # make an histogram for each value of z
     for iz, x in enumerate(xHII.T):
 
-        for iq, q_val in enumerate(q):
-            
-            x_min_log, x_max_log = compute_quantiles(np.log10(x), q=q_val, bins=bins)
-            x_min_lin, x_max_lin = compute_quantiles(x, q=q_val, bins=bins)
+        log_hist[iz], _ = np.histogram(np.log10(x), bins=log_bins, density = True)
+        log_hist[iz] = log_hist[iz]/np.max(log_hist[iz])
+        
+        lin_hist[iz], _ = np.histogram(x, bins=lin_bins, density = True)
+        lin_hist[iz] = lin_hist[iz]/np.max(lin_hist[iz])
     
-            quantiles_log[iq, iz, 0, 0:len(x_min_log)], quantiles_log[iq, iz, 1, 0:len(x_max_log)] = x_min_log, x_max_log
-            quantiles_lin[iq, iz, 0, 0:len(x_min_lin)], quantiles_lin[iq, iz, 1, 0:len(x_max_lin)] = x_min_lin, x_max_lin
-            quantiles_log[iq, iz] = 10**(quantiles_log[iq, iz])
+    log_bins = 10**((log_bins[:-1] + log_bins[1:])/2.0)
+    lin_bins = (lin_bins[:-1] + lin_bins[1:])/2.0
     
-    return z, mean, med, quantiles_lin, quantiles_log
+    return z, mean, med, log_hist, log_bins, lin_hist, lin_bins
 
 
 
 
-def get_xHII_tanh_stats(samples: Samples, q: list[float] = [0.68, 0.95], bins: int = 30, 
+def get_xHII_tanh_stats(samples: Samples, nbins: int = 100, 
                         discard: int = 0, thin : int = 100, x_inf: float = 2e-4, **kwargs):
 
     def xHII_class(z, z_reio = 8.0):
@@ -1780,29 +1777,25 @@ def get_xHII_tanh_stats(samples: Samples, q: list[float] = [0.68, 0.95], bins: i
     z = np.linspace(0, 35, 100)
     xHII = xHII_class(z, z_reio[:, None]) + x_inf
 
-    mean = np.mean(xHII, axis=0)
-    med  = np.median(xHII, axis=0)
+    mean, med = np.mean(xHII, axis=0), np.median(xHII, axis=0)
+    min, max  = np.min(xHII), np.max(xHII)
 
-    quantiles_lin = np.full((len(q), len(z), 2, 5), fill_value=np.nan)
-    quantiles_log = np.full((len(q), len(z), 2, 5), fill_value=np.nan)
+    log_bins = np.linspace(np.log10(min), np.log10(max), nbins)
+    log_hist = np.zeros((len(z), len(log_bins)-1))
+
+    lin_bins = np.linspace(min, max, nbins)
+    lin_hist = np.zeros((len(z), len(lin_bins)-1))
 
     # make an histogram for each value of z
     for iz, x in enumerate(xHII.T):
-        
-        if np.all(np.diff(x) ==  0):
-            for iq, q_val in enumerate(q):
-                quantiles_lin[iq, iz, 0, 0], quantiles_lin[iq, iz, 1, 0] = x[0], x[1]
-                quantiles_log[iq, iz, 0, 0], quantiles_log[iq, iz, 1, 0] = np.log10(x[0]), np.log10(x[1])
-        else:
-            for iq, q_val in enumerate(q):
 
-                x_min_log, x_max_log = compute_quantiles(np.log10(x), q=q_val, bins=bins)
-                x_min_lin, x_max_lin = compute_quantiles(x, q=q_val, bins=bins)
+        log_hist[iz], _ = np.histogram(np.log10(x), bins=log_bins, density = True)
+        log_hist[iz] = log_hist[iz]/np.max(log_hist[iz])
         
-                quantiles_log[iq, iz, 0, 0:len(x_min_log)], quantiles_log[iq, iz, 1, 0:len(x_max_log)] = x_min_log, x_max_log
-                quantiles_lin[iq, iz, 0, 0:len(x_min_lin)], quantiles_lin[iq, iz, 1, 0:len(x_max_lin)] = x_min_lin, x_max_lin
-            
-        for iq, q_val in enumerate(q):
-            quantiles_log[iq, iz] = 10**(quantiles_log[iq, iz])
-        
-    return z, mean, med, quantiles_lin, quantiles_log
+        lin_hist[iz], _ = np.histogram(x, bins=lin_bins, density = True)
+        lin_hist[iz] = lin_hist[iz]/np.max(lin_hist[iz])
+    
+    log_bins = 10**((log_bins[:-1] + log_bins[1:])/2.0)
+    lin_bins = (lin_bins[:-1] + lin_bins[1:])/2.0
+    
+    return z, mean, med, log_hist, log_bins, lin_hist, lin_bins
