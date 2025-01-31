@@ -153,7 +153,7 @@ class UVLFLikelihood(Likelihood):
                 cosmo.set(params_cosmo)
                 cosmo.compute()
 
-                self._k     = np.logspace(-5, np.log10(cosmo.pars['P_k_max_h/Mpc'] * h), 50000)
+                self._k     = np.logspace(-2.5, np.log10(cosmo.pars['P_k_max_h/Mpc'] * h), 50000)
                 self._pk    = np.array([cosmo.pk_lin(_k, 0) for _k in self._k]) 
 
             else: 
@@ -267,7 +267,7 @@ class UVLFLikelihood(Likelihood):
             for iz, z, in enumerate(self.z_uv_exp[j]):
 
                 hz = 100 * h_factor_no_rad(z, omega_b, omega_m - omega_b, h) * CONVERSIONS.km_to_mpc
-                mh, mask = m_halo(hz, self.m_uv_exp[j][iz], alpha_star, t_star, f_star10, omega_b, omega_m)
+                mh, mask_mh = m_halo(hz, self.m_uv_exp[j][iz], alpha_star, t_star, f_star10, omega_b, omega_m)
 
                 try:
 
@@ -275,7 +275,7 @@ class UVLFLikelihood(Likelihood):
                         # predict the UV luminosity function on the range of magnitude m_uv at that redshift bin
                         # in the future, could add sheth_a, sheth_q, sheth_p and c as nuisance parameters
                         phi_uv_pred_z = phi_uv(z, hz, self.m_uv_exp[j][iz], k, pk, alpha_star, t_star, f_star10, m_turn, omega_b, omega_m, h, 
-                                                    self.sheth_a, self.sheth_q, self.sheth_p, window = self.window, c = self.c, mh = mh, mask = mask)
+                                                    self.sheth_a, self.sheth_q, self.sheth_p, window = self.window, c = self.c, mh = mh, mask = mask_mh)
                         
 
                     else:
@@ -283,10 +283,14 @@ class UVLFLikelihood(Likelihood):
                         dndmh = interpolate.interp1d(self._masses, self._dndmh[0, self._z_index_from_table[j][iz], :])(mh)
                         phi_uv_pred_z = phi_uv(z, hz, self.m_uv_exp[j][iz], k, pk, alpha_star, t_star, f_star10, m_turn, omega_b, omega_m, h, 
                                                     self.sheth_a, self.sheth_q, self.sheth_p, window = self.window, c = self.c, mh = mh, 
-                                                    mask = mask, dndmh = dndmh)    
+                                                    mask = mask_mh, dndmh = dndmh)    
                     
                     phi_uv_pred_z = np.squeeze(phi_uv_pred_z, axis=1)
 
+                    #if np.any(np.isnan(phi_uv_pred_z.flatten())):
+                        #print(z, hz, self.m_uv_exp[j][iz], k, pk, alpha_star, t_star, f_star10, m_turn, omega_b, omega_m, h, mh, mask_mh)
+                        #raise ValueError('Arghhh')
+                    
                 except ShortPowerSpectrumRange:
                     # kill the log likelihood in that case by setting it to -infinity
                     raise ValueError('Power spectrum not evaluated on a large enough range')               
@@ -635,7 +639,6 @@ def log_likelihood(theta: np.ndarray,
         kwargs['k']  = k_arr
         kwargs['pk'] = pk_arr
         
-
     # makes the sum of the log prior and log likelihood 
     for likelihood in likelihoods:
         res = res  + likelihood.loglkl(theta, xi, **kwargs)
