@@ -49,7 +49,7 @@ def label_to_plot(label) -> None:
         return label
 
 
-def preprocess_raw_data(file_path: str, *, random_seed: int = 1994, frac_test: float = 0.1, frac_valid: float = 0.1) -> None:
+def preprocess_raw_data(file_path: str, *, random_seed: int = 1994, frac_test: float = 0.1, frac_valid: float = 0.1, extras: list[str] | None = None) -> None:
     """
     Preprocess a raw .npz file. 
     Creates another numpy archive that can be directly used to create a :py:class:`DataSet` object.
@@ -86,6 +86,12 @@ def preprocess_raw_data(file_path: str, *, random_seed: int = 1994, frac_test: f
         parameters_max_val   = data.get('parameters_max_val', None)
         xHIIdb               = data.get('xHIIdb', None)
         parameters_name      = data.get('parameters_name', None)
+        
+        extras_array = None
+        if extras is not None and features_run is not None:
+            extras_array = np.array((len(extras), features_run.shape[0]))
+            for iex, ex in enumerate(extras):
+                extras_array[iex] = data.get(ex, np.zeros(features_run.shape[0]))
 
         # Check for different notations
         z_glob = z_glob if (z_glob is not None) else data.get('z', None)
@@ -116,12 +122,20 @@ def preprocess_raw_data(file_path: str, *, random_seed: int = 1994, frac_test: f
     # parameters for xHIIdb
     xHIIdb = np.vstack((xHIIdb, np.zeros((n_sl, xHIIdb.shape[1]))))
 
+    if extras is not None:
+        for ex in extras_array:
+            ex = np.vstack((ex, np.zeros(n_sl)))
+
     # shuffling all the data between late and run
     r = random.sample(range(n_tot), n_tot)
 
     features  = features[r]
     cosmology = cosmology[r]
     xHIIdb    = xHIIdb[r]
+
+    if extras is not None:
+        for ex in extras_array:
+            ex = ex[r]
 
     # data selection, only considering the "early time" reionizations
     pos = np.searchsorted(z_glob, 5.9) 
@@ -172,7 +186,9 @@ def preprocess_raw_data(file_path: str, *, random_seed: int = 1994, frac_test: f
                  indices_total_train = indices_total_train,
                  random_seed = random_seed,
                  frac_test = frac_test,
-                 frac_valid = frac_valid)
+                 frac_valid = frac_valid,
+                 extras_array = extras_array,
+                 extras_name  = extras)
 
 
 def true_to_uniform(x: float | np.ndarray,
@@ -653,6 +669,9 @@ class DataSet:
                     preprocess_raw_data(file_path, random_seed=seed_split, frac_test = frac_test, frac_valid = frac_valid)
 
 
+        self._extras_array = None
+        self._extras_name  = None
+
         with open(file_path[:-4]+ "_pp.npz", 'rb') as file:
             data = np.load(file, allow_pickle=True)
             
@@ -660,6 +679,11 @@ class DataSet:
             self._features  = data.get('features',  None)
             self._cosmology = data.get('cosmology', None)
             self._xHIIdb    = data.get('xHIIdb',    None)
+
+            # possibility to add extra values for each run
+            if data.get('extras_array', None) is not None and data.get('extras_array', None) != None:
+                self._extras_array = data.get('extras_array')
+                self._extras_name  = data.get('extras_name', None)
 
             # define a metadata object
             self._metadata = MetaData(_z, 
@@ -702,6 +726,9 @@ class DataSet:
         self._x_array      = np.array(self._x_array, np.float32)
         self._y_classifier = np.array(self._y_classifier, np.float32)
         self._y_regressor  = np.array(self._y_regressor, np.float32)
+
+        if self._extras_array is not None:
+            self._extras_array = np.array(self._extras_array, np.float32)
         # --------------------------
 
 
@@ -785,6 +812,14 @@ class DataSet:
     @property
     def tau(self):
         return self._tau
+    
+    @property
+    def extras_array(self):
+        return self._extras_array
+    
+    @property
+    def extras_name(self):
+        return self._extras_name
     
 
 
