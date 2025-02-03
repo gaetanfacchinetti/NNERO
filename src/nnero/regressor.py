@@ -167,7 +167,7 @@ class Regressor(NeuralNetwork):
         Parameters
         ----------
         path: str | None
-            Path to the saved files containing the regresor data.
+            Path to the saved files containing the regressor data.
             If None automatically fetch the DefaultRegressor.
 
         Returns
