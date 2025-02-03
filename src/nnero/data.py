@@ -89,7 +89,7 @@ def preprocess_raw_data(file_path: str, *, random_seed: int = 1994, frac_test: f
         
         extras_array = None
         if extras is not None and features_run is not None:
-            extras_array = np.array((len(extras), features_run.shape[0]))
+            extras_array = np.zeros((len(extras), features_run.shape[0]))
             for iex, ex in enumerate(extras):
                 extras_array[iex] = data.get(ex, np.zeros(features_run.shape[0]))
 
@@ -123,8 +123,7 @@ def preprocess_raw_data(file_path: str, *, random_seed: int = 1994, frac_test: f
     xHIIdb = np.vstack((xHIIdb, np.zeros((n_sl, xHIIdb.shape[1]))))
 
     if extras is not None:
-        for ex in extras_array:
-            ex = np.vstack((ex, np.zeros(n_sl)))
+        extras_array = np.hstack((extras_array, np.zeros((extras_array.shape[0], n_sl))))
 
     # shuffling all the data between late and run
     r = random.sample(range(n_tot), n_tot)
@@ -134,8 +133,8 @@ def preprocess_raw_data(file_path: str, *, random_seed: int = 1994, frac_test: f
     xHIIdb    = xHIIdb[r]
 
     if extras is not None:
-        for ex in extras_array:
-            ex = ex[r]
+        for iex, _ in enumerate(extras_array):
+            extras_array[iex] = extras_array[iex, r]
 
     # data selection, only considering the "early time" reionizations
     pos = np.searchsorted(z_glob, 5.9) 
@@ -633,7 +632,8 @@ class DataSet:
                  *, 
                  frac_test: float  = 0.1, 
                  frac_valid: float = 0.1,
-                 seed_split: int   = 1994) -> None:
+                 seed_split: int   = 1994,
+                 extras: list[str] | None = None) -> None:
 
         # --------------------------------
         # initialisation from input values 
@@ -659,14 +659,14 @@ class DataSet:
 
         # if raw data has not yet been preprocessed
         if not exists(file_path[:-4]+ "_pp.npz"):
-            preprocess_raw_data(file_path, random_seed=seed_split, frac_test = frac_test, frac_valid = frac_valid)
+            preprocess_raw_data(file_path, random_seed=seed_split, frac_test = frac_test, frac_valid = frac_valid, extras = extras)
         else:
             with open(file_path[:-4]+ "_pp.npz", 'rb') as file:
                 data = np.load(file, allow_pickle=True)
                 
                 # if we do not have the same seed or fraction of valid and test samples we preprocess the data again
                 if frac_test != data.get('frac_test', None) or frac_valid != data.get('frac_valid', None) or seed_split != data.get('random_seed', None):
-                    preprocess_raw_data(file_path, random_seed=seed_split, frac_test = frac_test, frac_valid = frac_valid)
+                    preprocess_raw_data(file_path, random_seed=seed_split, frac_test = frac_test, frac_valid = frac_valid, extras = extras)
 
 
         self._extras_array = None
@@ -681,7 +681,7 @@ class DataSet:
             self._xHIIdb    = data.get('xHIIdb',    None)
 
             # possibility to add extra values for each run
-            if data.get('extras_array', None) is not None and data.get('extras_array', None) != None:
+            if isinstance(data.get('extras_array', None), np.ndarray):
                 self._extras_array = data.get('extras_array')
                 self._extras_name  = data.get('extras_name', None)
 

@@ -329,7 +329,7 @@ class Regressor(NeuralNetwork):
     def z(self):
         return self._metadata.z
     
-    
+
     
 def train_regressor(model: Regressor, 
                     dataset: DataSet, 
@@ -416,7 +416,7 @@ def train_regressor(model: Regressor,
             for batch in valid_loader:
                 x_batch, y_batch = batch
             
-                y_pred = model(x_batch)              # forward pass
+                y_pred = model.forward(x_batch)              # forward pass
                 tau_pred = model.tau_ion(x_batch, y_pred)
                 
                 loss_xHII = model.loss_xHII(y_pred, y_batch)
