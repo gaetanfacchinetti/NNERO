@@ -20,7 +20,7 @@
 from .cosmology    import (ShortPowerSpectrumRange, optical_depth_no_rad, h_factor_no_rad, n_baryons, n_hydrogen)
 from .constants    import (CST_MSOL_MPC, CST_EV_M_S_K, CST_NO_DIM, CONVERSIONS)
 from .astrophysics import (phi_uv)
-from .data         import (DataSet, MetaData, DataPartition, label_to_plot, uniform_to_true, true_to_uniform)
+from .data         import (DataSet, MetaData, DataPartition, latex_labels, uniform_to_true, true_to_uniform)
 from .network      import (NeuralNetwork)
 from .classifier   import (Classifier, train_classifier)
 from .regressor    import (Regressor, train_regressor)
@@ -31,7 +31,7 @@ from .predictor    import (input_values, predict_classifier, predict_xHII, predi
                          predict_parameter, predict_parameter_numpy, predict_interpolator, predict_interpolator_numpy)
 from .mcmc         import (log_prior, log_likelihood, log_probability, initialise_walkers, Likelihood, UVLFLikelihood)
 from .analysis     import (MPChain, Samples, MPSamples, EMCEESamples, GaussianInfo, GaussianSamples, AxesGrid, plot_data, 
-                           generate_contours, ProcessedData, compute_quantiles, neutrino_masses, prepare_data_plot, LATEX_LABELS,
+                           generate_contours, ProcessedData, compute_quantiles, neutrino_masses, prepare_data_plot,
                            get_xHII_stats, get_xHII_tanh_stats)
 
 

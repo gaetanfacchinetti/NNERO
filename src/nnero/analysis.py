@@ -36,11 +36,12 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Self
 
-from .data       import MP_KEY_CORRESPONDANCE
-from .predictor  import DEFAULT_VALUES
-from .regressor  import Regressor
-from .classifier import Classifier
-from .predictor  import predict_xHII_numpy, predict_tau_numpy
+from .data         import MP_KEY_CORRESPONDANCE
+from .predictor    import DEFAULT_VALUES
+from .regressor    import Regressor
+from .classifier   import Classifier
+from .interpolator import Interpolator
+from .predictor    import predict_xHII_numpy, predict_tau_numpy, predict_parameter_numpy
 
 
 EMCEE_IMPORTED = False
@@ -637,8 +638,8 @@ def compute_tau(flat_chain: np.ndarray,
         if classifier is None:
             classifier = Classifier.load()
 
-        r_parameters = regressor.metadata.parameters_name
-        parameters = copy(param_names)
+        r_parameters = to_CLASS_names(regressor.metadata.parameters_name)
+        parameters = to_CLASS_names(copy(param_names))
 
         if isinstance(parameters, list):
             parameters = np.array(parameters)
@@ -651,34 +652,101 @@ def compute_tau(flat_chain: np.ndarray,
             if param == 'sum_mnu':
                 param = 'm_nu1'
 
-            if ((param in MP_KEY_CORRESPONDANCE) and (MP_KEY_CORRESPONDANCE[param] in r_parameters)) or param in r_parameters:
-                data_for_tau.append(param)
-        
-        labels_correspondance = {value : key for key, value in MP_KEY_CORRESPONDANCE.items()}
-        
-        # get the data sample 
-        data = np.empty((len(r_parameters), flat_chain.shape[-1])) 
+            # make a list of the given parameters that are needed for the interpolator
+            # in the order they are
+            data_for_param = []
+            for ip, param in enumerate(parameters):
+                
+                if param == 'sum_mnu':
+                    parameters[ip] = 'm_nu1'
 
-        # find the ordering in which data_sample is set in prepare_data_plot
-        indices_to_plot = [list(parameters).index(param) for param in data_for_tau if param in parameters]
+                if param in r_parameters:
+                    data_for_param.append(param)
+            
+            # get the data sample 
+            data = np.empty((len(r_parameters), flat_chain.shape[-1])) 
+
+            # find the ordering in which data_sample is set in prepare_data_plot
+            indices_to_plot = [list(parameters).index(param) for param in data_for_param]
 
         for ip, param in enumerate(r_parameters): 
             
             # if we ran the MCMC over that parameter
-            if labels_correspondance[param] in parameters[indices_to_plot]:
-                index = list(parameters[indices_to_plot]).index(labels_correspondance[param])
-                data[ip] = flat_chain[index, :]
-            elif param in parameters[indices_to_plot]:
+            if param in parameters[indices_to_plot]:
                 index = list(parameters[indices_to_plot]).index(param)
-                data[ip] = flat_chain[index, :]
+                data[ip, :] = flat_chain[index, :]
             else:
                 data[ip, :] = DEFAULT_VALUES[param]
-
 
         #return data 
         tau = predict_tau_numpy(data.T, classifier, regressor)
 
         return tau
+
+
+
+
+def compute_parameter(flat_chain: np.ndarray, 
+                      param_names: list[str] | np.ndarray,
+                      classifier: Classifier | None = None,
+                      interpolator: Regressor | None = None,
+                      parameter: str | None = None) -> np.ndarray:
+
+        
+        # get the ordered list of parameters
+        if interpolator is None:
+            if interpolator is not None:
+                interpolator = Interpolator.load("DefaultInterpolator_" + parameter)
+            else:
+                raise ValueError("Need to pass the parameter to interpolate to the predictor.")
+        
+        if classifier is None:
+            classifier = Classifier.load()
+
+        # parameters that the interpolator needs
+        i_parameters = to_CLASS_names(interpolator.metadata.parameters_name)
+
+        # parameters that are given in the sample
+        parameters = to_CLASS_names(copy(param_names))
+
+        if isinstance(parameters, list):
+            parameters = np.array(parameters)
+
+        # if tau_reio is given in the parameters we remove it
+        if 'tau_reio' in parameters:
+            flat_chain = flat_chain[parameters != 'tau_reio'] 
+            parameters = parameters[parameters != 'tau_reio']
+            
+
+        # make a list of the given parameters that are needed for the interpolator
+        # in the order they are
+        data_for_param = []
+        for ip, param in enumerate(parameters):
+            
+            if param == 'sum_mnu':
+                parameters[ip] = 'm_nu1'
+
+            if param in i_parameters:
+                data_for_param.append(param)
+        
+        # get the data sample 
+        data = np.empty((len(i_parameters), flat_chain.shape[-1])) 
+
+        # find the ordering in which data_sample is set in prepare_data_plot
+        indices_to_plot = [list(parameters).index(param) for param in data_for_param]
+
+        for ip, param in enumerate(i_parameters): 
+            
+            # if we ran the MCMC over that parameter
+            if param in parameters[indices_to_plot]:
+                index = list(parameters[indices_to_plot]).index(param)
+                data[ip, :] = flat_chain[index, :]
+            else:
+                data[ip, :] = DEFAULT_VALUES[param]
+
+        return predict_parameter_numpy(data.T, classifier, interpolator, parameter)
+
+
 
 
 class MPSamples(Samples):
@@ -1001,11 +1069,6 @@ import matplotlib.colors as mpc
 
 from dataclasses import dataclass
 
-LATEX_LABELS = {'omega_b' :  r'$\omega_{\rm b}$', 'omega_dm' : r'$\omega_{\rm dm}$', 'h' : r'$h$', 'ln10^{10}A_s' : r'$\ln 10^{10} A_{\rm s}$',
-                'n_s' : r'$n_{\rm s}$', 'm_nu1' : r'$m_{\nu 1}~{\rm [eV]}$', 'sum_mnu' : r'$\sum {m_\nu}~{\rm [eV]}$', 'log10_f_star10' : r'$\log_{10}f_{\star, 10}$',
-                  'alpha_star' : r'$\alpha_\star$', 'log10_f_esc10' : r'$\log_{10} f_{\rm esc, 10}$', 'alpha_esc' : r'$\alpha_{\rm esc}$',
-                  't_star' : r'$t_\star$', 'log10_m_turn' : r'$\log_{10} M_{\rm turn}$', 'log10_lum_X' : r'$\log_{10} L_X$', 'nu_X_thresh' : r'$E_0$',
-                  '1/m_wdm' : r'$\mu_{\rm WDM}$', 'mu_wdm' : r'$\mu_{\rm WDM}$', 'f_wdm' : r'$f_{\rm WDM}$', 'tau_reio' : r'$\tau$'}
 
 class AxesGrid:
 

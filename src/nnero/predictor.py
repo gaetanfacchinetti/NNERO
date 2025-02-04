@@ -384,7 +384,7 @@ def predict_interpolator_numpy(theta: np.ndarray,
 
     # if no interpolator passed as input, load the default one
     if interpolator is None:
-        if interpolator is not None:
+        if parameter is not None:
             interpolator = Interpolator.load("DefaultInterpolator_" + parameter)
         else:
             raise ValueError("Need to pass the parameter to interpolate to the predictor.")
@@ -564,7 +564,7 @@ def predict_parameter_numpy(theta: np.ndarray,
     
     # if no interpolator passed as input, load the default one
     if interpolator is None:
-        if interpolator is not None:
+        if parameter is not None:
             interpolator = Interpolator.load("DefaultInterpolator_" + parameter)
         else:
             raise ValueError("Need to pass the parameter to interpolate to the predictor.")
@@ -572,7 +572,7 @@ def predict_parameter_numpy(theta: np.ndarray,
     mask = predict_classifier_numpy(theta, classifier)
     res = -np.ones((mask.shape[0]), dtype=np.float64)
 
-    res[mask, :] = predict_interpolator_numpy(theta[mask, :], interpolator, parameter)
+    res[mask] = predict_interpolator_numpy(theta[mask, :], interpolator, parameter)
 
     return res
 

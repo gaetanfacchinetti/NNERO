@@ -29,24 +29,46 @@ from typing import Self
 from .cosmology import optical_depth_no_rad
 
 
-_LABELS_TO_PLOT_ = {'hlittle' : r'$h$', 'Ln_1010_As' : r'$\ln(10^{10}A_{\rm s})$', 'F_STAR10' : r'$\log_{10}(f_{\star, 10})$',
+LATEX_LABELS = {'hlittle' : r'$h$', 'Ln_1010_As' : r'$\ln(10^{10}A_{\rm s})$', 'F_STAR10' : r'$\log_{10}(f_{\star, 10})$',
                   'ALPHA_STAR' : r'$\alpha_\star$', 't_STAR' : r'$t_\star$', 'F_ESC10' : r'$\log_{10}(f_{\rm esc, 10})$', 
-                  'ALPHA_ESC' : r'$\alpha_{\rm esc}$', 'M_TURN' : r'$\log_{10}(M_{\rm TURN}/{\rm M_\odot})$', 'Omch2' : r'$\Omega_{\rm c} h^2$', 
-                  'Ombh2' : r'$\Omega_{\rm b} h^2$', 'POWER_INDEX' : r'$n_{\rm s}$', 'M_WDM' : r'$m_{\rm WDM}~{\rm [keV]}$', 
+                  'ALPHA_ESC' : r'$\alpha_{\rm esc}$', 'M_TURN' : r'$\log_{10} M_{\rm turn}$', 'Omdmh2' : r'$\omega_{\rm dm}$', 
+                  'Ombh2' : r'$\omega_{\rm b}$', 'POWER_INDEX' : r'$n_{\rm s}$', 'M_WDM' : r'$m_{\rm WDM}~{\rm [keV]}$', 
                   'INVERSE_M_WDM' : r'$1/m_{\rm WDM} ~[{\rm keV}^{-1}]$', 'FRAC_WDM' : r'$f_{\rm WDM}$', 'NEUTRINO_MASS_1' : r'$m_{\nu_1}$',
-                  'LOG10_PMF_SB' : r'$\log_{10}(s_{\rm B})$', 'PMF_NB' : r'$n_{\rm B}$'}
+                  'LOG10_PMF_SB' : r'$\log_{10}(s_{\rm B})$', 'PMF_NB' : r'$n_{\rm B}$', 'tau_reio' : r'$\tau$', 
+                  'L_X' : r'$\log_{10} L_X$', 'NU_X_THRESH' : r'$E_0$', 'sum_mnu' : r'$\sum {m_\nu}~{\rm [eV]}$', 
+                  'LOG10_PMF_SIGMA_B0' : r'$\log_{10}{\sigma_{\rm B, 0}}$'}
 
 
 MP_KEY_CORRESPONDANCE = {'log10_f_star10' : 'F_STAR10', 'alpha_star' : 'ALPHA_STAR', 't_star' : 't_STAR', 'log10_f_esc10' : 'F_ESC10', 
                          'alpha_esc' : 'ALPHA_ESC', 'Omch2' : 'Omdmh2', 'omega_dm' : 'Omdmh2', 'omega_b' : 'Ombh2', 'h': 'hlittle', 'ln10^{10}A_s' : 'Ln_1010_As',
                          'n_s' : 'POWER_INDEX', 'm_nu1' : 'NEUTRINO_MASS_1', 'f_wdm' : 'FRAC_WDM', 'm_wdm' : 'M_WDM', 'nu_X_thresh' : 'NU_X_THRESH',
-                         'log10_pmf_sb' : 'LOG10_PMF_SB', 'pmf_nb' : 'PMF_NB', 'log10_m_turn' : 'M_TURN', 'log10_lum_X' : 'L_X', '1/m_wdm' : 'INVERSE_M_WDM'}
+                         'log10_pmf_sb' : 'LOG10_PMF_SB', 'pmf_nb' : 'PMF_NB', 'log10_m_turn' : 'M_TURN', 'log10_lum_X' : 'L_X', '1/m_wdm' : 'INVERSE_M_WDM',
+                         'log10_pmf_sigma_b0' : 'LOG10_PMF_SIGMA_B0'}
 
-def label_to_plot(label) -> None:
-    if label in _LABELS_TO_PLOT_.keys(): 
-        return _LABELS_TO_PLOT_[label]
-    else:
-        return label
+#LATEX_LABELS_CLASS = {'omega_b' :  r'$\omega_{\rm b}$', 'omega_dm' : r'$\omega_{\rm dm}$', 'h' : r'$h$', 'ln10^{10}A_s' : r'$\ln 10^{10} A_{\rm s}$',
+#                'n_s' : r'$n_{\rm s}$', 'm_nu1' : r'$m_{\nu 1}~{\rm [eV]}$', 'sum_mnu' : r'$\sum {m_\nu}~{\rm [eV]}$', 'log10_f_star10' : r'$\log_{10}f_{\star, 10}$',
+#                  'alpha_star' : r'$\alpha_\star$', 'log10_f_esc10' : r'$\log_{10} f_{\rm esc, 10}$', 'alpha_esc' : r'$\alpha_{\rm esc}$',
+#                  't_star' : r'$t_\star$', 'log10_m_turn' : r'$\log_{10} M_{\rm turn}$', 'log10_lum_X' : r'$\log_{10} L_X$', 'nu_X_thresh' : r'$E_0$',
+#                  '1/m_wdm' : r'$\mu_{\rm WDM}$', 'mu_wdm' : r'$\mu_{\rm WDM}$', 'f_wdm' : r'$f_{\rm WDM}$', 'tau_reio' : r'$\tau$'}
+
+
+def latex_labels(labels: list[str]) -> list[str]:
+    
+    res = [None] * len(labels)
+
+    for il, label in enumerate(labels):
+
+        if label in LATEX_LABELS.keys(): 
+            res[il] = LATEX_LABELS[label]
+        elif label in MP_KEY_CORRESPONDANCE.keys():  
+            if MP_KEY_CORRESPONDANCE[label] in LATEX_LABELS.keys():
+                res[il] = LATEX_LABELS[MP_KEY_CORRESPONDANCE[label]]
+            else:
+                res[il] = label
+        else:
+            res[il] = label
+        
+    return res
 
 
 def preprocess_raw_data(file_path: str, *, random_seed: int = 1994, frac_test: float = 0.1, frac_valid: float = 0.1, extras: list[str] | None = None) -> None:
