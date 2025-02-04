@@ -676,7 +676,7 @@ def compute_tau(flat_chain: np.ndarray,
                 index = list(parameters[indices_to_plot]).index(param)
                 data[ip, :] = flat_chain[index, :]
             else:
-                data[ip, :] = DEFAULT_VALUES[param]
+                data[ip, :] = DEFAULT_VALUES[to_21cmFAST_names([param])[0]]
 
         #return data 
         tau = predict_tau_numpy(data.T, classifier, regressor)
