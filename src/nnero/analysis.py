@@ -1194,6 +1194,19 @@ class AxesGrid:
             for tick in self._axs[k].get_xticklabels():
                 tick.set_rotation(self._ticks_rotation)
 
+    #update the edges
+    def update_edges(self, axis: int | str, min: float, max: float):
+        
+        j = self.index_from_name(axis) if isinstance(axis, str) else axis
+        self._edges[j, :] = np.array([min, max]) 
+
+        for i in range(j, self.size):
+            self.get(i, j).set_xlim([self.edges[j, 0], self.edges[j, -1]])
+
+        for j in range(0, i):
+            self.get(i, j).set_ylim([self.edges[i, 0], self.edges[i, -1]])
+    
+
     # update the titles properties
     def add_title(self, axis: int, new_titles: str, color: str | None = None):
         
@@ -1671,8 +1684,6 @@ def plot_data(grid: AxesGrid,
                 grid.get(axes[i], axes[j]).contour(*np.meshgrid(data.centers[j], data.centers[i]), data.hists_2D[i, j].T, levels=data.levels[i, j], colors=contour_colors)
 
 
-         
-
     
     # fill in the 1D histograms
     for i in range(0, data.size):
@@ -1712,6 +1723,7 @@ def plot_data(grid: AxesGrid,
             else:
                 grid.add_title(axes[i], r'${:.3g}$'.format(data.median[i], color=colors[0]), color=title_color) 
     
+    
     grid.update_titles()
 
 
@@ -1740,6 +1752,60 @@ def plot_data(grid: AxesGrid,
 
 
 
+
+def plot_2D_marginal(ax: plt.Axes,
+                    data : ProcessedData, 
+                    j: int,
+                    i: int,
+                    show_hist: bool    = False, 
+                    show_surface: bool = True, 
+                    show_contour: bool = False,
+                    show_points: bool  = False,
+                    colors: list[str]  = 'orange', 
+                    alphas: list[float] = 1.0):
+
+    alphas, colors = ([array] if isinstance(array, float) else array for array in [alphas, colors])
+
+
+    # first define the colors we will need to use
+    contour_colors = [mpc.to_rgba(color, alphas[ic]) if isinstance(color, str) else color for ic, color in enumerate(colors)]
+
+
+    # if we provide one color and we ask for more levels then
+    # we define new colors automatically colors
+    if len(contour_colors) == 1:
+        
+        pastelness = np.array([0.7]) if len(data.levels[0, 0]) == 3 else np.linspace(0.5, 0.8, len(data.levels[0, 0])-2)
+        pastelness = pastelness[:, None] * np.ones((1, 4))
+        pastelness[:, -1] = 0
+
+        # add custom pastel colors to the stack of colors
+        contour_colors = np.vstack(((1.0 - pastelness) * np.array(contour_colors) + pastelness, contour_colors))
+    
+    if show_points is True:
+
+        # first thin the samples so that we plot only 5000 points
+        n = data.samples.shape[-1]
+        r = np.max([1, int(n/10000)])
+
+        ax.scatter(data.samples[j, ::r], data.samples[i, ::r], marker='o', edgecolors='none', color = contour_colors[-1], s=2, alpha=0.5)
+
+    if show_hist is True:
+        extent = [data.edges[j, 0], data.edges[j, -1], data.edges[i, 0], data.edges[i, -1]]
+        ax.imshow(data.hists_2D[i, j].T, origin='lower', extent=extent, cmap='Greys', aspect='auto')
+
+            
+    if show_surface is True:
+        try:
+            ax.contourf(*np.meshgrid(data.centers[j], data.centers[i]), data.hists_2D[i, j].T, levels=data.levels[i, j], colors=contour_colors)
+        except ValueError as e:
+            print("Error for axis : ", i, j)
+            raise e
+
+    if show_contour is True:
+        ax.contour(*np.meshgrid(data.centers[j], data.centers[i]), data.hists_2D[i, j].T, levels=data.levels[i, j], colors=contour_colors)
+
+    
 
 
 
