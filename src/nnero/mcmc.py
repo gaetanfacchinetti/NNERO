@@ -130,35 +130,37 @@ class UVLFLikelihood(Likelihood):
 
         if precompute:
 
-            if (self._k is None) and (self._pk is None) and CLASSY_IMPORTED:
+            if (self._k is None) and (self._pk is None):
 
-                h = 0.7
-                omega_m = 0.3*(h**2)
-                cosmo = classy.Class()
-                
-                params_cosmo = {'output' : 'mPk', 'P_k_max_h/Mpc' : 650.0, 'h' : 0.7, 'omega_m' : omega_m}
+                if CLASSY_IMPORTED is True:
 
-                if parameters_xi is not None and 'Ln1010As' in parameters_xi:
-                    params_cosmo['ln10^{10}A_s'] = xi[parameters_xi.index('Ln1010As')]
-                
-                if parameters_xi is not None and 'Ombh2' in parameters_xi:
-                    params_cosmo['omega_b'] = xi[parameters_xi.index('Ombh2')]
+                    h = 0.7
+                    omega_m = 0.3*(h**2)
+                    cosmo = classy.Class()
+                    
+                    params_cosmo = {'output' : 'mPk', 'P_k_max_h/Mpc' : 650.0, 'h' : 0.7, 'omega_m' : omega_m}
 
-                if parameters_xi is not None and 'POWER_INDEX' in parameters_xi:
-                    params_cosmo['n_s'] = xi[parameters_xi.index('POWER_INDEX')]
+                    if parameters_xi is not None and 'Ln1010As' in parameters_xi:
+                        params_cosmo['ln10^{10}A_s'] = xi[parameters_xi.index('Ln1010As')]
+                    
+                    if parameters_xi is not None and 'Ombh2' in parameters_xi:
+                        params_cosmo['omega_b'] = xi[parameters_xi.index('Ombh2')]
 
-                if parameters_xi is None:
-                    print("Attention: matter power spectrum evaluated for a default cosmology.")
+                    if parameters_xi is not None and 'POWER_INDEX' in parameters_xi:
+                        params_cosmo['n_s'] = xi[parameters_xi.index('POWER_INDEX')]
 
-                cosmo.set(params_cosmo)
-                cosmo.compute()
+                    if parameters_xi is None:
+                        print("Attention: matter power spectrum evaluated for a default cosmology.")
 
-                self._k     = np.logspace(-2.5, np.log10(cosmo.pars['P_k_max_h/Mpc'] * h), 50000)
-                self._pk    = np.array([cosmo.pk_lin(_k, 0) for _k in self._k]) 
+                    cosmo.set(params_cosmo)
+                    cosmo.compute()
 
-            else: 
-                raise ValueError("Need to import CLASS to pecompute the matter power spectrum if not given as input.")
-    
+                    self._k     = np.logspace(-2.5, np.log10(cosmo.pars['P_k_max_h/Mpc'] * h), 50000)
+                    self._pk    = np.array([cosmo.pk_lin(_k, 0) for _k in self._k]) 
+
+                else: 
+                    raise ValueError("Need to import CLASS to pecompute the matter power spectrum if not given as input.")
+        
         self.sheth_a = 0.322
         self.sheth_q = 1.0
         self.sheth_p = 0.3 
