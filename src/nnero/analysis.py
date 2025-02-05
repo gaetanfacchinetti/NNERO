@@ -32,6 +32,9 @@ import os
 import numpy as np
 from copy import copy
 
+from scipy.ndimage import gaussian_filter, gaussian_filter1d
+
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Self
@@ -1313,70 +1316,6 @@ def compute_quantiles(sample: np.ndarray, q: float, bins: int | np.ndarray = 30)
        min,max bounds
     """
 
-    """
-
-    # evaluate the histogram
-    hist, edges = np.histogram(sample, bins = bins, density = True)
-
-    # normalising the histogram
-    hist = hist/np.max(hist)
-
-    y_arr = np.linspace(0.0, 1.0, 1000)
-    f_arr = np.empty(len(y_arr))
-    e_arr = np.empty((len(y_arr), 4))
-
-    # precompute the sum of the total sum of the histogram
-    s_hist  = np.sum(hist, axis=-1)
-
-    for iy, y in enumerate(y_arr):
-
-        f_arr[iy] = np.sum(hist[hist > y], axis=-1)/s_hist
-        edges_bound_min  = edges[:-1][hist > y]
-        edges_bound_max  = edges[1:][hist > y]
-        e_arr[iy, 0] = np.min(edges_bound_min) if len(edges_bound_min) > 0 else np.nan
-        e_arr[iy, 1] = np.min(edges_bound_max) if len(edges_bound_max) > 0 else np.nan
-        e_arr[iy, 2] = np.max(edges_bound_min) if len(edges_bound_min) > 0 else np.nan
-        e_arr[iy, 3] = np.max(edges_bound_max) if len(edges_bound_max) > 0 else np.nan
-
-    iq_arr = np.where(f_arr > q)[0]
-
-    # we could do much efficient by just computing f until it reaches
-    # the desired value of confidence level
-    # however, then we cannot do this check for multimodal distributions
-    if not np.all(np.diff(iq_arr) == 1):
-        warnings.warn("Impossible to find a confidence interval for multimodal distribution")
-        return 0, 0
-
-    iq = iq_arr[-1]
-
-    # with e_arr[iq, 0] and e_arr[iq, 3] we already have a upper limit of the quantile bound
-    # we make something more refined by really looking for the 68% confidence level that is
-    # the most centered possible around the median within the bin edges size
-
-    # first define a grid of points in the bin of interest
-    # x_m for the lower bound (m for minus)
-    # x_p for the upper bound (p for plus)
-    x_m = np.linspace(e_arr[iq, 0], e_arr[iq, 1], 30)
-    x_p = np.linspace(e_arr[iq, 2], e_arr[iq, 3], 30)
-
-    # for each value of x_m find the value of x_p such that quantile is q
-    mask = (sample > x_m[:, None, None]) & (sample <  x_p[None, :, None])
-    m_x_p = x_p[np.argmin(np.abs(np.count_nonzero(mask, axis=-1)/len(sample) - q), axis=1)]
-    
-    # remove the values where x_p is just equal to the max
-    # at the very edege of the grid 
-    mask_xp = np.argmin(m_x_p != x_p[-1])
-    xm  = x_m[:mask_xp+1]
-    xp  = m_x_p[:mask_xp+1]
-
-    # find the value of x_m, x_p that are the most
-    # centered around the median
-    m = np.median(sample)
-    index = np.argmin(np.sqrt((2*m - xm - xp)**2))
-
-    return xm[index], xp[index]
-    """
-
     def split_in_groups(lst):
     
         res = [[int(lst[0])]]
@@ -1535,7 +1474,12 @@ def compute_quantiles(sample: np.ndarray, q: float, bins: int | np.ndarray = 30)
 
 
 
-def generate_contours(samples: np.ndarray, bins: int = 20, q = [0.68, 0.95]) -> ProcessedData:
+def generate_contours(samples: np.ndarray, 
+                      bins: int = 20, 
+                      q = [0.68, 0.95],
+                      smooth_2D: bool = False,
+                      smooth_1D: bool = False,
+                      sigma_smooth: float = 1.5,) -> ProcessedData:
 
     data = ProcessedData()
 
@@ -1564,6 +1508,8 @@ def generate_contours(samples: np.ndarray, bins: int = 20, q = [0.68, 0.95]) -> 
     for i in range(n):
           
         hists_1D[i, :], _ = np.histogram(samples[i, :], bins=edges[i, :], density=True)
+        hists_1D[i] = gaussian_filter(hists_1D[i], sigma=sigma_smooth) if smooth_1D is True else hists_1D[i]
+        
         hists_1D[i] = hists_1D[i] / np.max(hists_1D[i])
 
         # evaluate the quantiles
@@ -1588,6 +1534,7 @@ def generate_contours(samples: np.ndarray, bins: int = 20, q = [0.68, 0.95]) -> 
         for j in range(i):
 
             hists_2D[i, j, :, :], _, _ = np.histogram2d(samples[j, :], samples[i, :], bins=[edges[j, :], edges[i, :]], density=True)
+            hists_2D[i, j] = gaussian_filter(hists_2D[i, j], sigma=sigma_smooth) if smooth_2D is True else hists_2D[i, j]
             
             # Flatten the histogram to sort for cumulative density
             sorted_hist = np.sort(hists_2D[i, j].ravel())[::-1]  # Sort in descending order
@@ -1659,6 +1606,8 @@ def plot_data(grid: AxesGrid,
     for i in range(1, data.size):
         for j in range(i):
 
+            hist = data.hists_2D[i, j]
+
             if show_points is True:
 
                 # first thin the samples so that we plot only 5000 points
@@ -1670,18 +1619,18 @@ def plot_data(grid: AxesGrid,
 
             if show_hist is True:
                 extent = [data.edges[j, 0], data.edges[j, -1], data.edges[i, 0], data.edges[i, -1]]
-                grid.get(axes[i], axes[j]).imshow(data.hists_2D[i, j].T, origin='lower', extent=extent, cmap='Greys', aspect='auto')
+                grid.get(axes[i], axes[j]).imshow(hist.T, origin='lower', extent=extent, cmap='Greys', aspect='auto')
 
             
             if show_surface is True:
                 try:
-                    grid.get(axes[i], axes[j]).contourf(*np.meshgrid(data.centers[j], data.centers[i]), data.hists_2D[i, j].T, levels=data.levels[i, j], colors=contour_colors)
+                    grid.get(axes[i], axes[j]).contourf(*np.meshgrid(data.centers[j], data.centers[i]), hist.T, levels=data.levels[i, j], colors=contour_colors)
                 except ValueError as e:
                     print("Error for axis : ", i, j)
                     raise e
 
             if show_contour is True:
-                grid.get(axes[i], axes[j]).contour(*np.meshgrid(data.centers[j], data.centers[i]), data.hists_2D[i, j].T, levels=data.levels[i, j], colors=contour_colors)
+                grid.get(axes[i], axes[j]).contour(*np.meshgrid(data.centers[j], data.centers[i]), hist.T, levels=data.levels[i, j], colors=contour_colors)
 
 
     

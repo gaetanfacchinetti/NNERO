@@ -34,7 +34,7 @@ LATEX_LABELS = {'hlittle' : r'$h$', 'Ln_1010_As' : r'$\ln(10^{10}A_{\rm s})$', '
                   'ALPHA_ESC' : r'$\alpha_{\rm esc}$', 'M_TURN' : r'$\log_{10} M_{\rm turn}$', 'Omdmh2' : r'$\omega_{\rm dm}$', 
                   'Ombh2' : r'$\omega_{\rm b}$', 'POWER_INDEX' : r'$n_{\rm s}$', 'M_WDM' : r'$m_{\rm WDM}~{\rm [keV]}$', 
                   'INVERSE_M_WDM' : r'$1/m_{\rm WDM} ~[{\rm keV}^{-1}]$', 'FRAC_WDM' : r'$f_{\rm WDM}$', 'NEUTRINO_MASS_1' : r'$m_{\nu_1}$',
-                  'LOG10_PMF_SB' : r'$\log_{10}(s_{\rm B})$', 'PMF_NB' : r'$n_{\rm B}$', 'tau_reio' : r'$\tau$', 
+                  'LOG10_PMF_SB' : r'$\log_{10} s_{\rm B}$', 'PMF_NB' : r'$n_{\rm B}$', 'tau_reio' : r'$\tau$', 
                   'L_X' : r'$\log_{10} L_X$', 'NU_X_THRESH' : r'$E_0$', 'sum_mnu' : r'$\sum {m_\nu}~{\rm [eV]}$', 
                   'LOG10_PMF_SIGMA_B0' : r'$\log_{10}{\sigma_{\rm B, 0}}$'}
 
