@@ -433,14 +433,16 @@ class GaussianSamples(Samples):
             if g.mean is not None:
                 all_mean[indices] = g.mean
 
+
         # select the part of the covariance matrix for the desired parameters
         all_cov        = np.linalg.inv(all_inv_cov)
         self._indices  = [all_params.index(param) for param in self._params]
 
         # construct a GaussianInfo object from the total cov and mean defined above
-        self._gaussian       = GaussianInfo(all_mean[indices], all_cov[np.ix_(indices, indices)], self._params)
+        self._gaussian       = GaussianInfo(all_mean[self._indices], all_cov[np.ix_(self._indices, self._indices)], self._params)
         self._generated_data = np.random.multivariate_normal(all_mean, all_cov, n).T
 
+        self._all_params = all_params
 
         # add tau_ion as a parameter
         if self._add_tau is True:
@@ -486,8 +488,8 @@ class GaussianSamples(Samples):
             mask = np.full_like(flat_chain, fill_value=True, dtype=bool)
 
             for ip, param in enumerate(to_CLASS_names(regressor.parameters_name)):
-                if param in self.param_names[1:]: # only take from index 1 as tau is the zeroth
-                    index = list(self.param_names[1:]).index(param)
+                if param in self._all_params: # only take from index 1 as tau is the zeroth
+                    index = list(self._all_params).index(param)
                     val_range = regressor.parameters_range
                     mask[index, :] =  flat_chain[index, :] < val_range[ip, 1]
                     mask[index, :] =  (flat_chain[index, :] > val_range[ip, 0]) & mask[index, :]
@@ -495,7 +497,7 @@ class GaussianSamples(Samples):
             valid_columns = np.all(mask, axis=0)
             flat_chain = flat_chain[:, valid_columns]
 
-            tau = compute_tau(flat_chain, self.param_names, classifier, regressor)
+            tau = compute_tau(flat_chain, self._all_params, classifier, regressor)
 
             return np.vstack((tau[None, :], flat_chain[self._indices, :]))
 
@@ -504,6 +506,10 @@ class GaussianSamples(Samples):
     @property
     def param_names(self) -> np.ndarray:
         return self._params
+    
+    @property
+    def all_param_names(self) -> np.ndarray:
+        return self._all_params
 
     @property
     def scaling_factor(self) -> dict:
@@ -1508,7 +1514,7 @@ def generate_contours(samples: np.ndarray,
     for i in range(n):
           
         hists_1D[i, :], _ = np.histogram(samples[i, :], bins=edges[i, :], density=True)
-        hists_1D[i] = gaussian_filter(hists_1D[i], sigma=sigma_smooth) if smooth_1D is True else hists_1D[i]
+        hists_1D[i] = gaussian_filter1d(hists_1D[i], sigma=sigma_smooth) if smooth_1D is True else hists_1D[i]
         
         hists_1D[i] = hists_1D[i] / np.max(hists_1D[i])
 
@@ -1704,21 +1710,27 @@ def plot_data(grid: AxesGrid,
 
 def plot_2D_marginal(ax: plt.Axes,
                     data : ProcessedData, 
-                    j: int,
                     i: int,
+                    j: int,
                     show_hist: bool    = False, 
                     show_surface: bool = True, 
                     show_contour: bool = False,
                     show_points: bool  = False,
                     colors: list[str]  = 'orange', 
                     alphas: list[float] = 1.0):
+    
+
+
+    if i < j:
+        i, j = j, i
+
+    hist = data.hists_2D[i, j].T
+  
 
     alphas, colors = ([array] if isinstance(array, float) else array for array in [alphas, colors])
 
-
     # first define the colors we will need to use
     contour_colors = [mpc.to_rgba(color, alphas[ic]) if isinstance(color, str) else color for ic, color in enumerate(colors)]
-
 
     # if we provide one color and we ask for more levels then
     # we define new colors automatically colors
@@ -1741,18 +1753,18 @@ def plot_2D_marginal(ax: plt.Axes,
 
     if show_hist is True:
         extent = [data.edges[j, 0], data.edges[j, -1], data.edges[i, 0], data.edges[i, -1]]
-        ax.imshow(data.hists_2D[i, j].T, origin='lower', extent=extent, cmap='Greys', aspect='auto')
+        ax.imshow(hist, origin='lower', extent=extent, cmap='Greys', aspect='auto')
 
             
     if show_surface is True:
         try:
-            ax.contourf(*np.meshgrid(data.centers[j], data.centers[i]), data.hists_2D[i, j].T, levels=data.levels[i, j], colors=contour_colors)
+            ax.contourf(*np.meshgrid(data.centers[j], data.centers[i]), hist, levels=data.levels[i, j], colors=contour_colors)
         except ValueError as e:
             print("Error for axis : ", i, j)
             raise e
 
     if show_contour is True:
-        ax.contour(*np.meshgrid(data.centers[j], data.centers[i]), data.hists_2D[i, j].T, levels=data.levels[i, j], colors=contour_colors)
+        ax.contour(*np.meshgrid(data.centers[j], data.centers[i]), hist, levels=data.levels[i, j], colors=contour_colors)
 
     
 
@@ -1765,7 +1777,9 @@ def get_xHII_stats(samples: Samples,
                    thin: int = 100,
                    *,
                    classifier: Classifier | None = None,
-                   regressor: Regressor | None = None):
+                   regressor: Regressor | None = None,
+                   smooth: bool = False,
+                   sigma_smooth: float = 1.5):
 
     data_for_xHII = []
 
@@ -1830,9 +1844,11 @@ def get_xHII_stats(samples: Samples,
     for iz, x in enumerate(xHII.T):
 
         log_hist[iz], _ = np.histogram(np.log10(x), bins=log_bins, density = True)
+        log_hist[iz] = gaussian_filter1d(log_hist[iz], sigma=sigma_smooth) if smooth is True else log_hist[iz]
         log_hist[iz] = log_hist[iz]/np.max(log_hist[iz])
         
         lin_hist[iz], _ = np.histogram(x, bins=lin_bins, density = True)
+        lin_hist[iz] = gaussian_filter1d(lin_hist[iz], sigma=sigma_smooth) if smooth is True else lin_hist[iz]
         lin_hist[iz] = lin_hist[iz]/np.max(lin_hist[iz])
     
     log_bins = 10**((log_bins[:-1] + log_bins[1:])/2.0)
@@ -1843,8 +1859,15 @@ def get_xHII_stats(samples: Samples,
 
 
 
-def get_xHII_tanh_stats(samples: Samples, nbins: int = 100, 
-                        discard: int = 0, thin : int = 100, x_inf: float = 2e-4, **kwargs):
+def get_xHII_tanh_stats(samples: Samples, 
+                        nbins: int = 100, 
+                        discard: int = 0, 
+                        thin : int = 100, 
+                        x_inf: float = 2e-4, 
+                        *,
+                        smooth: bool = False,
+                        sigma_smooth: float = 1.5,
+                        **kwargs):
 
     def xHII_class(z, z_reio = 8.0):
         return 0.5 * ( 1+np.tanh(  (1+z_reio)/(1.5*0.5)*(1-((1+z)/(1+z_reio))**(1.5))   ) )   
@@ -1868,9 +1891,11 @@ def get_xHII_tanh_stats(samples: Samples, nbins: int = 100,
     for iz, x in enumerate(xHII.T):
 
         log_hist[iz], _ = np.histogram(np.log10(x), bins=log_bins, density = True)
+        log_hist[iz] = gaussian_filter1d(log_hist[iz], sigma=sigma_smooth) if smooth is True else log_hist[iz]
         log_hist[iz] = log_hist[iz]/np.max(log_hist[iz])
         
         lin_hist[iz], _ = np.histogram(x, bins=lin_bins, density = True)
+        lin_hist[iz] = gaussian_filter1d(lin_hist[iz], sigma=sigma_smooth) if smooth is True else lin_hist[iz]
         lin_hist[iz] = lin_hist[iz]/np.max(lin_hist[iz])
     
     log_bins = 10**((log_bins[:-1] + log_bins[1:])/2.0)
