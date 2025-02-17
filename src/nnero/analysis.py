@@ -1700,10 +1700,10 @@ def plot_data(grid: AxesGrid,
         for j in range(0, data.size):
         
             for i in range(j, data.size):
-                grid.get(axes[i], axes[j]).set_xlim([grid.edges[j, 0], grid.edges[j, -1]])
+                grid.get(axes[i], axes[j]).set_xlim([grid.edges[axes[j], 0], grid.edges[axes[j], -1]])
                 
                 if i > j:
-                    grid.get(axes[i], axes[j]).set_ylim([grid.edges[i, 0], grid.edges[i, -1]])
+                    grid.get(axes[i], axes[j]).set_ylim([grid.edges[axes[i], 0], grid.edges[axes[i], -1]])
 
 
 
