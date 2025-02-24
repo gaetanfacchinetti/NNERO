@@ -1205,15 +1205,15 @@ class AxesGrid:
 
     #update the edges
     def update_edges(self, axis: int | str, min: float, max: float):
-        
+    
         j = self.index_from_name(axis) if isinstance(axis, str) else axis
         self._edges[j, :] = np.array([min, max]) 
 
         for i in range(j, self.size):
-            self.get(i, j).set_xlim([self.edges[j, 0], self.edges[j, -1]])
+            self.get(i, j).set_xlim([self._edges[j, 0], self._edges[j, -1]])
 
-        for j in range(0, i):
-            self.get(i, j).set_ylim([self.edges[i, 0], self.edges[i, -1]])
+        for k in range(0, j):
+            self.get(j, k).set_ylim([self._edges[j, 0], self._edges[j, -1]])
     
 
     # update the titles properties
