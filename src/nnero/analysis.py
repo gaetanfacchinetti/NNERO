@@ -44,7 +44,7 @@ from .predictor    import DEFAULT_VALUES
 from .regressor    import Regressor
 from .classifier   import Classifier
 from .interpolator import Interpolator
-from .predictor    import predict_xHII_numpy, predict_tau_numpy, predict_parameter_numpy
+from .predictor    import predict_Xe_numpy, predict_tau_numpy, predict_parameter_numpy
 
 
 EMCEE_IMPORTED = False
@@ -1770,18 +1770,15 @@ def plot_2D_marginal(ax: plt.Axes,
 
 
 
-def get_xHII_stats(samples: Samples, 
+def prepare_data_Xe(samples: Samples, 
                    data_to_plot: list[str] | np.ndarray,  
-                   nbins: int = 100, 
                    discard: int = 0, 
                    thin: int = 100,
                    *,
                    classifier: Classifier | None = None,
-                   regressor: Regressor | None = None,
-                   smooth: bool = False,
-                   sigma_smooth: float = 1.5):
-
-    data_for_xHII = []
+                   regressor: Regressor | None = None,):
+    
+    data_for_Xe = []
 
     data_to_plot = to_CLASS_names(data_to_plot)
 
@@ -1800,17 +1797,17 @@ def get_xHII_stats(samples: Samples,
             param = 'm_nu1'
 
         if (param in MP_KEY_CORRESPONDANCE) and (MP_KEY_CORRESPONDANCE[param] in parameters):
-            data_for_xHII.append(param)
+            data_for_Xe.append(param)
 
     
     labels_correspondance = {value : key for key, value in MP_KEY_CORRESPONDANCE.items()}
     
     # get the data sample 
-    data_sample = prepare_data_plot(samples, data_for_xHII, discard=discard, thin=thin, regressor = regressor, classifier = classifier)
+    data_sample = prepare_data_plot(samples, data_for_Xe, discard=discard, thin=thin, regressor = regressor, classifier = classifier)
     data = np.empty((len(parameters), data_sample.shape[-1])) 
 
     # find the ordering in which data_sample is set in prepare_data_plot
-    indices_to_plot = [np.where(samples.param_names == param)[0][0] for param in data_for_xHII if param in samples.param_names]
+    indices_to_plot = [np.where(samples.param_names == param)[0][0] for param in data_for_Xe if param in samples.param_names]
 
     for ip, param in enumerate(parameters): 
         
@@ -1821,18 +1818,34 @@ def get_xHII_stats(samples: Samples,
         else:
             data[ip, :] = DEFAULT_VALUES[param]
 
-    xHII = predict_xHII_numpy(theta=data.T, classifier=classifier, regressor=regressor)
+    return data
     
+
+
+def get_Xe_stats(samples: Samples, 
+                   data_to_plot: list[str] | np.ndarray,  
+                   nbins: int = 100, 
+                   discard: int = 0, 
+                   thin: int = 100,
+                   *,
+                   classifier: Classifier | None = None,
+                   regressor: Regressor | None = None,
+                   smooth: bool = False,
+                   sigma_smooth: float = 1.5):
+
+    data = prepare_data_Xe(samples, data_to_plot, discard, thin, classifier=classifier, regressor=regressor)
+    Xe = predict_Xe_numpy(theta=data.T, classifier=classifier, regressor=regressor)
+
     # here remove some outliers that should not have 
     # passed the likelihood condition
-    if np.count_nonzero(xHII[:, -1]==-1)/len(xHII) > 0.01:
+    if np.count_nonzero(Xe[:, -1]==-1)/len(Xe) > 0.01:
         warnings.warn("More than 1 percent of outliers with late reionization")
 
-    xHII = xHII[xHII[:, -1] > 0]
+    Xe = Xe[Xe[:, -1] > 0]
     z = regressor.metadata.z
     
-    mean, med = np.mean(xHII, axis=0), np.median(xHII, axis=0)
-    min, max  = np.min(xHII), np.max(xHII)
+    mean, med = np.mean(Xe, axis=0), np.median(Xe, axis=0)
+    min, max  = np.min(Xe), np.max(Xe)
 
     log_bins = np.linspace(np.log10(min), np.log10(max), nbins)
     log_hist = np.zeros((len(z), len(log_bins)-1))
@@ -1841,7 +1854,7 @@ def get_xHII_stats(samples: Samples,
     lin_hist = np.zeros((len(z), len(lin_bins)-1))
 
     # make an histogram for each value of z
-    for iz, x in enumerate(xHII.T):
+    for iz, x in enumerate(Xe.T):
 
         log_hist[iz], _ = np.histogram(np.log10(x), bins=log_bins, density = True)
         log_hist[iz] = gaussian_filter1d(log_hist[iz], sigma=sigma_smooth) if smooth is True else log_hist[iz]
@@ -1859,7 +1872,7 @@ def get_xHII_stats(samples: Samples,
 
 
 
-def get_xHII_tanh_stats(samples: Samples, 
+def get_Xe_tanh_stats(samples: Samples, 
                         nbins: int = 100, 
                         discard: int = 0, 
                         thin : int = 100, 
@@ -1869,17 +1882,17 @@ def get_xHII_tanh_stats(samples: Samples,
                         sigma_smooth: float = 1.5,
                         **kwargs):
 
-    def xHII_class(z, z_reio = 8.0):
+    def Xe_class(z, z_reio = 8.0):
         return 0.5 * ( 1+np.tanh(  (1+z_reio)/(1.5*0.5)*(1-((1+z)/(1+z_reio))**(1.5))   ) )   
 
     index = list(samples.param_names).index('z_reio')
     z_reio = samples.flat(discard=discard, thin=thin, **kwargs)[index, :]
 
     z = np.linspace(0, 35, 100)
-    xHII = xHII_class(z, z_reio[:, None]) + x_inf
+    Xe = Xe_class(z, z_reio[:, None]) + x_inf
 
-    mean, med = np.mean(xHII, axis=0), np.median(xHII, axis=0)
-    min, max  = np.min(xHII), np.max(xHII)
+    mean, med = np.mean(Xe, axis=0), np.median(Xe, axis=0)
+    min, max  = np.min(Xe), np.max(Xe)
 
     log_bins = np.linspace(np.log10(min), np.log10(max), nbins)
     log_hist = np.zeros((len(z), len(log_bins)-1))
@@ -1888,7 +1901,7 @@ def get_xHII_tanh_stats(samples: Samples,
     lin_hist = np.zeros((len(z), len(lin_bins)-1))
 
     # make an histogram for each value of z
-    for iz, x in enumerate(xHII.T):
+    for iz, x in enumerate(Xe.T):
 
         log_hist[iz], _ = np.histogram(np.log10(x), bins=log_bins, density = True)
         log_hist[iz] = gaussian_filter1d(log_hist[iz], sigma=sigma_smooth) if smooth is True else log_hist[iz]

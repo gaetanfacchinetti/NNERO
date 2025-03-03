@@ -32,6 +32,6 @@ from .predictor    import (input_values, predict_classifier, predict_xHII, predi
 from .mcmc         import (log_prior, log_likelihood, log_probability, initialise_walkers, Likelihood, UVLFLikelihood)
 from .analysis     import (MPChain, Samples, MPSamples, EMCEESamples, GaussianInfo, GaussianSamples, AxesGrid, plot_data, 
                            generate_contours, ProcessedData, compute_quantiles, neutrino_masses, prepare_data_plot,
-                           get_xHII_stats, get_xHII_tanh_stats)
+                           get_Xe_stats, get_Xe_tanh_stats)
 
 
