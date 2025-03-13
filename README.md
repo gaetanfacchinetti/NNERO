@@ -35,7 +35,7 @@ pip install -e .
 
 ## How to use NNERO?
 
-A detailed documentation is under construction here: 
+A detailed documentation is under construction [here](https://gaetanfacchinetti.github.io/docs/NNERO/html/index.html).
 
 ### Simple case
 
