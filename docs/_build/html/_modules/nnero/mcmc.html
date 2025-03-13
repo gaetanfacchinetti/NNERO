@@ -99,6 +99,7 @@
 <span class="kn">import</span> <span class="nn">pkg_resources</span>
 
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span>
 
 <span class="kn">from</span> <span class="nn">scipy</span>       <span class="kn">import</span> <span class="n">special</span><span class="p">,</span> <span class="n">interpolate</span>
 <span class="kn">from</span> <span class="nn">.data</span>       <span class="kn">import</span> <span class="n">uniform_to_true</span>
@@ -737,7 +738,7 @@
 
         <span class="c1"># second, compute the matter power spectrum from a given function</span>
         <span class="n">k_arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">uvlf_lkl</span><span class="o">.</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">k_max</span><span class="p">),</span> <span class="mi">50000</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">func</span><span class="p">:</span> <span class="n">function</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;matter_power_spectrum_computer&#39;</span><span class="p">)</span>
+        <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;matter_power_spectrum_computer&#39;</span><span class="p">)</span>
         <span class="n">x_dicts</span><span class="p">:</span> <span class="nb">dict</span>       <span class="o">=</span> <span class="n">uvlf_lkl</span><span class="o">.</span><span class="n">get_x_dicts</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
         <span class="n">pk_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">k_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
