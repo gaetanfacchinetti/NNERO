@@ -96,11 +96,12 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 
-<span class="kn">from</span> <span class="nn">.data</span>       <span class="kn">import</span> <span class="n">MetaData</span><span class="p">,</span> <span class="n">true_to_uniform</span>
-<span class="kn">from</span> <span class="nn">.cosmology</span>  <span class="kn">import</span> <span class="n">optical_depth_no_rad</span>
-<span class="kn">from</span> <span class="nn">.classifier</span> <span class="kn">import</span> <span class="n">Classifier</span>
-<span class="kn">from</span> <span class="nn">.regressor</span>  <span class="kn">import</span> <span class="n">Regressor</span>
-<span class="kn">from</span> <span class="nn">.data</span>       <span class="kn">import</span> <span class="n">MP_KEY_CORRESPONDANCE</span>
+<span class="kn">from</span> <span class="nn">.data</span>         <span class="kn">import</span> <span class="n">MetaData</span><span class="p">,</span> <span class="n">true_to_uniform</span>
+<span class="kn">from</span> <span class="nn">.cosmology</span>    <span class="kn">import</span> <span class="n">optical_depth_no_rad</span>
+<span class="kn">from</span> <span class="nn">.classifier</span>   <span class="kn">import</span> <span class="n">Classifier</span>
+<span class="kn">from</span> <span class="nn">.regressor</span>    <span class="kn">import</span> <span class="n">Regressor</span>
+<span class="kn">from</span> <span class="nn">.interpolator</span> <span class="kn">import</span> <span class="n">Interpolator</span>
+<span class="kn">from</span> <span class="nn">.data</span>         <span class="kn">import</span> <span class="n">MP_KEY_CORRESPONDANCE</span>
 
 
 <span class="n">DEFAULT_VALUES</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;F_STAR10&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="s1">&#39;ALPHA_STAR&#39;</span> <span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;t_STAR&#39;</span> <span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;F_ESC10&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;ALPHA_ESC&#39;</span> <span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s1">&#39;M_TURN&#39;</span> <span class="p">:</span> <span class="mf">8.7</span><span class="p">,</span>
@@ -317,6 +318,10 @@
 <span class="sd">    regressor: nnero.Regressor | None, optional</span>
 <span class="sd">        Regressor object already trained. Default is None. If None, the default</span>
 <span class="sd">        regressor `DefaultRegressor` is used.</span>
+<span class="sd">    default : dict | None, optional</span>
+<span class="sd">        Dictionnary of default values, by default None.</span>
+<span class="sd">        The default dictionnaly should have keys corresponding to those of the trained dataset</span>
+<span class="sd">        as accessible from `regressor.info()`.</span>
 <span class="sd">    **kwargs</span>
 <span class="sd">        Any value for a parameter the regressor has been trained on.</span>
 <span class="sd">        Keys should corresponds to `regressor.parameters_name`.</span>
@@ -368,13 +373,12 @@
 <span class="sd">    Returns</span>
 <span class="sd">    --------</span>
 <span class="sd">    np.ndarray</span>
-<span class="sd">        2D array of shape (n, p) for the values for X_e</span>
-<span class="sd">        with n the number of redshift bins and p the number for parameters. </span>
+<span class="sd">        2D array of shape (n, q) for the values for X_e</span>
+<span class="sd">        wit q the number of redshift bins. </span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">regressor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">regressor</span> <span class="o">=</span> <span class="n">Regressor</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
-
 
     <span class="n">u_vals</span> <span class="o">=</span> <span class="n">uniform_input_array</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
     <span class="n">u_vals</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">u_vals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
@@ -383,6 +387,121 @@
         <span class="n">res</span> <span class="o">=</span> <span class="n">regressor</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">u_vals</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">res</span>   </div>
+
+
+
+
+<div class="viewcode-block" id="predict_interpolator">
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_interpolator">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_interpolator</span><span class="p">(</span><span class="n">interpolator</span><span class="p">:</span> <span class="n">Interpolator</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                         <span class="n">default</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                         <span class="n">parameter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                         <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prediction of the interpolator. See `predict_interpolator_numpy` for a more</span>
+<span class="sd">    advanced but faster method (working with numpy arrays).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    interpolator: nnero.Interpolator | None, optional</span>
+<span class="sd">        Interpolator object already trained. Default is None. If None, the default</span>
+<span class="sd">        interpolator `DefaultInterpolator_&lt;parameter&gt;` is used.</span>
+<span class="sd">    default : dict | None, optional</span>
+<span class="sd">        Dictionnary of default values, by default None.</span>
+<span class="sd">        The default dictionnaly should have keys corresponding to those of the trained dataset</span>
+<span class="sd">        as accessible from `interpolator.info()`.</span>
+<span class="sd">    parameter: str | None, optional</span>
+<span class="sd">        If no interpolator given in input, must be specified to know which interpolator to load.</span>
+<span class="sd">        Default is None.</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Any value for a parameter the interpolator has been trained on.</span>
+<span class="sd">        Keys should corresponds to `interpolator.parameters_name`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    --------</span>
+<span class="sd">    float</span>
+<span class="sd">        Interpolated value.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If no interpolator given, need to specify on which parameter we cant to interpolate</span>
+<span class="sd">        in order to load the associated default interpolator.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">default</span> <span class="o">=</span> <span class="n">DEFAULT_VALUES</span>
+
+    <span class="c1"># if no interpolator passed as input, load the default one</span>
+    <span class="k">if</span> <span class="n">interpolator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">parameter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">interpolator</span> <span class="o">=</span> <span class="n">Interpolator</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;DefaultInterpolator_&quot;</span> <span class="o">+</span> <span class="n">parameter</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Need to pass the parameter to interpolate to the predictor.&quot;</span><span class="p">)</span>
+     
+    <span class="n">u_vals</span> <span class="o">=</span> <span class="n">uniform_input_values</span><span class="p">(</span><span class="n">interpolator</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">u_vals</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">u_vals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">interpolator</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">u_vals</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">res</span></div>
+
+
+
+
+
+<div class="viewcode-block" id="predict_interpolator_numpy">
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_interpolator_numpy">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_interpolator_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                               <span class="n">interpolator</span><span class="p">:</span> <span class="n">Regressor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                               <span class="n">parameter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prediction of the interpolator. Same as `predict_interpolator` but much faster</span>
+<span class="sd">    as it work with numpy arrays.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    theta: np.ndarray</span>
+<span class="sd">        Array of shape (n, p) of parameters, where p is the number of parameters.</span>
+<span class="sd">        The p parameters values should be given in the order they were fed to the</span>
+<span class="sd">        regressor for training. These parameters and their order are accesible </span>
+<span class="sd">        calling `regressor.info()`.</span>
+<span class="sd">    interpolator: nnero.Interpolator | None, optional</span>
+<span class="sd">        Regressor object already trained. Default is None. If None, the default</span>
+<span class="sd">        regressor `DefaultRegressor` is used.</span>
+<span class="sd">    parameter: str | None, optional</span>
+<span class="sd">        If no interpolator given in input, must be specified to know which interpolator to load.</span>
+<span class="sd">        Default is None.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    --------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        1D array of shape n for the inteprolated values.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If no interpolator given, need to specify on which parameter we cant to interpolate</span>
+<span class="sd">        in order to load the associated default interpolator.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># if no interpolator passed as input, load the default one</span>
+    <span class="k">if</span> <span class="n">interpolator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">parameter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">interpolator</span> <span class="o">=</span> <span class="n">Interpolator</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;DefaultInterpolator_&quot;</span> <span class="o">+</span> <span class="n">parameter</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Need to pass the parameter to interpolate to the predictor.&quot;</span><span class="p">)</span>
+        
+    <span class="n">u_vals</span> <span class="o">=</span> <span class="n">uniform_input_array</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">interpolator</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+    <span class="n">u_vals</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">u_vals</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">interpolator</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">u_vals</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">res</span>   </div>
+
+
 
 
 
@@ -460,8 +579,8 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    np.ndarray</span>
-<span class="sd">        2D array of shape (n, p) for the values for X_e</span>
-<span class="sd">        with n the number of redshift bins and p the number for parameters.</span>
+<span class="sd">        2D array of shape (n, q) for the values for X_e</span>
+<span class="sd">        with q the number for parameters.</span>
 <span class="sd">        When the classifier outputs false, the array is filled with -1. </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
@@ -474,6 +593,105 @@
     <span class="n">xHII</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">predict_regressor_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="p">:],</span> <span class="n">regressor</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">xHII</span></div>
+
+
+
+
+
+
+<div class="viewcode-block" id="predict_parameter">
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_parameter">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_parameter</span><span class="p">(</span><span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  
+                      <span class="n">interpolator</span><span class="p">:</span>  <span class="n">Interpolator</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  
+                      <span class="n">default</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                      <span class="n">parameter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                      <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="nb">bool</span> <span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prediction of the interpolated parameter, taking into account</span>
+<span class="sd">    the selection from the classifier. See `predict_parameter_numpy` for a more</span>
+<span class="sd">    advanced but faster method (working with numpy arrays).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    classifier : Classifier | None, optional</span>
+<span class="sd">        Classifier object already trained. Default is None. If None, the default</span>
+<span class="sd">        classifier `DefaultClassifier` is used.</span>
+<span class="sd">    interpolator : Interpolator | None, optional</span>
+<span class="sd">        Interpolator object already trained. Default is None. If None, the default</span>
+<span class="sd">        interpolator `DefaultInterpolator_&lt;parameter&gt;` is used.</span>
+<span class="sd">    default : dict | None, optional</span>
+<span class="sd">        Dictionnary of default values, by default None.</span>
+<span class="sd">        The default dictionnaly should have keys corresponding to those of the trained dataset</span>
+<span class="sd">        as accessible from `interpolator.info()` or `classifier.info()`.</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Any value for a parameter the classifier and interpolator have been trained on.</span>
+<span class="sd">        Keys should corresponds to `regressor.parameters_name` or `classifier.parameters_name`.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray | bool</span>
+<span class="sd">        Returns `False` if the classifier returns `False`. Returns the prediction</span>
+<span class="sd">        from the interpolator for the parameter otherwise.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">default</span> <span class="o">=</span> <span class="n">DEFAULT_VALUES</span>
+    
+    <span class="n">early</span> <span class="o">=</span> <span class="n">predict_classifier</span><span class="p">(</span><span class="n">classifier</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">early</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    
+    <span class="k">return</span> <span class="n">predict_interpolator</span><span class="p">(</span><span class="n">interpolator</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">parameter</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="predict_parameter_numpy">
+<a class="viewcode-back" href="../../source/nnero.predictor.html#nnero.predictor.predict_parameter_numpy">[docs]</a>
+<span class="k">def</span> <span class="nf">predict_parameter_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                            <span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                            <span class="n">interpolator</span><span class="p">:</span>  <span class="n">Interpolator</span>  <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                            <span class="n">parameter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prediction of the interpolated parameter, taking into account</span>
+<span class="sd">    the selection from the classifier. Same as `predict_parameter` but much faster</span>
+<span class="sd">    as it work with numpy arrays.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    theta: np.ndarray</span>
+<span class="sd">        Array of shape (n, p) of parameters, where p is the number of parameters.</span>
+<span class="sd">        The p parameters values should be given in the order they were fed to the</span>
+<span class="sd">        regressor for training. These parameters and their order are accesible </span>
+<span class="sd">        calling `regressor.info()`.</span>
+<span class="sd">    classifier : Classifier | None, optional</span>
+<span class="sd">        Classifier object already trained. Default is None. If None, the default</span>
+<span class="sd">        classifier `DefaultClassifier` is used.</span>
+<span class="sd">    interpolator : Interpolator | None, optional</span>
+<span class="sd">        Interpolator object already trained. Default is None. If None, the default</span>
+<span class="sd">        interpolator `DefaultInterpolator` is used.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        1D array of shape (n) for the value of the parameter</span>
+<span class="sd">        When the classifier outputs false, the array is filled with -1. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># if no interpolator passed as input, load the default one</span>
+    <span class="k">if</span> <span class="n">interpolator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">parameter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">interpolator</span> <span class="o">=</span> <span class="n">Interpolator</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;DefaultInterpolator_&quot;</span> <span class="o">+</span> <span class="n">parameter</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Need to pass the parameter to interpolate to the predictor.&quot;</span><span class="p">)</span>
+    
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">predict_classifier_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">classifier</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="n">res</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">predict_interpolator_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="p">:],</span> <span class="n">interpolator</span><span class="p">,</span> <span class="n">parameter</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">res</span></div>
+
 
 
 
@@ -515,7 +733,7 @@
     <span class="n">vals</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     
     <span class="n">omega_b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vals</span><span class="p">[</span><span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_b</span><span class="p">]])[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
-    <span class="n">omega_c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vals</span><span class="p">[</span><span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_c</span><span class="p">]])[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">omega_c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vals</span><span class="p">[</span><span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_dm</span><span class="p">]])[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
     <span class="n">hlittle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vals</span><span class="p">[</span><span class="n">metadata</span><span class="o">.</span><span class="n">pos_hlittle</span><span class="p">]])[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
     
     <span class="k">return</span> <span class="n">optical_depth_no_rad</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="n">xe</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_c</span><span class="p">,</span> <span class="n">hlittle</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
@@ -551,10 +769,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="n">omega_b</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[:,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_b</span><span class="p">]</span>
-    <span class="n">omega_c</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[:,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_c</span><span class="p">]</span>
+    <span class="n">omega_c</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[:,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_dm</span><span class="p">]</span>
     <span class="n">hlittle</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[:,</span> <span class="n">metadata</span><span class="o">.</span><span class="n">pos_hlittle</span><span class="p">]</span>
 
     <span class="k">return</span> <span class="n">optical_depth_no_rad</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="n">xe</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_c</span><span class="p">,</span> <span class="n">hlittle</span><span class="p">)</span></div>
+
 
 
 

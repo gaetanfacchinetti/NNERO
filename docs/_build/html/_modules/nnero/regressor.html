@@ -246,7 +246,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        path: str | None</span>
-<span class="sd">            Path to the saved files containing the regresor data.</span>
+<span class="sd">            Path to the saved files containing the regressor data.</span>
 <span class="sd">            If None automatically fetch the DefaultRegressor.</span>
 
 <span class="sd">        Returns</span>
@@ -334,7 +334,7 @@
 
         <span class="n">z_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="n">omega_b</span>  <span class="o">=</span> <span class="n">uniform_to_true</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_b</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">min_omega_b</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">max_omega_b</span><span class="p">)</span>
-        <span class="n">omega_c</span>  <span class="o">=</span> <span class="n">uniform_to_true</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_c</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">min_omega_c</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">max_omega_c</span><span class="p">)</span>
+        <span class="n">omega_c</span>  <span class="o">=</span> <span class="n">uniform_to_true</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">pos_omega_dm</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">min_omega_c</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">max_omega_c</span><span class="p">)</span>
         <span class="n">hlittle</span>  <span class="o">=</span> <span class="n">uniform_to_true</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">pos_hlittle</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">min_hlittle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">max_hlittle</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">optical_depth_no_rad</span><span class="p">(</span><span class="n">z_tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_c</span><span class="p">,</span> <span class="n">hlittle</span><span class="p">)</span></div>
 
@@ -428,7 +428,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="o">.</span><span class="n">z</span></div>
 
     
-    
+
     
 <div class="viewcode-block" id="train_regressor">
 <a class="viewcode-back" href="../../source/nnero.regressor.html#nnero.regressor.train_regressor">[docs]</a>
@@ -517,7 +517,7 @@
             <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">valid_loader</span><span class="p">:</span>
                 <span class="n">x_batch</span><span class="p">,</span> <span class="n">y_batch</span> <span class="o">=</span> <span class="n">batch</span>
             
-                <span class="n">y_pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x_batch</span><span class="p">)</span>              <span class="c1"># forward pass</span>
+                <span class="n">y_pred</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">x_batch</span><span class="p">)</span>              <span class="c1"># forward pass</span>
                 <span class="n">tau_pred</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">tau_ion</span><span class="p">(</span><span class="n">x_batch</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
                 
                 <span class="n">loss_xHII</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">loss_xHII</span><span class="p">(</span><span class="n">y_pred</span><span class="p">,</span> <span class="n">y_batch</span><span class="p">)</span>

@@ -95,11 +95,530 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 
-<span class="kn">from</span> <span class="nn">scipy</span>       <span class="kn">import</span> <span class="n">special</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">pkg_resources</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+
+<span class="kn">from</span> <span class="nn">scipy</span>       <span class="kn">import</span> <span class="n">special</span><span class="p">,</span> <span class="n">interpolate</span>
 <span class="kn">from</span> <span class="nn">.data</span>       <span class="kn">import</span> <span class="n">uniform_to_true</span>
-<span class="kn">from</span> <span class="nn">.predictor</span>  <span class="kn">import</span> <span class="n">predict_tau_from_xHII_numpy</span><span class="p">,</span> <span class="n">predict_xHII_numpy</span>
+<span class="kn">from</span> <span class="nn">.predictor</span>  <span class="kn">import</span> <span class="n">predict_tau_from_xHII_numpy</span><span class="p">,</span> <span class="n">predict_xHII_numpy</span><span class="p">,</span> <span class="n">DEFAULT_VALUES</span>
 <span class="kn">from</span> <span class="nn">.classifier</span> <span class="kn">import</span> <span class="n">Classifier</span>
 <span class="kn">from</span> <span class="nn">.regressor</span>  <span class="kn">import</span> <span class="n">Regressor</span>
+
+<span class="kn">from</span> <span class="nn">.astrophysics</span> <span class="kn">import</span> <span class="n">m_halo</span><span class="p">,</span> <span class="n">phi_uv</span><span class="p">,</span> <span class="n">dn_dm</span>
+<span class="kn">from</span> <span class="nn">.cosmology</span> <span class="kn">import</span> <span class="n">h_factor_no_rad</span><span class="p">,</span> <span class="n">ShortPowerSpectrumRange</span>
+<span class="kn">from</span> <span class="nn">.constants</span> <span class="kn">import</span> <span class="n">CONVERSIONS</span><span class="p">,</span> <span class="n">CST_MSOL_MPC</span>
+
+<span class="n">CLASSY_IMPORTED</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">classy</span>
+    <span class="n">CLASSY_IMPORTED</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<span class="n">LIKELIHOOD_DATA_PATH</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;nnero&#39;</span><span class="p">,</span> <span class="s1">&#39;lkl_data/&#39;</span><span class="p">)</span>
+
+
+<span class="c1">######################</span>
+<span class="c1">## Define likelihood at fixed cosmology</span>
+
+<div class="viewcode-block" id="Likelihood">
+<a class="viewcode-back" href="../../source/nnero.mcmc.html#nnero.mcmc.Likelihood">[docs]</a>
+<span class="k">class</span> <span class="nc">Likelihood</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">parameters</span><span class="p">)}</span> 
+
+
+<div class="viewcode-block" id="Likelihood.get_x">
+<a class="viewcode-back" href="../../source/nnero.mcmc.html#nnero.mcmc.Likelihood.get_x">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>  <span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">xi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">theta</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">xi</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">xi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="p">(</span><span class="n">theta</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">theta</span><span class="p">,</span> <span class="n">xi</span><span class="p">))</span></div>
+
+    
+
+<div class="viewcode-block" id="Likelihood.get_x_dict">
+<a class="viewcode-back" href="../../source/nnero.mcmc.html#nnero.mcmc.Likelihood.get_x_dict">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_x_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">param</span><span class="p">:</span><span class="n">x</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">[</span><span class="n">param</span><span class="p">]]</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Likelihood.get_x_dicts">
+<a class="viewcode-back" href="../../source/nnero.mcmc.html#nnero.mcmc.Likelihood.get_x_dicts">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_x_dicts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">[</span> <span class="p">{</span><span class="n">param</span><span class="p">:</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">[</span><span class="n">param</span><span class="p">]]</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">}</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span></div>
+
+            
+   
+<div class="viewcode-block" id="Likelihood.loglkl">
+<a class="viewcode-back" href="../../source/nnero.mcmc.html#nnero.mcmc.Likelihood.loglkl">[docs]</a>
+    <span class="k">def</span> <span class="nf">loglkl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">xi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_x</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">xi</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;theta and xi should make an array that is the size of the parameter vector&#39;</span> <span class="p">)</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loglkl</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_loglkl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vectorizable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vectorizable</span></div>
+
+
+
+<div class="viewcode-block" id="UVLFLikelihood">
+<a class="viewcode-back" href="../../source/nnero.mcmc.html#nnero.mcmc.UVLFLikelihood">[docs]</a>
+<span class="k">class</span> <span class="nc">UVLFLikelihood</span><span class="p">(</span><span class="n">Likelihood</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Likelihood for the UV luminosity functions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    k : np.ndarray</span>
+<span class="sd">        Array of modes on which the matter power spectrum is given (in 1/Mpc).</span>
+<span class="sd">    pk : np.ndarray</span>
+<span class="sd">        Matter power spectrum.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">parameters</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>  
+                 <span class="o">*</span><span class="p">,</span>
+                 <span class="n">parameters_xi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">xi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">k</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                 <span class="n">pk</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">precompute</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    
+    
+        <span class="bp">self</span><span class="o">.</span><span class="n">_k</span>  <span class="o">=</span> <span class="n">k</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pk</span> <span class="o">=</span> <span class="n">pk</span>
+
+        <span class="k">if</span> <span class="n">precompute</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_k</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pk</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+
+                <span class="k">if</span> <span class="n">CLASSY_IMPORTED</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+
+                    <span class="n">h</span> <span class="o">=</span> <span class="mf">0.7</span>
+                    <span class="n">omega_m</span> <span class="o">=</span> <span class="mf">0.3</span><span class="o">*</span><span class="p">(</span><span class="n">h</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+                    <span class="n">cosmo</span> <span class="o">=</span> <span class="n">classy</span><span class="o">.</span><span class="n">Class</span><span class="p">()</span>
+                    
+                    <span class="n">params_cosmo</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;output&#39;</span> <span class="p">:</span> <span class="s1">&#39;mPk&#39;</span><span class="p">,</span> <span class="s1">&#39;P_k_max_h/Mpc&#39;</span> <span class="p">:</span> <span class="mf">650.0</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span> <span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span> <span class="s1">&#39;omega_m&#39;</span> <span class="p">:</span> <span class="n">omega_m</span><span class="p">}</span>
+
+                    <span class="k">if</span> <span class="n">parameters_xi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;Ln1010As&#39;</span> <span class="ow">in</span> <span class="n">parameters_xi</span><span class="p">:</span>
+                        <span class="n">params_cosmo</span><span class="p">[</span><span class="s1">&#39;ln10^</span><span class="si">{10}</span><span class="s1">A_s&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">xi</span><span class="p">[</span><span class="n">parameters_xi</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;Ln1010As&#39;</span><span class="p">)]</span>
+                    
+                    <span class="k">if</span> <span class="n">parameters_xi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;Ombh2&#39;</span> <span class="ow">in</span> <span class="n">parameters_xi</span><span class="p">:</span>
+                        <span class="n">params_cosmo</span><span class="p">[</span><span class="s1">&#39;omega_b&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">xi</span><span class="p">[</span><span class="n">parameters_xi</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;Ombh2&#39;</span><span class="p">)]</span>
+
+                    <span class="k">if</span> <span class="n">parameters_xi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;POWER_INDEX&#39;</span> <span class="ow">in</span> <span class="n">parameters_xi</span><span class="p">:</span>
+                        <span class="n">params_cosmo</span><span class="p">[</span><span class="s1">&#39;n_s&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">xi</span><span class="p">[</span><span class="n">parameters_xi</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;POWER_INDEX&#39;</span><span class="p">)]</span>
+
+                    <span class="k">if</span> <span class="n">parameters_xi</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Attention: matter power spectrum evaluated for a default cosmology.&quot;</span><span class="p">)</span>
+
+                    <span class="n">cosmo</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">params_cosmo</span><span class="p">)</span>
+                    <span class="n">cosmo</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_k</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">cosmo</span><span class="o">.</span><span class="n">pars</span><span class="p">[</span><span class="s1">&#39;P_k_max_h/Mpc&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">h</span><span class="p">),</span> <span class="mi">50000</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pk</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">cosmo</span><span class="o">.</span><span class="n">pk_lin</span><span class="p">(</span><span class="n">_k</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">_k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_k</span><span class="p">])</span> 
+
+                <span class="k">else</span><span class="p">:</span> 
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Need to import CLASS to pecompute the matter power spectrum if not given as input.&quot;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">sheth_a</span> <span class="o">=</span> <span class="mf">0.322</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sheth_q</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sheth_p</span> <span class="o">=</span> <span class="mf">0.3</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">c</span>       <span class="o">=</span> <span class="mf">2.5</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span>  <span class="o">=</span> <span class="s1">&#39;sharpk&#39;</span>
+
+        <span class="n">elements_to_check</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ALPHA_STAR&#39;</span><span class="p">,</span> <span class="s1">&#39;t_STAR&#39;</span><span class="p">,</span> <span class="s1">&#39;F_STAR10&#39;</span><span class="p">,</span> <span class="s1">&#39;M_TURN&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="n">element</span> <span class="ow">in</span> <span class="n">parameters</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements_to_check</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;In order to use UVLFLikelihood, need to pass alpha_star, t_star, log10_f_star10 and log10_m_turn as inpur parameters&#39;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">LIKELIHOOD_DATA_PATH</span><span class="p">,</span> <span class="s2">&quot;UVData.pkl&quot;</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        
+            <span class="n">data_uv</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">z_uv_exp</span> <span class="o">=</span> <span class="n">data_uv</span><span class="p">[</span><span class="s1">&#39;z_uv&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">m_uv_exp</span> <span class="o">=</span> <span class="n">data_uv</span><span class="p">[</span><span class="s1">&#39;m_uv&#39;</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">phi_uv_exp</span> <span class="o">=</span> <span class="n">data_uv</span><span class="p">[</span><span class="s1">&#39;p_uv&#39;</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">sigma_phi_uv_down</span> <span class="o">=</span> <span class="n">data_uv</span><span class="p">[</span><span class="s1">&#39;sigma_p_uv_down&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sigma_phi_uv_up</span>   <span class="o">=</span> <span class="n">data_uv</span><span class="p">[</span><span class="s1">&#39;sigma_p_uv_up&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z_array</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z_index_from_table</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_precompute</span> <span class="o">=</span> <span class="n">precompute</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_masses</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dndmh</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># if we can precompute the halo mass function </span>
+        <span class="c1"># because the matter power spectrum does not vary</span>
+        <span class="c1"># then we do it here</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_precompute</span><span class="p">:</span>
+
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]:</span>
+
+                <span class="c1"># loop on the redshift bins</span>
+                <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_uv_exp</span><span class="p">[</span><span class="n">j</span><span class="p">]:</span>
+
+                    <span class="k">if</span> <span class="n">z</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z_array</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_z_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+                    
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_z_index_from_table</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_z_array</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">z</span><span class="p">))</span>
+
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_z_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_z_array</span><span class="p">)</span>
+
+            <span class="n">rhom0</span>  <span class="o">=</span> <span class="p">(</span><span class="mf">0.3</span><span class="o">*</span><span class="p">(</span><span class="mf">0.7</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span> <span class="o">*</span> <span class="n">CST_MSOL_MPC</span><span class="o">.</span><span class="n">rho_c_over_h2</span>        
+            <span class="n">m_min</span>  <span class="o">=</span> <span class="mf">1.1</span> <span class="o">*</span> <span class="mf">4.0</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">3.0</span> <span class="o">*</span> <span class="n">rhom0</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">)</span><span class="o">**</span><span class="mi">3</span>
+            <span class="n">m_max</span>  <span class="o">=</span> <span class="mf">4.0</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">3.0</span> <span class="o">*</span> <span class="n">rhom0</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">)</span><span class="o">**</span><span class="mi">3</span>  <span class="o">/</span> <span class="mf">1e+3</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_masses</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">m_min</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">m_max</span><span class="p">),</span> <span class="mi">5000</span><span class="p">)</span>
+
+            <span class="c1">#precompute the halo mass function</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dndmh</span> <span class="o">=</span> <span class="n">dn_dm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_z_array</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_masses</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span> <span class="n">omega_m</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.3</span><span class="o">*</span><span class="p">(</span><span class="mf">0.7</span><span class="o">**</span><span class="mi">2</span><span class="p">)),</span> <span class="n">h</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">sheth_a</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sheth_a</span><span class="p">,</span> <span class="n">sheth_q</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sheth_q</span><span class="p">,</span> <span class="n">sheth_p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sheth_p</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">k</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_k</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pk</span>
+
+
+
+    <span class="k">def</span> <span class="nf">_loglkl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+     
+        <span class="n">omega_b</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="s1">&#39;Ombh2&#39;</span><span class="p">]]</span>
+
+        <span class="n">h</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">omega_b</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+        <span class="n">omega_m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">omega_b</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.3</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.7</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+
+        <span class="n">alpha_star</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="s1">&#39;ALPHA_STAR&#39;</span><span class="p">]]</span>
+        <span class="n">t_star</span>     <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="s1">&#39;t_STAR&#39;</span><span class="p">]]</span>
+        <span class="n">f_star10</span>   <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="n">x</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="s1">&#39;F_STAR10&#39;</span><span class="p">]]</span>
+        <span class="n">m_turn</span>     <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="n">x</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="s1">&#39;M_TURN&#39;</span><span class="p">]]</span>
+     
+        <span class="n">log_lkl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># if we pass pk in argument then we cannot use </span>
+        <span class="c1"># the precoputed values for the halo mass function</span>
+        <span class="c1"># (that is self._dndmh)</span>
+        <span class="n">precompute</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_precompute</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pk&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">precompute</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># allow k and pk to be passed as extra arguments of the function</span>
+        <span class="c1"># in the case they depend on some parameters in theta</span>
+        <span class="n">k</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">pk</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pk&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="n">k</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">omega_b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pk</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="n">pk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">pk</span><span class="p">,</span> <span class="p">(</span><span class="n">omega_b</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="c1"># loop on the datasets</span>
+        <span class="c1"># we do not include Bouwens et al 2015 (10.1088/0004-637X/803/1/34)</span>
+        <span class="c1"># stored at index 0, therefore we start the loop at 1</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]:</span>
+
+            <span class="c1"># loop on the redshift bins</span>
+            <span class="k">for</span> <span class="n">iz</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_uv_exp</span><span class="p">[</span><span class="n">j</span><span class="p">]):</span>
+
+                <span class="n">hz</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">h_factor_no_rad</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_m</span> <span class="o">-</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="o">*</span> <span class="n">CONVERSIONS</span><span class="o">.</span><span class="n">km_to_mpc</span>
+                <span class="n">mh</span><span class="p">,</span> <span class="n">mask_mh</span> <span class="o">=</span> <span class="n">m_halo</span><span class="p">(</span><span class="n">hz</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_uv_exp</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">iz</span><span class="p">],</span> <span class="n">alpha_star</span><span class="p">,</span> <span class="n">t_star</span><span class="p">,</span> <span class="n">f_star10</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_m</span><span class="p">)</span>
+
+                <span class="k">try</span><span class="p">:</span>
+
+                    <span class="k">if</span> <span class="n">precompute</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                        <span class="c1"># predict the UV luminosity function on the range of magnitude m_uv at that redshift bin</span>
+                        <span class="c1"># in the future, could add sheth_a, sheth_q, sheth_p and c as nuisance parameters</span>
+                        <span class="n">phi_uv_pred_z</span> <span class="o">=</span> <span class="n">phi_uv</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">hz</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_uv_exp</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">iz</span><span class="p">],</span> <span class="n">k</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">alpha_star</span><span class="p">,</span> <span class="n">t_star</span><span class="p">,</span> <span class="n">f_star10</span><span class="p">,</span> <span class="n">m_turn</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_m</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> 
+                                                    <span class="bp">self</span><span class="o">.</span><span class="n">sheth_a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sheth_q</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sheth_p</span><span class="p">,</span> <span class="n">window</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">,</span> <span class="n">mh</span> <span class="o">=</span> <span class="n">mh</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">mask_mh</span><span class="p">)</span>
+                        
+
+                    <span class="k">else</span><span class="p">:</span>
+
+                        <span class="n">dndmh</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_masses</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dndmh</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z_index_from_table</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">iz</span><span class="p">],</span> <span class="p">:])(</span><span class="n">mh</span><span class="p">)</span>
+                        <span class="n">phi_uv_pred_z</span> <span class="o">=</span> <span class="n">phi_uv</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">hz</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_uv_exp</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">iz</span><span class="p">],</span> <span class="n">k</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">alpha_star</span><span class="p">,</span> <span class="n">t_star</span><span class="p">,</span> <span class="n">f_star10</span><span class="p">,</span> <span class="n">m_turn</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_m</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> 
+                                                    <span class="bp">self</span><span class="o">.</span><span class="n">sheth_a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sheth_q</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sheth_p</span><span class="p">,</span> <span class="n">window</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">,</span> <span class="n">mh</span> <span class="o">=</span> <span class="n">mh</span><span class="p">,</span> 
+                                                    <span class="n">mask</span> <span class="o">=</span> <span class="n">mask_mh</span><span class="p">,</span> <span class="n">dndmh</span> <span class="o">=</span> <span class="n">dndmh</span><span class="p">)</span>    
+                    
+                    <span class="n">phi_uv_pred_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">phi_uv_pred_z</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+                    <span class="c1">#if np.any(np.isnan(phi_uv_pred_z.flatten())):</span>
+                        <span class="c1">#print(z, hz, self.m_uv_exp[j][iz], k, pk, alpha_star, t_star, f_star10, m_turn, omega_b, omega_m, h, mh, mask_mh)</span>
+                        <span class="c1">#raise ValueError(&#39;Arghhh&#39;)</span>
+                    
+                <span class="k">except</span> <span class="n">ShortPowerSpectrumRange</span><span class="p">:</span>
+                    <span class="c1"># kill the log likelihood in that case by setting it to -infinity</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Power spectrum not evaluated on a large enough range&#39;</span><span class="p">)</span>               
+
+                <span class="c1"># get a sigma that is either the down or the up one depending </span>
+                <span class="c1"># if prediction is lower / higher than the observed value        </span>
+                <span class="n">mask</span>         <span class="o">=</span> <span class="p">(</span><span class="n">phi_uv_pred_z</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi_uv_exp</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">iz</span><span class="p">][</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span>
+                <span class="n">sigma</span>        <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma_phi_uv_down</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">iz</span><span class="p">],</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">sigma</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma_phi_uv_up</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">iz</span><span class="p">],</span>  <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))[</span><span class="n">mask</span><span class="p">]</span>
+        
+                <span class="c1"># update the log likelihood</span>
+                <span class="n">contrib</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma_phi_uv_up</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">iz</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_phi_uv_down</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">iz</span><span class="p">]))</span> <span class="o">-</span> <span class="p">(</span><span class="n">phi_uv_pred_z</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi_uv_exp</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">iz</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">log_lkl</span> <span class="o">=</span> <span class="n">log_lkl</span> <span class="o">+</span> <span class="n">contrib</span>
+
+        <span class="k">return</span> <span class="n">log_lkl</span>
+    
+
+
+<div class="viewcode-block" id="UVLFLikelihood.get_k_max">
+<a class="viewcode-back" href="../../source/nnero.mcmc.html#nnero.mcmc.UVLFLikelihood.get_k_max">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_k_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="kc">None</span> <span class="o">|</span> <span class="nb">float</span><span class="p">):</span>
+        
+    
+        <span class="n">omega_b</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="s1">&#39;Ombh2&#39;</span><span class="p">]]</span>
+
+        <span class="n">h</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">omega_b</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+        <span class="n">omega_m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">omega_b</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.3</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.7</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+        <span class="n">alpha_star</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="s1">&#39;ALPHA_STAR&#39;</span><span class="p">]]</span>
+        <span class="n">t_star</span>     <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="s1">&#39;t_STAR&#39;</span><span class="p">]]</span>
+        <span class="n">f_star10</span>   <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="n">x</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="s1">&#39;F_STAR10&#39;</span><span class="p">]]</span>
+
+        <span class="n">min_mh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]:</span>
+
+            <span class="c1"># loop on the redshift bins</span>
+            <span class="k">for</span> <span class="n">iz</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_uv_exp</span><span class="p">[</span><span class="n">j</span><span class="p">]):</span>
+
+                <span class="n">hz</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">h_factor_no_rad</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_m</span> <span class="o">-</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="o">*</span> <span class="n">CONVERSIONS</span><span class="o">.</span><span class="n">km_to_mpc</span> <span class="c1"># approximation of the hubble factor</span>
+                <span class="n">mh</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">m_halo</span><span class="p">(</span><span class="n">hz</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_uv_exp</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">iz</span><span class="p">],</span> <span class="n">alpha_star</span><span class="p">,</span> <span class="n">t_star</span><span class="p">,</span> <span class="n">f_star10</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_m</span><span class="p">)</span>
+
+                <span class="n">mh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">mh</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>   
+                <span class="n">min_mh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">min_mh</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">mh</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>
+                    
+        <span class="n">rhom0</span>  <span class="o">=</span> <span class="n">omega_m</span> <span class="o">*</span> <span class="n">CST_MSOL_MPC</span><span class="o">.</span><span class="n">rho_c_over_h2</span>        
+        <span class="n">k_max</span> <span class="o">=</span> <span class="mf">1.3</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">*</span> <span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="n">min_mh</span><span class="o">/</span><span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">/</span><span class="n">rhom0</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="c1"># one should (almost) never need self.kmax if large enough</span>
+        <span class="c1"># set here as a security to do not make CLASS take to much</span>
+        <span class="c1"># time and crash</span>
+        <span class="c1"># print(&quot;Value of k_max: &quot;, np.minimum(k_max / h, 10000))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">k_max</span> <span class="o">/</span> <span class="n">h</span><span class="p">,</span> <span class="mi">10000</span><span class="p">)</span></div>
+</div>
+
+
+
+
+
+
+<div class="viewcode-block" id="OpticalDepthLikelihood">
+<a class="viewcode-back" href="../../source/nnero.mcmc.html#nnero.mcmc.OpticalDepthLikelihood">[docs]</a>
+<span class="k">class</span> <span class="nc">OpticalDepthLikelihood</span><span class="p">(</span><span class="n">Likelihood</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">parameters</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>  
+                 <span class="o">*</span><span class="p">,</span>
+                 <span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span><span class="p">,</span>
+                 <span class="n">regressor</span><span class="p">:</span>  <span class="n">Regressor</span><span class="p">,</span>
+                 <span class="n">median_tau</span><span class="p">:</span>   <span class="nb">float</span>  <span class="o">=</span> <span class="mf">0.0544</span><span class="p">,</span>
+                 <span class="n">sigma_tau</span><span class="p">:</span>  <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0073</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_classifier</span> <span class="o">=</span> <span class="n">classifier</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_regressor</span>  <span class="o">=</span> <span class="n">regressor</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_median_tau</span>   <span class="o">=</span> <span class="n">median_tau</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_tau</span>  <span class="o">=</span> <span class="n">sigma_tau</span>   
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sigma_tau</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_tau</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_sigma_tau</span><span class="p">])</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+
+        <span class="c1"># define an &#39;order list&#39; to reorganise the parameters</span>
+        <span class="c1"># in the order they are passed to the classifier and regressor</span>
+        <span class="n">ordered_params</span> <span class="o">=</span> <span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">parameters_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_order</span>    <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">param</span><span class="p">)</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">ordered_params</span> <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">]</span>
+
+        
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">classifier</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_classifier</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">regressor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regressor</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">median_tau</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_median_tau</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sigma_tau</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_tau</span>
+
+
+    <span class="k">def</span> <span class="nf">_loglkl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="c1"># get the number of parallel evaluations</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">xx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">DEFAULT_VALUES</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">parameters_name</span><span class="p">])</span>
+        <span class="n">xx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">parameters_name</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">param</span><span class="p">)</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">parameters_name</span> <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">])</span>
+        
+        <span class="n">xx</span><span class="p">[:,</span> <span class="n">indices</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_order</span><span class="p">]</span>
+
+        <span class="c1"># predict the ionization fraction from the NN</span>
+        <span class="n">xHII</span> <span class="o">=</span> <span class="n">predict_xHII_numpy</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">regressor</span><span class="p">)</span>
+
+        <span class="c1"># setting the result to -inf when the classifier returns it as a wrong value</span>
+        <span class="c1">#loglkl = np.zeros(n)</span>
+        <span class="c1">#loglkl[xHII[:, 0] == -1] = -np.inf</span>
+        <span class="c1"># get the values in input (if given) or initialise to Planck 2018 results</span>
+        <span class="c1">#tau     = self.mean_tau</span>
+        <span class="c1">#var_tau = self.sigma_tau**2</span>
+        <span class="c1">#loglkl = loglkl - 0.5 * ((tau- tau_pred)**2/var_tau + np.log( 2*np.pi * var_tau))</span>
+
+        <span class="c1"># setting the result to -inf when the classifier returns it as a wrong value</span>
+        <span class="c1"># initialise the result</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">res</span><span class="p">[</span><span class="n">xHII</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
+        <span class="c1"># compute the optical depth to reionization</span>
+        <span class="n">tau_pred</span> <span class="o">=</span> <span class="n">predict_tau_from_xHII_numpy</span><span class="p">(</span><span class="n">xHII</span><span class="p">,</span> <span class="n">xx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+        
+        <span class="n">s_tau_m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma_tau</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">s_tau_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma_tau</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">m_tau</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">median_tau</span><span class="p">)</span> <span class="o">-</span> <span class="n">s_tau_p</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">special</span><span class="o">.</span><span class="n">erfcinv</span><span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">s_tau_m</span><span class="o">/</span><span class="n">s_tau_p</span><span class="p">))</span>
+
+        <span class="c1"># compute the truncated gaussian for the reionization data</span>
+        <span class="n">mask</span>  <span class="o">=</span> <span class="n">tau_pred</span> <span class="o">&gt;</span> <span class="n">m_tau</span>
+        <span class="n">s_tau</span> <span class="o">=</span> <span class="n">s_tau_m</span>
+        <span class="n">s_tau</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">s_tau_p</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="n">res</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">s_tau_m</span> <span class="o">+</span> <span class="n">s_tau_p</span><span class="p">))</span> <span class="o">-</span> <span class="p">(</span><span class="n">tau_pred</span> <span class="o">-</span> <span class="n">m_tau</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">s_tau</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">res</span></div>
+
+    
+    
+
+
+<div class="viewcode-block" id="ReionizationLikelihood">
+<a class="viewcode-back" href="../../source/nnero.mcmc.html#nnero.mcmc.ReionizationLikelihood">[docs]</a>
+<span class="k">class</span> <span class="nc">ReionizationLikelihood</span><span class="p">(</span><span class="n">Likelihood</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">parameters</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+                 <span class="o">*</span><span class="p">,</span>
+                <span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span><span class="p">,</span>
+                <span class="n">regressor</span><span class="p">:</span>  <span class="n">Regressor</span><span class="p">):</span>
+        
+                
+        <span class="bp">self</span><span class="o">.</span><span class="n">_classifier</span> <span class="o">=</span> <span class="n">classifier</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_regressor</span>  <span class="o">=</span> <span class="n">regressor</span> 
+
+        <span class="c1"># defining McGreer data</span>
+        <span class="c1"># https://doi.org/10.1093/mnras/stu2449</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_reio</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">5.6</span><span class="p">,</span> <span class="mf">5.9</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_reio</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.96</span><span class="p">,</span> <span class="mf">0.94</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">std_x_reio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">])</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+
+        <span class="c1"># define an &#39;order list&#39; to reorganise the parameters</span>
+        <span class="c1"># in the order they are passed to the classifier and regressor</span>
+        <span class="n">ordered_params</span> <span class="o">=</span> <span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">parameters_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_order</span>    <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">param</span><span class="p">)</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">ordered_params</span> <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">]</span>
+        
+       
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">classifier</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_classifier</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">regressor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regressor</span>
+    
+
+
+
+    <span class="k">def</span> <span class="nf">_loglkl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="c1"># get the number of parallel evaluations</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">xx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">DEFAULT_VALUES</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">parameters_name</span><span class="p">])</span>
+        <span class="n">xx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">parameters_name</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">param</span><span class="p">)</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">parameters_name</span> <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">])</span>
+        
+        <span class="n">xx</span><span class="p">[:,</span> <span class="n">indices</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_order</span><span class="p">]</span>
+
+        <span class="c1"># predict the ionization fraction from the NN</span>
+        <span class="n">xHII_full</span> <span class="o">=</span> <span class="n">predict_xHII_numpy</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">regressor</span><span class="p">)</span>
+        <span class="n">xHII</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">regressor</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="n">xHII_full</span><span class="p">)(</span><span class="bp">self</span><span class="o">.</span><span class="n">z_reio</span><span class="p">)</span>
+
+        <span class="c1"># setting the result to -inf when the classifier returns it as a wrong value</span>
+        <span class="c1"># initialise the result</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">z_reio</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="n">res</span><span class="p">[</span><span class="n">xHII</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        
+        <span class="n">std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">std_x_reio</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">x_reio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_reio</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="c1"># compute the truncated gaussian for the reionization data</span>
+        <span class="n">norm_reio</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">x_reio</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)</span><span class="o">*</span><span class="n">std</span><span class="o">*</span><span class="n">special</span><span class="o">.</span><span class="n">erf</span><span class="p">(</span><span class="n">x_reio</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span><span class="o">/</span><span class="n">std</span><span class="p">))</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">res</span> <span class="o">+</span> <span class="n">norm_reio</span>
+
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">xHII</span> <span class="o">&lt;</span> <span class="n">x_reio</span>
+        
+
+        <span class="n">res</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">xHII</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">-</span> <span class="n">x_reio</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="p">(</span><span class="n">std</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
+
+    
+
+    
+
+<span class="c1">##############</span>
+<span class="c1"># MCMC related functions</span>
 
 <div class="viewcode-block" id="log_prior">
 <a class="viewcode-back" href="../../source/nnero.mcmc.html#nnero.mcmc.log_prior">[docs]</a>
@@ -109,7 +628,7 @@
               <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        natural logarithm of the prior</span>
+<span class="sd">    Natural logarithm of the prior</span>
 
 <span class="sd">    assume flat prior except for the parameters for which</span>
 <span class="sd">    a covariance matrix and average value are given</span>
@@ -175,63 +694,80 @@
 
 
 
-
 <div class="viewcode-block" id="log_likelihood">
 <a class="viewcode-back" href="../../source/nnero.mcmc.html#nnero.mcmc.log_likelihood">[docs]</a>
-<span class="k">def</span> <span class="nf">log_likelihood</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">log_likelihood</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                   <span class="n">xi</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                   <span class="n">likelihoods</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Likelihood</span><span class="p">],</span>
+                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the log Likelihood values.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    theta : np.ndarray</span>
+<span class="sd">        Varying parameters.</span>
+<span class="sd">    xi : np.ndarray</span>
+<span class="sd">        Extra fixed parameters.</span>
+<span class="sd">    likelihoods : list[Likelihood]</span>
+<span class="sd">        The likelihoods to evaluate for the fit.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        Values of the log Likelihood for each chain.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">theta</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">theta</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
-
-    <span class="n">classifier</span><span class="p">:</span> <span class="n">Classifier</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;classifier&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="n">regressor</span><span class="p">:</span>  <span class="n">Regressor</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;regressor&#39;</span><span class="p">,</span>  <span class="kc">None</span><span class="p">)</span>
-    <span class="n">use_tau</span><span class="p">:</span>    <span class="nb">bool</span>       <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_tau&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-    <span class="n">use_reio</span><span class="p">:</span>   <span class="nb">bool</span>       <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_reio&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-
-    <span class="c1"># predict the ionization fraction from the NN</span>
-    <span class="n">xHII</span> <span class="o">=</span> <span class="n">predict_xHII_numpy</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">classifier</span><span class="p">,</span> <span class="n">regressor</span><span class="p">)</span>
-
-    <span class="c1"># setting the result to -inf when the classifier returns it as a wrong value</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">theta</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">res</span><span class="p">[</span><span class="n">xHII</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 
-    <span class="c1"># get the value of the ionization fraction at redshift 5.9</span>
-    <span class="n">iz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">z</span> <span class="o">-</span> <span class="mf">5.9</span><span class="p">))</span>
-    <span class="n">xHII_59</span> <span class="o">=</span> <span class="n">xHII</span><span class="p">[:,</span> <span class="n">iz</span><span class="p">]</span> 
+    <span class="n">need_pk</span><span class="p">:</span> <span class="nb">bool</span>   <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">uvlf_lkl</span><span class="p">:</span> <span class="n">UVLFLikelihood</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">if</span> <span class="n">use_tau</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s1">&#39;matter_power_spectrum_computer&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">likelihood</span> <span class="ow">in</span> <span class="n">likelihoods</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">likelihood</span><span class="p">,</span> <span class="n">UVLFLikelihood</span><span class="p">):</span>
+                <span class="n">need_pk</span>  <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">uvlf_lkl</span> <span class="o">=</span> <span class="n">likelihood</span>
 
-        <span class="c1"># get the values in input (if given) or initialise to Planck 2018 results</span>
-        <span class="n">tau</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;tau&#39;</span><span class="p">,</span> <span class="mf">0.0561</span><span class="p">)</span>
-        <span class="n">var_tau</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;var_tau&#39;</span><span class="p">,</span> <span class="mf">0.0071</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">need_pk</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
 
-        <span class="c1"># compute the optical depth to reionization</span>
-        <span class="n">tau_pred</span> <span class="o">=</span> <span class="n">predict_tau_from_xHII_numpy</span><span class="p">(</span><span class="n">xHII</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">regressor</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="n">res</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">((</span><span class="n">tau</span><span class="o">-</span> <span class="n">tau_pred</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">var_tau</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">var_tau</span><span class="p">))</span>
-    
-    <span class="k">if</span> <span class="n">use_reio</span><span class="p">:</span>
+        <span class="c1"># first, get the k_max needed</span>
+        <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>      <span class="o">=</span> <span class="n">uvlf_lkl</span><span class="o">.</span><span class="n">get_x</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">xi</span><span class="p">)</span>
+        <span class="n">k_max</span><span class="p">:</span> <span class="nb">float</span>       <span class="o">=</span> <span class="n">uvlf_lkl</span><span class="o">.</span><span class="n">get_k_max</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
-        <span class="c1"># get the values in input (if given) or initialise to McGreer results</span>
-        <span class="n">x_reio</span>      <span class="o">=</span> <span class="mf">0.94</span>
-        <span class="n">var_x_reio</span>  <span class="o">=</span> <span class="mf">0.05</span><span class="o">**</span><span class="mi">2</span>
+        <span class="c1"># second, compute the matter power spectrum from a given function</span>
+        <span class="n">k_arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">uvlf_lkl</span><span class="o">.</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">k_max</span><span class="p">),</span> <span class="mi">50000</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">func</span><span class="p">:</span> <span class="n">function</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;matter_power_spectrum_computer&#39;</span><span class="p">)</span>
+        <span class="n">x_dicts</span><span class="p">:</span> <span class="nb">dict</span>       <span class="o">=</span> <span class="n">uvlf_lkl</span><span class="o">.</span><span class="n">get_x_dicts</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
-        <span class="c1"># compute the truncated gaussian for the reionization data</span>
-        <span class="n">norm_reio</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">x_reio</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">special</span><span class="o">.</span><span class="n">erf</span><span class="p">(</span><span class="n">x_reio</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">var_x_reio</span><span class="p">))))</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="n">res</span> <span class="o">+</span> <span class="n">norm_reio</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">xHII_59</span> <span class="o">&lt;</span> <span class="n">x_reio</span>
-        <span class="n">res</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">xHII_59</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">-</span> <span class="n">x_reio</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">var_x_reio</span>
+        <span class="n">pk_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">k_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
 
-    <span class="k">return</span> <span class="n">res</span> </div>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">pk_arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">k_arr</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">x_dicts</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">k_arr</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pk&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pk_arr</span>
+        
+    <span class="c1"># makes the sum of the log prior and log likelihood </span>
+    <span class="k">for</span> <span class="n">likelihood</span> <span class="ow">in</span> <span class="n">likelihoods</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">res</span>  <span class="o">+</span> <span class="n">likelihood</span><span class="o">.</span><span class="n">loglkl</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">res</span></div>
 
 
 
 <div class="viewcode-block" id="log_probability">
 <a class="viewcode-back" href="../../source/nnero.mcmc.html#nnero.mcmc.log_probability">[docs]</a>
-<span class="k">def</span> <span class="nf">log_probability</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+<span class="k">def</span> <span class="nf">log_probability</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span>     <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                    <span class="n">xi</span><span class="p">:</span>        <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
                     <span class="n">theta_min</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
                     <span class="n">theta_max</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                    <span class="n">likelihoods</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Likelihood</span><span class="p">],</span>
                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
     
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">theta</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+
     <span class="c1"># compute the log prior</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">log_prior</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">theta_min</span><span class="p">,</span> <span class="n">theta_max</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     
@@ -239,8 +775,7 @@
     <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
     <span class="n">res</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 
-    <span class="c1"># makes the sum of the log prior and log likelihood </span>
-    <span class="n">res</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">+</span> <span class="n">log_likelihood</span><span class="p">(</span><span class="n">theta</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="p">:],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">res</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">log_likelihood</span><span class="p">(</span><span class="n">theta</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="p">:],</span> <span class="n">xi</span><span class="p">,</span> <span class="n">likelihoods</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">res</span> </div>
 
@@ -249,7 +784,9 @@
 <div class="viewcode-block" id="initialise_walkers">
 <a class="viewcode-back" href="../../source/nnero.mcmc.html#nnero.mcmc.initialise_walkers">[docs]</a>
 <span class="k">def</span> <span class="nf">initialise_walkers</span><span class="p">(</span><span class="n">theta_min</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
-                       <span class="n">theta_max</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                       <span class="n">theta_max</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                       <span class="n">xi</span>       <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                       <span class="n">likelihoods</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Likelihood</span><span class="p">],</span>
                        <span class="n">n_walkers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span> 
                        <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     
@@ -262,11 +799,19 @@
         <span class="c1"># draw a value for the initial position</span>
         <span class="n">prop</span> <span class="o">=</span> <span class="n">uniform_to_true</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_params</span><span class="p">),</span> <span class="n">theta_min</span><span class="p">,</span> <span class="n">theta_max</span><span class="p">)</span>
 
-        <span class="c1"># check that the likelihood is finite at that position</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">log_likelihood</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))):</span>
+        <span class="k">try</span><span class="p">:</span>
+            
+            <span class="n">log_lkl</span> <span class="o">=</span> <span class="n">log_likelihood</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> <span class="n">likelihoods</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        
+            <span class="c1"># check that the likelihood is finite at that position</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">log_lkl</span><span class="p">)):</span>
 
-            <span class="c1"># if finite add it to the list of positions</span>
-            <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">pos</span><span class="p">,</span> <span class="n">prop</span><span class="p">))</span>
+                <span class="c1"># if finite add it to the list of positions</span>
+                <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">pos</span><span class="p">,</span> <span class="n">prop</span><span class="p">))</span>
+
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+
         
         <span class="n">i</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span>
 
@@ -275,6 +820,9 @@
 <span class="s2">                      Consider reducing the parameter range to one where the likelihood is proportionnaly more defined&quot;</span><span class="p">)</span>
         
     <span class="k">return</span> <span class="n">pos</span></div>
+
+
+
 
 </pre></div>
 

@@ -62,6 +62,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_Xe_numpy"><code class="docutils literal notranslate"><span class="pre">predict_Xe_numpy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_classifier"><code class="docutils literal notranslate"><span class="pre">predict_classifier()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_classifier_numpy"><code class="docutils literal notranslate"><span class="pre">predict_classifier_numpy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_interpolator"><code class="docutils literal notranslate"><span class="pre">predict_interpolator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_interpolator_numpy"><code class="docutils literal notranslate"><span class="pre">predict_interpolator_numpy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_parameter"><code class="docutils literal notranslate"><span class="pre">predict_parameter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_parameter_numpy"><code class="docutils literal notranslate"><span class="pre">predict_parameter_numpy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_regressor"><code class="docutils literal notranslate"><span class="pre">predict_regressor()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_regressor_numpy"><code class="docutils literal notranslate"><span class="pre">predict_regressor_numpy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#nnero.predictor.predict_tau"><code class="docutils literal notranslate"><span class="pre">predict_tau()</span></code></a></li>
@@ -169,8 +173,8 @@ regressor <cite>DefaultRegressor</cite> is used.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>2D array of shape (n, p) for the values for X_e
-with n the number of redshift bins and p the number for parameters.
+<dd class="field-even"><p>2D array of shape (n, q) for the values for X_e
+with q the number for parameters.
 When the classifier outputs false, the array is filled with -1.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -231,6 +235,128 @@ False for a late reionization.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="nnero.predictor.predict_interpolator">
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_interpolator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interpolator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Interpolator</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_interpolator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_interpolator" title="Link to this definition"></a></dt>
+<dd><p>Prediction of the interpolator. See <cite>predict_interpolator_numpy</cite> for a more
+advanced but faster method (working with numpy arrays).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interpolator</strong> (<em>nnero.Interpolator</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Interpolator object already trained. Default is None. If None, the default
+interpolator <cite>DefaultInterpolator_&lt;parameter&gt;</cite> is used.</p></li>
+<li><p><strong>default</strong> (<em>dict</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Dictionnary of default values, by default None.
+The default dictionnaly should have keys corresponding to those of the trained dataset
+as accessible from <cite>interpolator.info()</cite>.</p></li>
+<li><p><strong>parameter</strong> (<em>str</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – If no interpolator given in input, must be specified to know which interpolator to load.
+Default is None.</p></li>
+<li><p><strong>**kwargs</strong> – Any value for a parameter the interpolator has been trained on.
+Keys should corresponds to <cite>interpolator.parameters_name</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Interpolated value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If no interpolator given, need to specify on which parameter we cant to interpolate
+    in order to load the associated default interpolator.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.predictor.predict_interpolator_numpy">
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_interpolator_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><span class="pre">Regressor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_interpolator_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_interpolator_numpy" title="Link to this definition"></a></dt>
+<dd><p>Prediction of the interpolator. Same as <cite>predict_interpolator</cite> but much faster
+as it work with numpy arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>theta</strong> (<em>np.ndarray</em>) – Array of shape (n, p) of parameters, where p is the number of parameters.
+The p parameters values should be given in the order they were fed to the
+regressor for training. These parameters and their order are accesible
+calling <cite>regressor.info()</cite>.</p></li>
+<li><p><strong>interpolator</strong> (<em>nnero.Interpolator</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Regressor object already trained. Default is None. If None, the default
+regressor <cite>DefaultRegressor</cite> is used.</p></li>
+<li><p><strong>parameter</strong> (<em>str</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – If no interpolator given in input, must be specified to know which interpolator to load.
+Default is None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>1D array of shape n for the inteprolated values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If no interpolator given, need to specify on which parameter we cant to interpolate
+    in order to load the associated default interpolator.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.predictor.predict_parameter">
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><span class="pre">Classifier</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Interpolator</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_parameter" title="Link to this definition"></a></dt>
+<dd><p>Prediction of the interpolated parameter, taking into account
+the selection from the classifier. See <cite>predict_parameter_numpy</cite> for a more
+advanced but faster method (working with numpy arrays).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>classifier</strong> (<a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><em>Classifier</em></a><em> | </em><em>None</em><em>, </em><em>optional</em>) – Classifier object already trained. Default is None. If None, the default
+classifier <cite>DefaultClassifier</cite> is used.</p></li>
+<li><p><strong>interpolator</strong> (<em>Interpolator</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Interpolator object already trained. Default is None. If None, the default
+interpolator <cite>DefaultInterpolator_&lt;parameter&gt;</cite> is used.</p></li>
+<li><p><strong>default</strong> (<em>dict</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Dictionnary of default values, by default None.
+The default dictionnaly should have keys corresponding to those of the trained dataset
+as accessible from <cite>interpolator.info()</cite> or <cite>classifier.info()</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Any value for a parameter the classifier and interpolator have been trained on.
+Keys should corresponds to <cite>regressor.parameters_name</cite> or <cite>classifier.parameters_name</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns <cite>False</cite> if the classifier returns <cite>False</cite>. Returns the prediction
+from the interpolator for the parameter otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray | bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nnero.predictor.predict_parameter_numpy">
+<span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_parameter_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><span class="pre">Classifier</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Interpolator</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_parameter_numpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_parameter_numpy" title="Link to this definition"></a></dt>
+<dd><p>Prediction of the interpolated parameter, taking into account
+the selection from the classifier. Same as <cite>predict_parameter</cite> but much faster
+as it work with numpy arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>theta</strong> (<em>np.ndarray</em>) – Array of shape (n, p) of parameters, where p is the number of parameters.
+The p parameters values should be given in the order they were fed to the
+regressor for training. These parameters and their order are accesible
+calling <cite>regressor.info()</cite>.</p></li>
+<li><p><strong>classifier</strong> (<a class="reference internal" href="nnero.classifier.html#nnero.classifier.Classifier" title="nnero.classifier.Classifier"><em>Classifier</em></a><em> | </em><em>None</em><em>, </em><em>optional</em>) – Classifier object already trained. Default is None. If None, the default
+classifier <cite>DefaultClassifier</cite> is used.</p></li>
+<li><p><strong>interpolator</strong> (<em>Interpolator</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Interpolator object already trained. Default is None. If None, the default
+interpolator <cite>DefaultInterpolator</cite> is used.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>1D array of shape (n) for the value of the parameter
+When the classifier outputs false, the array is filled with -1.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="nnero.predictor.predict_regressor">
 <span class="sig-prename descclassname"><span class="pre">nnero.predictor.</span></span><span class="sig-name descname"><span class="pre">predict_regressor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">regressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nnero.regressor.html#nnero.regressor.Regressor" title="nnero.regressor.Regressor"><span class="pre">Regressor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/nnero/predictor.html#predict_regressor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nnero.predictor.predict_regressor" title="Link to this definition"></a></dt>
 <dd><p>Prediction of the regressor. See <cite>predict_regressor_numpy</cite> for a more
@@ -240,6 +366,9 @@ advanced but faster method (working with numpy arrays).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>regressor</strong> (<em>nnero.Regressor</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Regressor object already trained. Default is None. If None, the default
 regressor <cite>DefaultRegressor</cite> is used.</p></li>
+<li><p><strong>default</strong> (<em>dict</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Dictionnary of default values, by default None.
+The default dictionnaly should have keys corresponding to those of the trained dataset
+as accessible from <cite>regressor.info()</cite>.</p></li>
 <li><p><strong>**kwargs</strong> – Any value for a parameter the regressor has been trained on.
 Keys should corresponds to <cite>regressor.parameters_name</cite>.</p></li>
 </ul>
@@ -270,8 +399,8 @@ regressor <cite>DefaultRegressor</cite> is used.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>2D array of shape (n, p) for the values for X_e
-with n the number of redshift bins and p the number for parameters.</p>
+<dd class="field-even"><p>2D array of shape (n, q) for the values for X_e
+wit q the number of redshift bins.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray</p>

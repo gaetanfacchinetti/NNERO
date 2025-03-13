@@ -114,7 +114,7 @@
            <span class="n">t_star</span><span class="p">:</span>     <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
            <span class="n">f_star10</span><span class="p">:</span>   <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
            <span class="n">omega_b</span><span class="p">:</span>    <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-           <span class="n">omega_m</span><span class="p">:</span>    <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+           <span class="n">omega_m</span><span class="p">:</span>    <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>  <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Halo mass in term of the UV magnitude for a given astrophysical model</span>
 
@@ -151,6 +151,11 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">m_uv</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">m_uv</span> <span class="o">=</span> <span class="n">m_uv</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
 
+
+    <span class="n">q</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">f_star10</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">r</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">hz</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">s</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">m_uv</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
     
     <span class="c1"># conversion constant between star formation rate and magnitude</span>
     <span class="n">gamma_UV</span> <span class="o">=</span> <span class="mf">1.15e-28</span> <span class="o">*</span> <span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="mf">0.4</span><span class="o">*</span><span class="mf">51.63</span><span class="p">)</span> <span class="o">/</span> <span class="n">CONVERSIONS</span><span class="o">.</span><span class="n">yr_to_s</span>
@@ -159,15 +164,18 @@
     <span class="n">fb</span> <span class="o">=</span> <span class="p">(</span><span class="n">omega_b</span><span class="o">/</span><span class="n">omega_m</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
 
     <span class="c1"># define the return array and fill it with zeros</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">hz</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">hz</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">m_uv</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span> <span class="c1"># shape (q, r, s)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">q</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span> <span class="c1"># shape (q, r, s)</span>
 
-    <span class="c1"># mh below are those for which f_star10 (m/1e+10) &lt;= 1 (and f_star = f_b f_star10 (m/1e+10))</span>
+    <span class="c1"># mh_below are those for which f_star10 (m/1e+10) &lt;= 1 (and f_star = f_b f_star10 (m/1e+10))</span>
+    <span class="c1"># mh_below is of shape (q, r, s)</span>
     <span class="n">mh_below</span> <span class="o">=</span> <span class="mf">1e+10</span> <span class="o">*</span> <span class="p">(</span> <span class="n">gamma_UV</span><span class="o">/</span><span class="p">(</span><span class="n">hz</span><span class="o">*</span><span class="mf">1e+10</span><span class="p">)</span> <span class="o">*</span> <span class="n">t_star</span> <span class="o">/</span> <span class="n">f_star10</span> <span class="o">/</span> <span class="n">fb</span> <span class="o">*</span>  <span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">0.4</span><span class="o">*</span><span class="n">m_uv</span><span class="p">)</span> <span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="p">(</span><span class="n">alpha_star</span><span class="o">+</span><span class="mf">1.0</span><span class="p">))</span>
 
-    <span class="c1"># make a difference if f_star10 (m/1e+10) &gt;= 1 or not</span>
-    <span class="n">mask</span> <span class="o">=</span> <span class="p">((</span><span class="n">f_star10</span> <span class="o">*</span> <span class="p">(</span><span class="n">mh_below</span><span class="o">/</span><span class="mf">1e+10</span><span class="p">)</span><span class="o">**</span><span class="n">alpha_star</span> <span class="o">*</span> <span class="n">hz</span> <span class="o">/</span> <span class="n">hz</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># make a difference if f_star10 (m/1e+10) &lt;= 1 or not</span>
+    <span class="c1"># mask is of shape (q, r, s)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="p">((</span><span class="n">f_star10</span> <span class="o">*</span> <span class="p">(</span><span class="n">mh_below</span><span class="o">/</span><span class="mf">1e+10</span><span class="p">)</span><span class="o">**</span><span class="n">alpha_star</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span>
 
-    <span class="c1"># vals below are those for which f_star10 (m/1e+10) &lt; 1  (and f_star = f_b)</span>
+    <span class="c1"># vals below are those for which f_star10 (m/1e+10) &gt; 1  (and f_star = f_b)</span>
+    <span class="c1"># mh_above is of shape (q, r, s)</span>
     <span class="n">mh_above</span> <span class="o">=</span> <span class="n">gamma_UV</span> <span class="o">/</span> <span class="n">hz</span> <span class="o">*</span> <span class="n">t_star</span> <span class="o">/</span> <span class="n">fb</span> <span class="o">*</span>  <span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">0.4</span><span class="o">*</span><span class="n">m_uv</span><span class="p">)</span> 
 
     <span class="c1"># fill the return array with the correct values according to the mask</span>
@@ -175,9 +183,11 @@
     <span class="n">res</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">mh_above</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span>
 
     <span class="c1"># check that all mh below statisfy the criterion (as it should)</span>
-    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span> <span class="p">(</span><span class="n">f_star10</span> <span class="o">*</span> <span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span><span class="o">/</span><span class="mf">1e+10</span><span class="p">)</span><span class="o">**</span><span class="n">alpha_star</span><span class="p">)</span>  <span class="o">&gt;</span> <span class="mi">1</span><span class="p">),</span> <span class="s2">&quot;Halo mass value (index below) should satisfy f_star10 * (mh_below/1e+10)**alpha_star &lt; 1&quot;</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">f_star10</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">s</span><span class="p">))[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span><span class="o">/</span><span class="mf">1e+10</span><span class="p">)</span><span class="o">**</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">alpha_star</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">s</span><span class="p">))[</span><span class="o">~</span><span class="n">mask</span><span class="p">])</span>   <span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Halo mass value (index below) should satisfy f_star10 * (mh_below/1e+10)**alpha_star &lt; 1&quot;</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">res</span></div>
+    <span class="c1"># the mask is True when we are below i.e. f_star10 (m/1e+10)^alpha_star &lt; 1, and False when we are above</span>
+    <span class="k">return</span> <span class="n">res</span><span class="p">,</span> <span class="n">mask</span></div>
 
 
 
@@ -192,14 +202,19 @@
              <span class="n">omega_b</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
              <span class="n">omega_m</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
              <span class="o">*</span><span class="p">,</span>
-             <span class="n">mh</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+             <span class="n">mh</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+             <span class="n">mask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     
 
-    <span class="k">if</span> <span class="n">mh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">mh</span> <span class="o">=</span> <span class="n">m_halo</span><span class="p">(</span><span class="n">hz</span><span class="p">,</span> <span class="n">m_uv</span><span class="p">,</span> <span class="n">alpha_star</span><span class="p">,</span> <span class="n">t_star</span><span class="p">,</span> <span class="n">f_star10</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_m</span><span class="p">)</span> <span class="c1"># shape (q, r, s)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">mh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">mh</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">m_halo</span><span class="p">(</span><span class="n">hz</span><span class="p">,</span> <span class="n">m_uv</span><span class="p">,</span> <span class="n">alpha_star</span><span class="p">,</span> <span class="n">t_star</span><span class="p">,</span> <span class="n">f_star10</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_m</span><span class="p">)</span> <span class="c1"># shape (q, r, s)</span>
 
     <span class="n">alpha_star</span> <span class="o">=</span> <span class="n">convert_array</span><span class="p">(</span><span class="n">alpha_star</span><span class="p">)</span>
-    <span class="k">return</span> <span class="o">-</span> <span class="n">mh</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">10.0</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.4</span><span class="o">/</span><span class="p">(</span><span class="n">alpha_star</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span></div>
+    
+    <span class="n">res</span>        <span class="o">=</span> <span class="o">-</span> <span class="n">mh</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">10.0</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.4</span><span class="o">/</span><span class="p">(</span><span class="n">alpha_star</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># if f_star10 (m/1e+10)^alpha_star &lt;= 1</span>
+    <span class="n">res</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span> <span class="n">mh</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">10.0</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.4</span> <span class="c1"># if f_star10 (m/1e+10)^alpha_star &gt; 1</span>
+    
+    <span class="k">return</span> <span class="n">res</span> </div>
 
     
 
@@ -237,17 +252,19 @@
            <span class="o">*</span><span class="p">,</span> 
            <span class="n">window</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;sharpk&#39;</span><span class="p">,</span> 
            <span class="n">c</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.5</span><span class="p">,</span>
-           <span class="n">mh</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+           <span class="n">mh</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+           <span class="n">mask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+           <span class="n">dndmh</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    UV flux in Mpc^{-3}</span>
 
-<span class="sd">    Parameters:</span>
+<span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    m_uv: float, np.ndarry (s,)</span>
 <span class="sd">    omega_b: float, np.ndaray (q,)</span>
 
-<span class="sd">    Returns:</span>
+<span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    result of shape (q, r, s)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -255,11 +272,13 @@
     
     <span class="c1"># result of shape (n, r, q) in Mpc^(-3)</span>
 
-    <span class="k">if</span> <span class="n">mh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">mh</span> <span class="o">=</span> <span class="n">m_halo</span><span class="p">(</span><span class="n">hz</span><span class="p">,</span> <span class="n">m_uv</span><span class="p">,</span> <span class="n">alpha_star</span><span class="p">,</span> <span class="n">t_star</span><span class="p">,</span> <span class="n">f_star10</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_m</span><span class="p">)</span>               <span class="c1"># shape (q, r, s)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">mh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">mh</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">m_halo</span><span class="p">(</span><span class="n">hz</span><span class="p">,</span> <span class="n">m_uv</span><span class="p">,</span> <span class="n">alpha_star</span><span class="p">,</span> <span class="n">t_star</span><span class="p">,</span> <span class="n">f_star10</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_m</span><span class="p">)</span>               <span class="c1"># shape (q, r, s)</span>
     
-    <span class="n">dmh_dmuv</span> <span class="o">=</span> <span class="n">dmhalo_dmuv</span><span class="p">(</span><span class="n">hz</span><span class="p">,</span> <span class="n">m_uv</span><span class="p">,</span> <span class="n">alpha_star</span><span class="p">,</span> <span class="n">t_star</span><span class="p">,</span> <span class="n">f_star10</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_m</span><span class="p">,</span> <span class="n">mh</span> <span class="o">=</span> <span class="n">mh</span><span class="p">)</span> <span class="c1"># shape (q, r, s)</span>
-    <span class="n">dndmh</span>    <span class="o">=</span> <span class="n">dn_dm</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">mh</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">omega_m</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">sheth_a</span><span class="o">=</span><span class="n">sheth_a</span><span class="p">,</span> <span class="n">sheth_q</span><span class="o">=</span><span class="n">sheth_q</span><span class="p">,</span> <span class="n">sheth_p</span><span class="o">=</span><span class="n">sheth_p</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">c</span><span class="p">)</span> <span class="c1"># shape (q, r, s)</span>
+    <span class="n">dmh_dmuv</span> <span class="o">=</span> <span class="n">dmhalo_dmuv</span><span class="p">(</span><span class="n">hz</span><span class="p">,</span> <span class="n">m_uv</span><span class="p">,</span> <span class="n">alpha_star</span><span class="p">,</span> <span class="n">t_star</span><span class="p">,</span> <span class="n">f_star10</span><span class="p">,</span> <span class="n">omega_b</span><span class="p">,</span> <span class="n">omega_m</span><span class="p">,</span> <span class="n">mh</span> <span class="o">=</span> <span class="n">mh</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span> <span class="c1"># shape (q, r, s)</span>
+    
+    <span class="k">if</span> <span class="n">dndmh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dndmh</span> <span class="o">=</span> <span class="n">dn_dm</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">mh</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">omega_m</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">sheth_a</span><span class="o">=</span><span class="n">sheth_a</span><span class="p">,</span> <span class="n">sheth_q</span><span class="o">=</span><span class="n">sheth_q</span><span class="p">,</span> <span class="n">sheth_p</span><span class="o">=</span><span class="n">sheth_p</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">c</span><span class="p">)</span> <span class="c1"># shape (q, r, s)</span>
 
     <span class="k">return</span> <span class="n">f_duty</span><span class="p">(</span><span class="n">mh</span><span class="p">,</span> <span class="n">m_turn</span><span class="p">)</span> <span class="o">*</span> <span class="n">dndmh</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dmh_dmuv</span><span class="p">)</span></div>
 

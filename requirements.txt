@@ -1,0 +1,5 @@
+numpy==2.2.3
+pytest==8.3.5
+scipy==1.15.2
+setuptools==65.5.0
+torch==2.6.0

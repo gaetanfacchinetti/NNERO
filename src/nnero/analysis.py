@@ -1070,11 +1070,19 @@ def prepare_data_plot(samples: Samples, data_to_plot, discard = 0, thin = 1, **k
 #################################################
 ## PLOTTING TOOLS
 
+MATPLOTLIB_IMPORTED = False
 
-import matplotlib.pyplot as plt
-import matplotlib.colors as mpc
+try:
 
-from dataclasses import dataclass
+    import matplotlib.pyplot as plt
+    import matplotlib.colors as mpc
+
+    from dataclasses import dataclass
+
+    MATPLOTLIB_IMPORTED = True
+
+except:
+    pass
 
 
 class AxesGrid:
@@ -1088,6 +1096,9 @@ class AxesGrid:
                  labels: list[str] | None = None,
                  names: list[str] | None = None,
                  **kwargs):
+        
+        if MATPLOTLIB_IMPORTED is False:
+            raise ImportError("matplotlib")
 
         # close all pre-existing figures and disable interactive mode
         plt.close('all')
