@@ -5,9 +5,9 @@ name: NNERO
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "torch" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "torch" ]
 
 jobs:
   build:
