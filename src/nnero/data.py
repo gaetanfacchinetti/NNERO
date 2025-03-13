@@ -792,7 +792,7 @@ class DataSet:
         pca_eigenvectors = eigenvectors[:, idx].T
 
         # define the number of vectors from the precision on the eigenvalues
-        pca_n_eigenvectors = np.where(np.sqrt(pca_eigenvalues)/pca_eigenvalues[0] < pca_precision)[0][0]
+        pca_n_eigenvectors = np.where(np.sqrt(pca_eigenvalues/pca_eigenvalues[0]) < pca_precision)[0][0]
 
         # update the metadata accordingly
         self.metadata._pca_mean_values    = pca_mean_values

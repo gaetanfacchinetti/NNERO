@@ -637,8 +637,6 @@ def compute_tau(flat_chain: np.ndarray,
                 classifier: Classifier | None = None,
                 regressor: Regressor | None = None) -> np.ndarray:
 
-        data_for_tau = []
-
       
 
         # get the ordered list of parameters
@@ -1831,10 +1829,19 @@ def get_Xe_stats(samples: Samples,
                    classifier: Classifier | None = None,
                    regressor: Regressor | None = None,
                    smooth: bool = False,
-                   sigma_smooth: float = 1.5):
+                   sigma_smooth: float = 1.5,
+                   **kwargs):
 
-    data = prepare_data_Xe(samples, data_to_plot, discard, thin, classifier=classifier, regressor=regressor)
-    Xe = predict_Xe_numpy(theta=data.T, classifier=classifier, regressor=regressor)
+    data = prepare_data_Xe(samples, data_to_plot, discard, thin, classifier=classifier, regressor=regressor).T
+
+    for kw, val in kwargs.items():
+        if kw in regressor.parameters_name:
+            ikw = list(regressor.parameters_name).index(kw)
+            data[:, ikw] = val
+        else:
+            raise ValueError("Need to pass a kwarg that is in the parameter list of the classifier / regressor")
+
+    Xe = predict_Xe_numpy(theta=data, classifier=classifier, regressor=regressor)
 
     # here remove some outliers that should not have 
     # passed the likelihood condition
