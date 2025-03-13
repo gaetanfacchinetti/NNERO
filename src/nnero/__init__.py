@@ -30,8 +30,12 @@ from .predictor    import (input_values, predict_classifier, predict_xHII, predi
                          predict_Xe, predict_Xe_numpy, predict_tau_from_Xe, predict_tau_from_Xe_numpy,
                          predict_parameter, predict_parameter_numpy, predict_interpolator, predict_interpolator_numpy)
 from .mcmc         import (log_prior, log_likelihood, log_probability, initialise_walkers, Likelihood, UVLFLikelihood)
-from .analysis     import (MPChain, Samples, MPSamples, EMCEESamples, GaussianInfo, GaussianSamples, AxesGrid, plot_data, 
-                           generate_contours, ProcessedData, compute_quantiles, neutrino_masses, prepare_data_plot,
-                           get_Xe_stats, get_Xe_tanh_stats)
+from .analysis     import (MPChain, Samples, MPSamples, EMCEESamples, GaussianInfo, GaussianSamples, neutrino_masses)
 
+from .analysis import MATPLOTLIB_IMPORTED
+
+if MATPLOTLIB_IMPORTED:
+    from .analysis import(AxesGrid, plot_data,  generate_contours, ProcessedData, 
+                          compute_quantiles, prepare_data_plot,
+                          get_Xe_stats, get_Xe_tanh_stats)
 
