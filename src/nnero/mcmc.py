@@ -24,6 +24,7 @@ import os, pickle
 import pkg_resources
 
 from abc import ABC, abstractmethod
+from typing import Callable
 
 from scipy       import special, interpolate
 from .data       import uniform_to_true
@@ -630,7 +631,7 @@ def log_likelihood(theta: np.ndarray,
 
         # second, compute the matter power spectrum from a given function
         k_arr: np.ndarray  = np.logspace(np.log10(uvlf_lkl.k[0]), np.log10(k_max), 50000).T
-        func: function     = kwargs.get('matter_power_spectrum_computer')
+        func: Callable     = kwargs.get('matter_power_spectrum_computer')
         x_dicts: dict       = uvlf_lkl.get_x_dicts(x)
 
         pk_arr = np.zeros((x.shape[0], k_arr.shape[1]))

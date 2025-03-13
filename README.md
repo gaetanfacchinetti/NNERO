@@ -1,6 +1,6 @@
 # NNERO
 
-[![Build Status](https://github.com/gaetanfacchinetti/NNERO/actions/workflows/python-package.yml/badge.svg?branch=main)](https://github.com/gaetanfacchinetti/NNERO/actions/workflows/CI.yml?query=branch%3Amain)
+[![Build Status](https://github.com/gaetanfacchinetti/NNERO/actions/workflows/python-package.yml/badge.svg?branch=torch)](https://github.com/gaetanfacchinetti/NNERO/actions/workflows/CI.yml?query=branch%3Atorch)
 
 [![License: GPL v3](https://img.shields.io/badge/license-GPLv3-green.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
