@@ -13,5 +13,4 @@ nnero
    source/nnero.predictor
    source/nnero.mcmc
    source/nnero.analysis
-   
-   
+   source/nnero.constants

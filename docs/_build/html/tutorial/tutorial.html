@@ -6,21 +6,21 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Introduction to the Tutorial &mdash; NNERO 0.0.0 documentation</title>
+  <title>Installation guide &mdash; NNERO 1.0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=7026087e"></script>
+      <script src="../_static/documentation_options.js?v=292eb321"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="nnero" href="../modules.html" />
-    <link rel="prev" title="NNERO documentation" href="../index.html" /> 
+    <link rel="prev" title="NNERO" href="../index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -44,11 +44,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Tutorial</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction to the Tutorial</a><ul class="simple">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#simple-case">Simple case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#run-simple-mcmc-on-astrophysical-parameters">Run simple MCMC on astrophysical parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#use-analysis-plotting-tools-in-nnero">Use analysis / plotting tools in NNERO</a></li>
 </ul>
-</li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../modules.html">nnero</a></li>
 </ul>
@@ -67,9 +68,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Introduction to the Tutorial</li>
+      <li class="breadcrumb-item active">Installation guide</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/tutorial/tutorial.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/tutorial/tutorial.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -77,26 +78,140 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="introduction-to-the-tutorial">
-<h1>Introduction to the Tutorial<a class="headerlink" href="#introduction-to-the-tutorial" title="Link to this heading"></a></h1>
-<div class="toctree-wrapper compound">
+  <p>Welcome to this short NNERO tutorial.</p>
+<section id="installation-guide">
+<h1>Installation guide<a class="headerlink" href="#installation-guide" title="Link to this heading"></a></h1>
+<p>NNERO can be installed using pip with the following command</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>nnero
+</pre></div>
 </div>
-<p>Welcome to this tutorial! This guide will help you get started with our project.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This tutorial assumes you have Python installed.</p>
+<p>For a manual installation or development you can clone this repository and install it with</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/gaetanfacchinetti/NNERO.git<span class="w"> </span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
 </div>
-<p>Steps:
-1. Install the required libraries.
-2. Understand the project structure.
-3. Run a sample script.</p>
+</section>
+<section id="simple-case">
+<h1>Simple case<a class="headerlink" href="#simple-case" title="Link to this heading"></a></h1>
+<p>NNERO combines two neural networks, a classifier that identifies if a model leads to a reionization that is early enough, and a regressor that predict the evolution of the free-electron fraction and the associated optical depth to reionization.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">nnero</span> <span class="kn">import</span> <span class="n">predict_Xe</span>
+<span class="kn">from</span> <span class="nn">nnero</span> <span class="kn">import</span> <span class="n">predict_tau</span>
+
+<span class="c1"># load classifier and regressor at &lt;path_*&gt;, if no &lt;path&gt; given, the defaults are loaded</span>
+<span class="n">classifier</span><span class="o">=</span><span class="n">nnero</span><span class="o">.</span><span class="n">Classifier</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="o">&lt;</span><span class="n">path_c</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="n">regressor</span><span class="o">=</span><span class="n">nnero</span><span class="o">.</span><span class="n">Regressor</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="o">&lt;</span><span class="n">path_r</span><span class="o">&gt;</span><span class="p">)</span>
+
+<span class="c1"># print general information</span>
+<span class="c1"># - structure of the network</span>
+<span class="c1"># - input parameters name and training range</span>
+<span class="n">regressor</span><span class="o">.</span><span class="n">info</span><span class="p">()</span>
+
+<span class="c1"># get Xe from loaded classifier and regressor</span>
+<span class="c1"># **kwargs can be any parameter that is printed calling the info() function above</span>
+<span class="n">Xe</span><span class="o">=</span><span class="n">predict_Xe</span><span class="p">(</span><span class="n">classifier</span><span class="p">,</span> <span class="n">regressor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="n">z</span><span class="o">=</span><span class="n">regressor</span><span class="o">.</span><span class="n">z</span>
+
+<span class="c1"># get tau similarly</span>
+<span class="n">tau</span><span class="o">=</span><span class="n">predict_tau</span><span class="p">(</span><span class="n">classifier</span><span class="p">,</span> <span class="n">regressor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="run-simple-mcmc-on-astrophysical-parameters">
+<h1>Run simple MCMC on astrophysical parameters<a class="headerlink" href="#run-simple-mcmc-on-astrophysical-parameters" title="Link to this heading"></a></h1>
+<p>With NNERO it is possible to run simple MCMC using emcee on the astrophysical packages, combining the UV-Luminosity function likelihood, the likelihood on the reionzation history and a constraint on the optical depth to reionization. A simple example is given below.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">nnero</span>
+<span class="kn">import</span> <span class="nn">emcee</span>
+
+<span class="n">classifier</span> <span class="o">=</span> <span class="n">nnero</span><span class="o">.</span><span class="n">Classifier</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+<span class="n">regressor</span>  <span class="o">=</span> <span class="n">nnero</span><span class="o">.</span><span class="n">Regressor</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+
+<span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;output.h5&quot;</span>
+
+<span class="c1"># varying parameters</span>
+<span class="n">p_theta</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;F_STAR10&#39;</span><span class="p">,</span> <span class="s1">&#39;ALPHA_STAR&#39;</span><span class="p">,</span> <span class="s1">&#39;F_ESC10&#39;</span><span class="p">,</span> <span class="s1">&#39;ALPHA_ESC&#39;</span><span class="p">,</span> <span class="s1">&#39;M_TURN&#39;</span><span class="p">,</span> <span class="s1">&#39;t_STAR&#39;</span><span class="p">,</span> <span class="s1">&#39;L_X&#39;</span><span class="p">,</span> <span class="s1">&#39;NU_X_THRESH&#39;</span><span class="p">]</span>
+
+<span class="c1"># fixed parameters and their value</span>
+<span class="n">p_xi</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Ombh2&#39;</span><span class="p">,</span> <span class="s1">&#39;Omdmh2&#39;</span><span class="p">,</span> <span class="s1">&#39;hlittle&#39;</span><span class="p">,</span> <span class="s1">&#39;Ln_1010_As&#39;</span><span class="p">,</span> <span class="s1">&#39;POWER_INDEX&#39;</span><span class="p">]</span>
+<span class="n">xi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0224</span><span class="p">,</span> <span class="mf">0.12</span><span class="p">,</span> <span class="mf">0.677</span><span class="p">,</span> <span class="mf">3.05</span><span class="p">,</span> <span class="mf">0.965</span><span class="p">])</span>
+
+<span class="c1"># save the parameters used</span>
+<span class="n">nnero</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">save_sampling_parameters</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">p_theta</span><span class="p">,</span> <span class="n">p_xi</span><span class="p">,</span> <span class="n">xi</span><span class="p">)</span>
+
+<span class="c1"># define the Likelihoods</span>
+<span class="n">uv_lkl</span>   <span class="o">=</span> <span class="n">nnero</span><span class="o">.</span><span class="n">UVLFLikelihood</span><span class="p">(</span><span class="n">parameters</span><span class="o">=</span><span class="n">p_theta</span><span class="o">+</span><span class="n">p_xi</span><span class="p">,</span> 
+    <span class="n">parameters_xi</span><span class="o">=</span><span class="n">p_xi</span><span class="p">,</span> <span class="n">xi</span> <span class="o">=</span> <span class="n">xi</span><span class="p">,</span> <span class="n">precompute</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="n">k</span><span class="p">,</span> <span class="n">pk</span> <span class="o">=</span> <span class="n">pk</span><span class="p">)</span>
+<span class="n">tau_lkl</span>  <span class="o">=</span> <span class="n">nnero</span><span class="o">.</span><span class="n">mcmc</span><span class="o">.</span><span class="n">OpticalDepthLikelihood</span><span class="p">(</span><span class="n">parameters</span><span class="o">=</span><span class="n">p_theta</span><span class="o">+</span><span class="n">p_xi</span><span class="p">,</span> 
+    <span class="n">classifier</span><span class="o">=</span><span class="n">classifier</span><span class="p">,</span> <span class="n">regressor</span><span class="o">=</span><span class="n">regressor</span><span class="p">,</span> 
+    <span class="n">median_tau</span><span class="o">=</span><span class="mf">0.0557</span><span class="p">,</span> <span class="n">sigma_tau</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0075</span><span class="p">,</span> <span class="mf">0.0067</span><span class="p">]))</span>
+<span class="n">reio_lkl</span> <span class="o">=</span> <span class="n">nnero</span><span class="o">.</span><span class="n">mcmc</span><span class="o">.</span><span class="n">ReionizationLikelihood</span><span class="p">(</span><span class="n">parameters</span><span class="o">=</span><span class="n">p_theta</span><span class="o">+</span><span class="n">p_xi</span><span class="p">,</span> 
+    <span class="n">classifier</span><span class="o">=</span><span class="n">classifier</span><span class="p">,</span> <span class="n">regressor</span><span class="o">=</span><span class="n">regressor</span><span class="p">)</span>
+
+<span class="c1"># get the name and the range of the parameters on which the NN have been trained</span>
+<span class="n">p_range</span> <span class="o">=</span> <span class="n">regressor</span><span class="o">.</span><span class="n">parameters_range</span>
+<span class="n">p_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">regressor</span><span class="o">.</span><span class="n">parameters_name</span><span class="p">)</span>
+
+<span class="c1"># definen the prior range for the varying parameters</span>
+<span class="n">theta_min</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p_range</span><span class="p">[</span><span class="n">p_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">param</span><span class="p">),</span> <span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">p_theta</span><span class="p">])</span>
+<span class="n">theta_max</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p_range</span><span class="p">[</span><span class="n">p_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">param</span><span class="p">),</span> <span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">p_theta</span><span class="p">])</span>
+
+<span class="c1"># initialise the walkers ar random values</span>
+<span class="n">pos</span> <span class="o">=</span> <span class="n">nnero</span><span class="o">.</span><span class="n">initialise_walkers</span><span class="p">(</span><span class="n">theta_min</span><span class="p">,</span> <span class="n">theta_max</span><span class="p">,</span> <span class="n">xi</span><span class="p">,</span> 
+    <span class="n">likelihoods</span> <span class="o">=</span> <span class="p">[</span><span class="n">uv_lkl</span><span class="p">,</span> <span class="n">tau_lkl</span><span class="p">,</span> <span class="n">reio_lkl</span><span class="p">],</span>  <span class="n">n_walkers</span> <span class="o">=</span> <span class="mi">32</span><span class="p">)</span>
+<span class="n">nwalkers</span><span class="p">,</span> <span class="n">ndim</span> <span class="o">=</span> <span class="n">pos</span><span class="o">.</span><span class="n">shape</span>
+
+<span class="c1"># define the emcee backend</span>
+<span class="n">backend</span> <span class="o">=</span> <span class="n">emcee</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">HDFBackend</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+<span class="c1"># sample over the distribution</span>
+<span class="n">sampler</span> <span class="o">=</span> <span class="n">emcee</span><span class="o">.</span><span class="n">EnsembleSampler</span><span class="p">(</span><span class="n">nwalkers</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">nnero</span><span class="o">.</span><span class="n">log_probability</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="n">theta_min</span><span class="p">,</span> <span class="n">theta_max</span><span class="p">,</span> <span class="p">[</span><span class="n">tau_lkl</span><span class="p">,</span> <span class="n">reio_lkl</span><span class="p">,</span> <span class="n">uv_lkl</span><span class="p">]),</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">vectorize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">sampler</span><span class="o">.</span><span class="n">run_mcmc</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="mi">200000</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">True</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="use-analysis-plotting-tools-in-nnero">
+<h1>Use analysis / plotting tools in NNERO<a class="headerlink" href="#use-analysis-plotting-tools-in-nnero" title="Link to this heading"></a></h1>
+<p>NNERO has a built-in set of function to perform MCMCs and
+In the example below we show how to plot the result of a MCMC performed with emcee as described above or with MontePython</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">nnero</span>
+
+<span class="n">classifier</span> <span class="o">=</span> <span class="n">nnero</span><span class="o">.</span><span class="n">Classifier</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+<span class="n">regressor</span>  <span class="o">=</span> <span class="n">nnero</span><span class="o">.</span><span class="n">Regressor</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+
+<span class="c1"># import the samples from generated files</span>
+<span class="c1"># assume that both samples are for the p_theta parameters above</span>
+<span class="n">samples_MP</span> <span class="o">=</span> <span class="n">nnero</span><span class="o">.</span><span class="n">MPSamples</span><span class="p">(</span><span class="s1">&#39;&lt;path&gt;/chains/test/2025-03-12_500000_&#39;</span><span class="p">)</span>
+<span class="n">samples_EM</span> <span class="o">=</span> <span class="n">nnero</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">EMCEESamples</span><span class="p">(</span><span class="s1">&#39;output.h5&#39;</span><span class="p">,</span> <span class="n">add_tau</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">parameters</span> <span class="o">=</span> <span class="n">p_theta</span>
+
+<span class="c1"># prepare the data for plotting                 </span>
+<span class="n">data_MP</span> <span class="o">=</span> <span class="n">nnero</span><span class="o">.</span><span class="n">prepare_data_plot</span><span class="p">(</span><span class="n">samples_MP</span><span class="p">,</span> <span class="n">data_to_plot</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span>
+<span class="n">data_EM</span> <span class="o">=</span> <span class="n">nnero</span><span class="o">.</span><span class="n">prepare_data_plot</span><span class="p">(</span><span class="n">samples_EM</span><span class="p">,</span> <span class="n">data_to_plot</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
+    <span class="n">thin</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">classifier</span> <span class="o">=</span> <span class="n">classifier</span><span class="p">,</span> <span class="n">regressor</span> <span class="o">=</span> <span class="n">regressor</span><span class="p">)</span>
+
+<span class="c1"># process the data to generate the contours and all statistics</span>
+<span class="n">c_data_MP</span> <span class="o">=</span> <span class="n">nnero</span><span class="o">.</span><span class="n">generate_contours</span><span class="p">(</span><span class="n">data_MP</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> 
+    <span class="n">smooth_1D</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">smooth_2D</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sigma_smooth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="n">c_data_EM</span> <span class="o">=</span> <span class="n">nnero</span><span class="o">.</span><span class="n">generate_contours</span><span class="p">(</span><span class="n">data_EM</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> 
+    <span class="n">smooth_1D</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">smooth_2D</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sigma_smooth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+
+<span class="c1"># get the labels associated to the parameters</span>
+<span class="n">labels</span> <span class="o">=</span> <span class="n">nnero</span><span class="o">.</span><span class="n">latex_labels</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+
+<span class="c1"># prepare the grid for the triangle plot</span>
+<span class="n">grid</span> <span class="o">=</span> <span class="n">nnero</span><span class="o">.</span><span class="n">AxesGrid</span><span class="p">(</span><span class="n">c_data</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="p">,</span> <span class="n">names</span> <span class="o">=</span> <span class="n">data</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.4</span><span class="p">)</span>
+
+<span class="c1"># plot the contours on the grid</span>
+<span class="n">nnero</span><span class="o">.</span><span class="n">plot_data</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">c_data_MP</span><span class="p">,</span> <span class="n">show_contour</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_points</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+<span class="n">nnero</span><span class="o">.</span><span class="n">plot_data</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">c_data_EM</span><span class="p">,</span> <span class="n">show_contour</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_points</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../index.html" class="btn btn-neutral float-left" title="NNERO documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../index.html" class="btn btn-neutral float-left" title="NNERO" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="../modules.html" class="btn btn-neutral float-right" title="nnero" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

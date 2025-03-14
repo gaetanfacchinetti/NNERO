@@ -1,15 +1,19 @@
-Introduction to the Tutorial
-============================
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Tutorial
-
-# Tutorial
-
 Welcome to this short NNERO tutorial.
 
-### Simple case
+# Installation guide
+
+NNERO can be installed using pip with the following command
+```bash
+pip install nnero
+```
+For a manual installation or development you can clone this repository and install it with
+```bash
+git clone https://github.com/gaetanfacchinetti/NNERO.git 
+pip install -e .
+```
+
+
+# Simple case
 
 NNERO combines two neural networks, a classifier that identifies if a model leads to a reionization that is early enough, and a regressor that predict the evolution of the free-electron fraction and the associated optical depth to reionization.
 
@@ -36,7 +40,7 @@ tau=predict_tau(classifier, regressor, **kwargs)
 ```
 
 
-### Run simple MCMC on astrophysical parameters
+# Run simple MCMC on astrophysical parameters
 
 With NNERO it is possible to run simple MCMC using emcee on the astrophysical packages, combining the UV-Luminosity function likelihood, the likelihood on the reionzation history and a constraint on the optical depth to reionization. A simple example is given below.
 
@@ -89,7 +93,7 @@ sampler = emcee.EnsembleSampler(nwalkers, ndim, nnero.log_probability, args = (x
 sampler.run_mcmc(pos, 200000, progress=True);
 ```
 
-### Use analysis / plotting tools in NNERO
+# Use analysis / plotting tools in NNERO
 
 NNERO has a built-in set of function to perform MCMCs and 
 In the example below we show how to plot the result of a MCMC performed with emcee as described above or with MontePython

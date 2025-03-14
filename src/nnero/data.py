@@ -108,6 +108,7 @@ def preprocess_raw_data(file_path: str, *, random_seed: int = 1994, frac_test: f
         parameters_max_val   = data.get('parameters_max_val', None)
         xHIIdb               = data.get('xHIIdb', None)
         parameters_name      = data.get('parameters_name', None)
+        ps                   = data.get('ps', None)
         
         extras_array = None
         if extras is not None and features_run is not None:
@@ -144,6 +145,8 @@ def preprocess_raw_data(file_path: str, *, random_seed: int = 1994, frac_test: f
     # parameters for xHIIdb
     xHIIdb = np.vstack((xHIIdb, np.zeros((n_sl, xHIIdb.shape[1]))))
 
+    if ps is not None: ps = np.concatenate((ps, np.zeros((n_sl, ps.shape[1], ps.shape[2]))))
+
     if extras is not None:
         extras_array = np.hstack((extras_array, np.zeros((extras_array.shape[0], n_sl))))
 
@@ -153,6 +156,7 @@ def preprocess_raw_data(file_path: str, *, random_seed: int = 1994, frac_test: f
     features  = features[r]
     cosmology = cosmology[r]
     xHIIdb    = xHIIdb[r]
+    ps        = ps[r]
 
     if extras is not None:
         for iex, _ in enumerate(extras_array):
@@ -209,7 +213,8 @@ def preprocess_raw_data(file_path: str, *, random_seed: int = 1994, frac_test: f
                  frac_test = frac_test,
                  frac_valid = frac_valid,
                  extras_array = extras_array,
-                 extras_name  = extras)
+                 extras_name  = extras,
+                 ps = ps)
 
 
 def true_to_uniform(x: float | np.ndarray,
@@ -701,6 +706,7 @@ class DataSet:
             self._features  = data.get('features',  None)
             self._cosmology = data.get('cosmology', None)
             self._xHIIdb    = data.get('xHIIdb',    None)
+            self._ps        = data.get('ps', None)
 
             # possibility to add extra values for each run
             if isinstance(data.get('extras_array', None), np.ndarray):
@@ -842,6 +848,10 @@ class DataSet:
     @property
     def extras_name(self):
         return self._extras_name
+    
+    @property
+    def ps(self):
+        return self._ps
     
 
 
