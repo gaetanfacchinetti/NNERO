@@ -123,7 +123,8 @@ class UVLFLikelihood(Likelihood):
                  xi: np.ndarray | None = None,
                  k: np.ndarray | None = None, 
                  pk: np.ndarray | None = None,
-                 precompute: bool = False) -> None:
+                 precompute: bool = False,
+                 **kwargs) -> None:
     
     
         self._k  = k
@@ -162,11 +163,11 @@ class UVLFLikelihood(Likelihood):
                 else: 
                     raise ValueError("Need to import CLASS to pecompute the matter power spectrum if not given as input.")
         
-        self.sheth_a = 0.322
-        self.sheth_q = 1.0
-        self.sheth_p = 0.3 
-        self.c       = 2.5
-        self.window  = 'sharpk'
+        self.sheth_a = kwargs.get('sheth_a', 0.322)
+        self.sheth_q = kwargs.get('sheth_q', 1.0)
+        self.sheth_p = kwargs.get('sheth_p', 0.3)
+        self.c       = kwargs.get('c', 2.5)
+        self.window  = kwargs.get('window', 'sharpk')
 
         elements_to_check = ['ALPHA_STAR', 't_STAR', 'F_STAR10', 'M_TURN']
         if not np.all([element in parameters for element in elements_to_check]):
