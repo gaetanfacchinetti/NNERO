@@ -18,6 +18,7 @@ pip install -e .
 NNERO combines two neural networks, a classifier that identifies if a model leads to a reionization that is early enough, and a regressor that predict the evolution of the free-electron fraction and the associated optical depth to reionization.
 
 ```python
+import nnero
 from nnero import predict_Xe
 from nnero import predict_tau
 

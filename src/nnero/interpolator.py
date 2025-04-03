@@ -81,6 +81,7 @@ class Interpolator(NeuralNetwork):
                  n_hidden_layers: int = 5, 
                  model = None, 
                  parameter: str | None = None,
+                 id_param: int | None = None,
                  name: str | None = None):
 
         
@@ -95,6 +96,10 @@ class Interpolator(NeuralNetwork):
                 raise ValueError("No extra parameters in the dataset.")
             
             self._id_param  = list(dataset.extras_name).index(parameter) if parameter is not None else 0
+        
+        else:
+
+            self._id_param = id_param
 
          
         self._parameter = parameter
@@ -119,7 +124,7 @@ class Interpolator(NeuralNetwork):
             model = nn.Sequential(nn.Linear(n_input, n_hidden_features), *hidden_layers, nn.Linear(n_hidden_features, 1))
         
             # save the structure of this sequential model and more
-            struct = np.array([n_input, n_hidden_features, n_hidden_layers, self.parameter])
+            struct = np.array([n_input, n_hidden_features, n_hidden_layers, self.parameter, self.id_param])
         
         # call the (grand)parent constructors
         super(Interpolator, self).__init__(name)
@@ -177,6 +182,7 @@ class Interpolator(NeuralNetwork):
                                           n_hidden_features=int(struct[1]), 
                                           n_hidden_layers=int(struct[2]),
                                           parameter=str(struct[3]),
+                                          id_param=int(struct[4]),
                                           name=name)
                     interpolator.load_weights_and_extras(path)
                     interpolator.eval()

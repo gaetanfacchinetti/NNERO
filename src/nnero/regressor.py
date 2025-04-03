@@ -257,7 +257,7 @@ class Regressor(NeuralNetwork):
         return torch.mean(torch.abs(1.0-torch.div(output, target[:, :-1])))
 
     def loss_tau(self, tau_pred, target):
-        return torch.mean(torch.abs(1.0 - torch.div(tau_pred, target[:, -1])))
+        return torch.mean(torch.abs(1.0-torch.div(tau_pred, target[:, -1])))
     
     def test_tau(self, dataset:DataSet) -> np.ndarray:
         """

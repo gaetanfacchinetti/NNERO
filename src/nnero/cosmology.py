@@ -279,11 +279,17 @@ def h_factor_no_rad(z:       float | np.ndarray | torch.Tensor,
     numpy.ndarray or torch.Tensor with shape (q1,..., qn, p)
     """
 
+    xp = np
+    to_torch = False
+    if isinstance(z, torch.Tensor):
+        xp = torch
+        to_torch = True
+
     # convert the input if they are just floats
-    omega_b = convert_array(omega_b)
-    omega_c = convert_array(omega_c)
-    h       = convert_array(h)
-    z       = convert_array(z)
+    omega_b = convert_array(omega_b, to_torch)
+    omega_c = convert_array(omega_c, to_torch)
+    h       = convert_array(h, to_torch)
+    z       = convert_array(z, to_torch)
                    
     # a is of shape (1, ..., p)
     p = len(z.flatten())
@@ -297,12 +303,6 @@ def h_factor_no_rad(z:       float | np.ndarray | torch.Tensor,
     m_omega_l  = (_h**2) - m_omega_m 
 
     # result is of shape (q1, ..., qn, p)
-    # np.sqrt also works on torch tensors
-
-    xp = np
-    if isinstance(z, torch.Tensor):
-        xp = torch
-
     return xp.sqrt(m_omega_m / (a**3)  + m_omega_l) / _h
 
 
