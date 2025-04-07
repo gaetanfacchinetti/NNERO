@@ -176,7 +176,7 @@ class Interpolator(NeuralNetwork):
             with open(path  + '_struct.npy', 'rb') as file:
                 struct  = np.load(file)
 
-                if len(struct) == 4:
+                if len(struct) == 5:
 
                     interpolator = Interpolator(n_input=int(struct[0]), 
                                           n_hidden_features=int(struct[1]), 
@@ -202,7 +202,7 @@ class Interpolator(NeuralNetwork):
             
             return interpolator
         
-        raise ValueError("Could not find a fully saved regressor model at: " + path)
+        raise ValueError("Could not find a fully saved interpolator model at: " + path)
 
 
         
