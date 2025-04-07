@@ -315,6 +315,9 @@ class DataPartition:
         
         self._early = np.sort(np.concatenate((self.early_test, self.early_valid, self.early_train)))
 
+        # by default the selection is the full set of early points
+        self.set_selection(self._early)
+
     def __call__(self):
         _new_early = {('early_' + k): val for k, val in self._early_dict.items()}
         _new_total = {('total_' + k): val for k, val in self._total_dict.items()}
@@ -379,7 +382,20 @@ class DataPartition:
                                  data.get('total_train'), 
                                  data.get('total_valid'), 
                                  data.get('total_test'))
+        
+
+    def set_selection(self, sample: np.ndarray) -> None:
+
+        # define a subset of the early partition
+        # this "selection" is what the regressor is trained on
+
+        self._selection_train = np.intersect1d(sample, self.early_train)
+        self._selection_valid = np.intersect1d(sample, self.early_valid)
+        self._selection_test  = np.intersect1d(sample, self.early_test)
+
+        self._selection = np.intersect1d(sample, self.early)
     
+
     @property
     def early_train(self):
         return self._early_dict['train']
@@ -403,6 +419,22 @@ class DataPartition:
     @property
     def total_test(self):
         return self._total_dict['test']
+    
+    @property
+    def selection(self):
+        return self._selection
+    
+    @property
+    def selection_train(self):
+        return self._selection_train
+    
+    @property
+    def selection_valid(self):
+        return self._selection_valid
+    
+    @property
+    def selection_test(self):
+        return self._selection_test
     
     @property
     def early(self):
@@ -660,7 +692,8 @@ class DataSet:
                  frac_test: float  = 0.1, 
                  frac_valid: float = 0.1,
                  seed_split: int   = 1994,
-                 extras: list[str] | None = None) -> None:
+                 extras: list[str] | None = None,
+                 constr_tau: float | None = None) -> None:
 
         # --------------------------------
         # initialisation from input values 
@@ -700,6 +733,7 @@ class DataSet:
         self._extras_name  = None
 
         with open(file_path[:-4]+ "_pp.npz", 'rb') as file:
+
             data = np.load(file, allow_pickle=True)
             
             self._redshifts = data.get('redshifts', None)
@@ -739,15 +773,24 @@ class DataSet:
         
         self._x_array = true_to_uniform(self._features, self.metadata.parameters_min_val, self.metadata.parameters_max_val)
         
+
+        # add a possible cut on tau to the classifier
+        # so that we do not need to learn very excluded scenarios
+        # with the regressor
+        if constr_tau is not None:
+            indices_low_tau  = np.where(self._tau < constr_tau)[0]
+            indices_low_xHII = np.where(self._xHIIdb[:, -1] < 0.99)[0]
+            indices_good     = np.intersect1d(indices_low_tau, indices_low_xHII)
+            self.partition.set_selection(indices_good)
+
         # set 0 to the late reionization and 1 to that are early enough
         self._y_classifier = np.zeros(len(self._features))
-        self._y_classifier[self.partition.early] = 1.0
-
+        self._y_classifier[self.partition.selection] = 1.0
            
         self._y_regressor = np.zeros((n_tot, len(self.metadata.z) + 1))
         for i in range(n_tot):
             self._y_regressor[i, -1] = self._tau[i]
-            if i in self.partition.early:
+            if i in self.partition.selection:
                 self._y_regressor[i, :-1] = interpolate.interp1d(self._redshifts, self._xHIIdb[i, :])(self.metadata.z)
             
         # convert to float32 objects
@@ -776,7 +819,7 @@ class DataSet:
         """
 
         # array on which we perform the principal component analysis
-        arr = interpolate.interp1d(self._redshifts, np.log10(self._xHIIdb[self.partition.early_train, :]))(self.metadata.z)
+        arr = interpolate.interp1d(self._redshifts, np.log10(self._xHIIdb[self.partition.selection_train, :]))(self.metadata.z)
         
         # mean of the functions
         pca_mean_values = np.mean(arr, axis=0)

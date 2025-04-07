@@ -400,27 +400,7 @@ def optical_depth_no_rad(z:       float | np.ndarray | torch.Tensor,
     trapz     = (integrand[..., 1:] + integrand[..., :-1])/2.0
     dz        = xp.diff(rs, axis=-1)
     res       = xp.sum(trapz * dz, axis=-1)
-
-    """
-    # fast trapezoid integration scheme (on small z values)
-    # h_factor_numpy is of shape (p, n), z_small of shape (1, p) and xHII_small of shape (1, p)
-    # integrand_small is of shape (n, p), trapz_small of shape (n, p-1)
-    # res is of shape (n,)
-    integrand_small = xHII_small * (1+z_small)**2 / h_factor_no_rad(z_small, omega_b, omega_c, h)
-    trapz_small     = (integrand_small[..., 1:] + integrand_small[..., :-1])/2.0
-    dz_small        = xp.diff(z_small, axis=-1)
-    res             = xp.sum(trapz_small * dz_small, axis=-1)
-
-    # fast trapezoid integration scheme (on large z values)
-    # h_factor_numpy is of shape (n, p), z of shape (1, p) and xHII of shape (n, p)
-    # integrand is of shape (n, p), trapz of shape (n, p-1)
-    # res is of shape (n,)
-    integrand = xHII * (1+z)**2 / h_factor_no_rad(z, omega_b, omega_c, h)
-    trapz     = (integrand[..., 1:] + integrand[..., :-1])/2.0
-    dz        = xp.diff(z, axis=-1)
-    res       = res + xp.sum(trapz * dz, axis=-1)
-    """
-
+    
     # adding the correct prefactor in front
     # pref is of shape (n,)
     pref = CST_EV_M_S_K.c_light * CST_EV_M_S_K.sigma_Thomson * n_baryons(omega_b) / (100 * h * CONVERSIONS.km_to_mpc)

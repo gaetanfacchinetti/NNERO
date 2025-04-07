@@ -291,11 +291,11 @@ def train_interpolator(model: Interpolator,
 
     # clean the dataset (# may have some issued for some values)
     # the dataset needs to be checked before hand
-    y_train = dataset.extras_array[model.id_param, dataset.partition.early_train]
-    x_train = dataset.x_array[dataset.partition.early_train]
+    y_train = dataset.extras_array[model.id_param, dataset.partition.selection_train]
+    x_train = dataset.x_array[dataset.partition.selection_train]
 
-    y_valid = dataset.extras_array[model.id_param, dataset.partition.early_valid]
-    x_valid = dataset.x_array[dataset.partition.early_valid]
+    y_valid = dataset.extras_array[model.id_param, dataset.partition.selection_valid]
+    x_valid = dataset.x_array[dataset.partition.selection_valid]
 
     mask = ~(np.isnan(y_train) | np.isinf(y_train))
     x_train = x_train[mask]
@@ -310,7 +310,7 @@ def train_interpolator(model: Interpolator,
     train_dataset = TorchDataset(x_train, y_train)
     valid_dataset = TorchDataset(x_valid, y_valid)
     train_loader  = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, **kwargs)
-    valid_loader  = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size, shuffle=True, **kwargs)
+    valid_loader  = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size, shuffle=False, **kwargs)
 
     # we have only one param_group here
     # we modify the learning rate of that group

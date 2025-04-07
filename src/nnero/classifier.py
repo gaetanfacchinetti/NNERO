@@ -157,7 +157,7 @@ class Classifier(NeuralNetwork):
         # check for a pickled save of the full class
         # (although this is not recommended)
         if os.path.isfile(path  + '.pth') :
-            classifier = torch.load(path + ".pth")
+            classifier = torch.load(path + ".pth", weights_only=False)
             classifier.eval()
 
             print('Model ' + str(name) + ' sucessfully loaded from a .pth archive')
@@ -302,7 +302,7 @@ def train_classifier(model: Classifier,
     train_dataset = TorchDataset(x_train, y_train)
     valid_dataset = TorchDataset(x_valid, y_valid)
     train_loader  = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, **kwargs)
-    valid_loader  = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size, shuffle=True, **kwargs)
+    valid_loader  = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size, shuffle=False, **kwargs)
     
     # we have only one param_group here
     # we modify the learning rate of that group

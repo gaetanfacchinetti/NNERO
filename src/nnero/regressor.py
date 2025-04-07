@@ -276,8 +276,8 @@ class Regressor(NeuralNetwork):
         """
 
         self.set_check_metadata_and_partition(dataset, check_only = True)
-        x_test   = torch.tensor(dataset.x_array[dataset.partition.early_test],     dtype=torch.float32)
-        tau_test = torch.tensor(dataset.y_regressor[dataset.partition.early_test, -1], dtype=torch.float32)
+        x_test   = torch.tensor(dataset.x_array[dataset.partition.selection_test],     dtype=torch.float32)
+        tau_test = torch.tensor(dataset.y_regressor[dataset.partition.selection_test, -1], dtype=torch.float32)
         
         self.eval()
         
@@ -303,8 +303,8 @@ class Regressor(NeuralNetwork):
         """
 
         self.set_check_metadata_and_partition(dataset, check_only = True)
-        x_test = torch.tensor(dataset.x_array[dataset.partition.early_test],          dtype=torch.float32)
-        y_test = torch.tensor(dataset.y_regressor[dataset.partition.early_test, :-1], dtype=torch.float32)
+        x_test = torch.tensor(dataset.x_array[dataset.partition.selection_test],          dtype=torch.float32)
+        y_test = torch.tensor(dataset.y_regressor[dataset.partition.selection_test, :-1], dtype=torch.float32)
         
         self.eval()
         
@@ -370,10 +370,10 @@ def train_regressor(model: Regressor,
     model.set_check_metadata_and_partition(dataset)
 
     # format the data for the regressor
-    train_dataset = TorchDataset(dataset.x_array[dataset.partition.early_train], dataset.y_regressor[dataset.partition.early_train])
-    valid_dataset = TorchDataset(dataset.x_array[dataset.partition.early_valid], dataset.y_regressor[dataset.partition.early_valid])
+    train_dataset = TorchDataset(dataset.x_array[dataset.partition.selection_train], dataset.y_regressor[dataset.partition.selection_train])
+    valid_dataset = TorchDataset(dataset.x_array[dataset.partition.selection_valid], dataset.y_regressor[dataset.partition.selection_valid])
     train_loader  = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, **kwargs)
-    valid_loader  = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size, shuffle=True, **kwargs)
+    valid_loader  = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size, shuffle=False, **kwargs)
 
     # we have only one param_group here
     # we modify the learning rate of that group
