@@ -69,7 +69,8 @@ class Classifier(NeuralNetwork):
                 n_hidden_layers: int = 4, 
                 model: torch.nn.Module | None = None, 
                 name: str | None = None,
-                dataset: DataSet | None = None) -> None:
+                dataset: DataSet | None = None,
+                dropouts: list[float] = []) -> None:
 
         # if no name, give a default
         if name is None:
@@ -82,21 +83,32 @@ class Classifier(NeuralNetwork):
         # give a default empty array for the structure
         # stays None if a complex model is passed as input
         struct = np.empty(0)
+
+        # initialise the default dropout layers
+        if len(dropouts) > 0 and len(dropouts) != n_hidden_layers:
+            raise ValueError("The number of dropouts values should be equal to the number of hidden layers")
+    
+        if len(dropouts) == 0:
+            dropouts = [0.0] * n_hidden_layers
     
         # if no model defined in input give a model
         if model is None:
             
             # define a list of hidden layers
             hidden_layers = []
-            for _ in range(n_hidden_layers):
+            for il in range(n_hidden_layers):
+                
                 hidden_layers.append(nn.Linear(n_hidden_features, n_hidden_features))
                 hidden_layers.append(nn.ReLU())
+                
+                if dropouts[il] > 0:
+                    hidden_layers.append(nn.Dropout(dropouts[il]))
 
             # create a sequential model
             model  = nn.Sequential(nn.Linear(n_input, n_hidden_features), *hidden_layers, nn.Linear(n_hidden_features, 1), nn.Sigmoid())
             
             # save the structure of this sequential model
-            struct = np.array([n_input, n_hidden_features, n_hidden_layers])
+            struct = np.array([n_input, n_hidden_features, n_hidden_layers, *dropouts])
 
         # call the (grand)parent init function
         super(Classifier, self).__init__(name)
@@ -143,9 +155,24 @@ class Classifier(NeuralNetwork):
             with open(path  + '_struct.npy', 'rb') as file:
                 struct  = np.load(file)
 
+                good_structure: bool = False
+
+                if len(struct) == 3 + int(struct[2]):
+                    
+                    dropouts = []
+                    for j in range(3, len(struct)):
+                        dropouts.append(struct[j])
+
+                    good_structure = True
+
+                # for compatibility with older versions
                 if len(struct) == 3:
 
-                    classifier = Classifier(n_input=struct[0], n_hidden_features=struct[1], n_hidden_layers=struct[2])
+                    dropouts = [0.0] * int(struct[2])
+                    good_structure = True
+
+                if good_structure: 
+                    classifier = Classifier(n_input=int(struct[0]), n_hidden_features=int(struct[1]), n_hidden_layers=int(struct[2]), dropouts=dropouts)
                     classifier.load_weights_and_extras(path)
                     classifier.eval()
 
