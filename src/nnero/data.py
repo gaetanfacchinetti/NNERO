@@ -31,7 +31,7 @@ from .cosmology import optical_depth_no_rad
 
 LATEX_LABELS = {'hlittle' : r'$h$', 'Ln_1010_As' : r'$\ln (10^{10}A_{\rm s})$', 'F_STAR10' : r'$\log_{10} f_{\star, 10}$',
                   'ALPHA_STAR' : r'$\alpha_\star$', 't_STAR' : r'$t_\star$', 'F_ESC10' : r'$\log_{10} f_{\rm esc, 10} $', 
-                  'ALPHA_ESC' : r'$\alpha_{\rm esc}$', 'M_TURN' : r'$\log_{10} M_{\rm turn}$', 'Omdmh2' : r'$\omega_{\rm dm}$', 
+                  'ALPHA_ESC' : r'$\alpha_{\rm esc}$', 'M_TURN' : r'$\log_{10} \left[\frac{M_{\rm turn}}{M_\odot}\right]$', 'Omdmh2' : r'$\omega_{\rm dm}$', 
                   'Ombh2' : r'$\omega_{\rm b}$', 'POWER_INDEX' : r'$n_{\rm s}$', 'M_WDM' : r'$m_{\rm WDM}~{\rm [keV]}$', 
                   'INVERSE_M_WDM' : r'$\mu_{\rm WDM}$', 'FRAC_WDM' : r'$f_{\rm WDM}$', 'NEUTRINO_MASS_1' : r'$m_{\nu_1}$',
                   'LOG10_PMF_SB' : r'$\log_{10} s_{\rm B}$', 'PMF_NB' : r'$n_{\rm B}$', 'tau_reio' : r'$\tau$', 

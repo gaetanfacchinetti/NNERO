@@ -1579,6 +1579,7 @@ try:
                 show_mean: bool = False,
                 show_title: bool = True,
                 show_points: bool = False,
+                show_marginals: bool = True,
                 redefine_edges: bool = True,
                 q_in_title: int = 0.68,
                 colors: list[str]  = 'orange',
@@ -1586,21 +1587,36 @@ try:
                 exclude_quantiles : int | str | list[int] | list[str] = [],
                 exclude_mean : int | str | list[int] | list[str] = [],
                 exclude_title : int | str | list[int] | list[str] = [],
-                alphas: list[float] = 1.0):
+                exclude_marginal : int | str | list[int] | list[str]  = [],
+                alpha_surface: list[float] = 1.0,
+                alpha_contour: list[float] = 1.0,
+                alpha: list[float] | None = None, 
+                linestyle_contour: list[str] = ['-'],
+                linewidth_contour: list[float] = [1.0]):
         
+        # preparing plotting option arrays
+        linewidth_contour, alpha_surface, alpha_contour, colors, exclude_quantiles, exclude_mean, exclude_title = ([array] if isinstance(array, float) else array for array in [linewidth_contour, alpha_surface, alpha_contour, colors, exclude_quantiles, exclude_mean, exclude_title])
+        linestyle_contour = [linestyle_contour] if isinstance(linestyle_contour, str) else linestyle_contour
+        exclude_quantiles, exclude_mean, exclude_title, exclude_marginal = (grid.index_from_name(exclude) if (len(exclude) > 0 and isinstance(exclude[0], str)) else exclude for exclude in [exclude_quantiles, exclude_mean, exclude_title, exclude_marginal])
 
-        alphas, colors, exclude_quantiles, exclude_mean, exclude_title = ([array] if isinstance(array, float) else array for array in [alphas, colors, exclude_quantiles, exclude_mean, exclude_title])
-        exclude_quantiles, exclude_mean, exclude_title = (grid.index_from_name(exclude) if (len(exclude) > 0 and isinstance(exclude[0], str)) else exclude for exclude in [exclude_quantiles, exclude_mean, exclude_title])
 
         if axes is None:
             axes = np.arange(0, data.size)
 
+        # we we just give the alphas, overrides the separate values
+        # for contours and surfaces
+        if alpha is not None:
+            alpha = [alpha] if isinstance(alpha, float) else alpha
+            alpha_surface = alpha
+            alpha_contour = alpha
+
 
         # first define the colors we will need to use
-        contour_colors = [mpc.to_rgba(color, alphas[ic]) if isinstance(color, str) else color for ic, color in enumerate(colors)]
+        contour_colors = [mpc.to_rgba(color, alpha_contour[ic]) if isinstance(color, str) else color for ic, color in enumerate(colors)]
+        surface_colors = [mpc.to_rgba(color, alpha_surface[ic]) if isinstance(color, str) else color for ic, color in enumerate(colors)]
 
         # if we provide one color and we ask for more levels then
-        # we define new colors automatically colors
+        # we define new colors automatically
         if len(contour_colors) == 1:
             
             pastelness = np.array([0.7]) if len(data.levels[0, 0]) == 3 else np.linspace(0.5, 0.8, len(data.levels[0, 0])-2)
@@ -1609,6 +1625,7 @@ try:
 
             # add custom pastel colors to the stack of colors
             contour_colors = np.vstack(((1.0 - pastelness) * np.array(contour_colors) + pastelness, contour_colors))
+            surface_colors = np.vstack(((1.0 - pastelness) * np.array(surface_colors) + pastelness, surface_colors))
             
         # plot the contours and points
         for i in range(1, data.size):
@@ -1632,20 +1649,22 @@ try:
                 
                 if show_surface is True:
                     try:
-                        grid.get(axes[i], axes[j]).contourf(*np.meshgrid(data.centers[j], data.centers[i]), hist.T, levels=data.levels[i, j], colors=contour_colors)
+                        grid.get(axes[i], axes[j]).contourf(*np.meshgrid(data.centers[j], data.centers[i]), hist.T, levels=data.levels[i, j], colors=surface_colors)
                     except ValueError as e:
                         print("Error for axis : ", i, j)
                         raise e
 
                 if show_contour is True:
-                    grid.get(axes[i], axes[j]).contour(*np.meshgrid(data.centers[j], data.centers[i]), hist.T, levels=data.levels[i, j], colors=contour_colors)
+                    grid.get(axes[i], axes[j]).contour(*np.meshgrid(data.centers[j], data.centers[i]), hist.T, levels=data.levels[i, j], colors=contour_colors, linestyles=linestyle_contour, linewidths=linewidth_contour, zorder=10)
 
 
         
         # fill in the 1D histograms
+       
         for i in range(0, data.size):
             
-            grid.get(axes[i], axes[i]).stairs(data.hists_1D[i], edges=data.edges[i, :], color = colors[0])
+            if show_marginals and (i not in exclude_marginal):
+                grid.get(axes[i], axes[i]).stairs(data.hists_1D[i], edges=data.edges[i, :], color = colors[0], linestyle = linestyle_contour[0], linewidth = linewidth_contour[0])
 
             if (show_mean is True) and (i not in exclude_mean):
                 grid.get(axes[i], axes[i]).axvline(data.mean[i], color=contour_colors[0], linewidth=0.5, linestyle='--')
